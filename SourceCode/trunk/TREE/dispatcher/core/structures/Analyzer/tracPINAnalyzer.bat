@@ -1,0 +1,1 @@
+python cidata.py -p -t %1 -i %2
