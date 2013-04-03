@@ -9,6 +9,10 @@
  Taint-enabled Reverse Engineering Environment
  by Battelle BIT Team                       
 #############################################
+++Desciption++
+
+Taint-enabled Reverse Engineering Environment(TREE) is an IDA-pro plugin to allow for on-demand binary analysis utilizing cross-platform analysis toolsets. 
+
 
 ++Requirements++
 Python 2.7
@@ -35,3 +39,7 @@ TREE_Tracer.py
 Analyzer - Main widget for taint generation upon a trace file/transfer from trace generator.
 Concurrency
 Visualizer - 
+
+++ Instructions ++
+Edit -> Plugins -> Tree Tracer
+Edit -> Plugins -> Tree Analyzer
