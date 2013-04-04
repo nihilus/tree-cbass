@@ -66,11 +66,14 @@ class FileWriter():
     
     def __init__(self):
         self.file=None
+        self.filename = None
     
     def fileOpen(self,filename):
         self.file=file(filename,'wb')
+        self.filename = filename
         
     def writeToFile(self,data):
+            
         self.file.write(data)
     
     def fileClose(self):

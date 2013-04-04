@@ -104,6 +104,17 @@ def checkLinuxLibs(name,ea):
             idc.SetBptAttr(fread_func, idc.BPT_BRK, 0)
             idc.SetBptCnd(fread_func, "linuxFileIO.My_fread()")
 
+        fclose_func = idc.LocByName("_IO_fclose");
+        
+        if fclose_func == idc.BADADDR:
+            logger.info( "Cannot find _IO_fclose" )
+            print "Cannot find _IO_fclose."
+        else:
+            logger.info( "We found _IO_fclose at 0x%x." % fclose_func )
+            print "We found _IO_fclose at 0x%x." % fclose_func  
+            idc.AddBpt(fclose_func)
+            idc.SetBptAttr(fclose_func, idc.BPT_BRK, 0)
+            idc.SetBptCnd(fclose_func, "linuxFileIO.My_fclose()")
         
 def checkMacOSXLibs(name,ea):
     print "Checking Mac OSX"

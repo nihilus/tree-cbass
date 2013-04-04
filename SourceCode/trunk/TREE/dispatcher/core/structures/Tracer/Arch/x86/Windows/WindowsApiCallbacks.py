@@ -17,7 +17,6 @@ class FileIO:
     
     def __init__(self):
         self.logger = None
-        print "[FileIO] constructor called."
         self.lpBuffer = None
         self.lpNumberOfBytesRead = None
         self.debuggerInstance = None
@@ -26,7 +25,6 @@ class FileIO:
         
     def SetLoggerInstance(self,logger):
         self.logger = logger
-        print "logger instance set"
         
     def SetDebuggerInstance(self,dbgHook):
         self.debuggerInstance = dbgHook
@@ -86,9 +84,9 @@ class FileIO:
         return 0
     
     def MyCreateFileWEnd(self):
-        print "Returning from CreateFileW..."
+        #print "Returning from CreateFileW..."
         handle = idc.GetRegValue("EAX")
-        print "HANDLE is 0x%x" % handle
+        #print "HANDLE is 0x%x" % handle
         
         self.handleSet.add(handle)
         self.logger.info( "HANDLE is 0x%x" % handle)
@@ -133,7 +131,7 @@ class FileIO:
         fileName = os.path.basename(filePath)
         
         self.logger.info( "The filename is %s" % fileName)
-        print "The filename is %s" % fileName
+        #print "The filename is %s" % fileName
                 
         retAddr = Util.GetData(0x0)
         
@@ -142,11 +140,11 @@ class FileIO:
             idc.SetBptAttr(retAddr, idc.BPT_BRK, 0)
             idc.SetBptCnd(retAddr,"windowsFileIO.MyCreateFileWEnd()")
             self.logger.info( "Filter matched. Add handle to the handle's dictionary to start logging.")
-            print "Filter matched. Add handle to the handle's dictionary to start logging."
+            #print "Filter matched. Add handle to the handle's dictionary to start logging."
 
         else:
             if idc.CheckBpt(retAddr) >= 0:
-                print "Removing un-needed breakpoint."
+                #print "Removing un-needed breakpoint."
                 self.logger.info("Removing un-needed breakpoint.")
                 idc.DelBpt(retAddr)
                 
@@ -165,13 +163,13 @@ class FileIO:
         hObject = Util.GetData(0x4)
         threaId = idc.GetCurrentThreadId()
         
-        print  "MyCloseHandle hFile is 0x%x" % (hObject)
+        #  "MyCloseHandle hFile is 0x%x" % (hObject)
         self.logger.info( "MyCloseHandle [%d] hFile is 0x%x" % (threaId,hObject) )
 
         if hObject in self.handleSet:
             self.handleSet.remove(hObject)
             self.logger.info("Removing handle 0x%x from Handle Set" % hObject)
-            print "Removing handle 0x%x from Handle Set" % hObject
+            # "Removing handle 0x%x from Handle Set" % hObject
 
         return 0
     
@@ -188,12 +186,12 @@ class FileIO:
         self.logger.debug( _buffer ) 
         
         if retVal:
-            print  "ReadFile succeeded."
+           # print  "ReadFile succeeded."
             self.logger.info( "ReadFile succeeded.")
             self.debuggerInstance.callbackProcessing(self.lpBuffer,NumberOfBytesRead,_buffer)
             
         else:
-            print "ReadFile failed."
+           # print "ReadFile failed."
             self.logger.info("ReadFile failed.")
         
         return 0
@@ -228,13 +226,13 @@ class FileIO:
         
         if hFile in self.handleSet:
             self.logger.info("Ready to read from handle 0x%x" % hFile )
-            print "Ready to read from handle 0x%x" % hFile
+            #print "Ready to read from handle 0x%x" % hFile
             idc.AddBpt(retAddr)
             idc.SetBptCnd(retAddr,"windowsFileIO.MyReadFileEnd()")
         else:
             if idc.CheckBpt(retAddr) >= 0:
                 self.logger.info("Removing un-needed ReadFile breakpoint.")
-                print "Removing un-needed ReadFile breakpoint."
+              #  print "Removing un-needed ReadFile breakpoint."
                 idc.DelBpt(retAddr)
             
         return 0

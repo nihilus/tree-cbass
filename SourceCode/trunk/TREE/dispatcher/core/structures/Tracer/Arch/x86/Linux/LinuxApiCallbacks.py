@@ -16,13 +16,15 @@ import idaapi
 class FileIO:
     
     def __init__(self):
-        self.logger = logging.getLogger('IDATrace')
+        self.logger = None
         self.debuggerInstance = None
         self.filter = None
         self.pBuffer = None
         self.pSize = 0
-        self.handlesTable = dict()
-        self.bStartTracking = False
+        self.handleSet = set()
+    
+    def SetLoggerInstance(self,logger):
+        self.logger = logger
         
     def SetDebuggerInstance(self,dbgHook):
         self.debuggerInstance = dbgHook
@@ -30,12 +32,6 @@ class FileIO:
     def SetFilters(self,_filter):
         self.filter = _filter
         
-    def SetDebuggerInstance(self,dbgHook):
-        self.debuggerInstance = dbgHook
-        
-    def SetFilters(self,_filter):
-        self.filter = _filter
-
     def My_freadEnd(self):
         _buffer = idaapi.dbg_read_memory(self.pBuffer,self.pSize)
         self.logger.debug( _buffer)
@@ -46,11 +42,6 @@ class FileIO:
         if numBytesRead > 0:
             self.logger.info( "_fread succeeded.")
             self.debuggerInstance.callbackProcessing(self.pBuffer,self.pSize,_buffer)
-            
-            self.debuggerInstance.dbg_step_into()
-            idaapi.request_step_into()
-            idaapi.run_requests()
-                
         else:
             self.logger.info( "_fread failed.")
         
@@ -81,27 +72,33 @@ class FileIO:
         self.pBuffer = ptr
 
         retAddr = Util.GetData(0x0)
+        """
+        Not sure if I need this, comment out for now
+        
         bptConstant = idc.CheckBpt(retAddr)
             
         if bptConstant != idc.BPTCK_NONE:
             idc.DelBpt(retAddr)
-            
-        if self.handlesTable.has_key(stream):
+        """    
+        if stream in self.handleSet:
             self.logger.info( "Found stream 0x%x" % stream)
             
             idc.AddBpt(retAddr)
+            idc.SetBptAttr(retAddr, idc.BPT_BRK, 0)
             idc.SetBptCnd(retAddr,"linuxFileIO.My_freadEnd()")
         else:
             self.logger.info( "Cannot find handle 0x%x" % stream)
-            
 
-    
         return 0
     
     def My_fopenEnd(self):
+        """
+        Not need to call this function here since fopen already contains the handle
+        """
         stream = idc.GetRegValue("EAX")
         
         self.logger.info( "HANDLE is 0x%x" % stream)
+        self.handleSet.add(stream)
     
         return 0
     
@@ -133,8 +130,7 @@ class FileIO:
         self.logger.info( "The filename is %s" % fileName)
         
         if fileName in self.filter['file']:
-            self.handlesTable[fp] = fileName
-            self.bStartTracking = True
+            self.handleSet.add(fp)
             self.logger.info( "Filter matched. Add handle to the handle's dictionary to start logging.")
         else:
             self.logger.info( "Filter did not match.")

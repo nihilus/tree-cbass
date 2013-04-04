@@ -55,12 +55,12 @@
 	  <args>mytaint.txt</args>
 	  <sdir>/home/user/Downloads/basicov</sdir>
 	  <remote>True</remote>
-	  <host>192.168.214.142</host>
+	  <host>192.168.214.129</host>
 	  <pass></pass>
 	  <port>23946</port>
       </input>
       <filter type="fileIO">
-		<fileName>malevolent.wav</fileName>
+		<fileName>mytaint.txt</fileName>
       </filter>
    </process>
       <process name="sox" OS="linux" Arch="32">

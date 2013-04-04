@@ -231,6 +231,7 @@ class IDATrace():
             print "Setting LinuxsApiCallbacks"
             self.linuxFileIO.SetDebuggerInstance(EThook)
             self.linuxFileIO.SetFilters(filters)
+            self.linuxFileIO.SetLoggerInstance(self.logger)
             
         customBreakpoints = config.getCustomBreakpoints()
         

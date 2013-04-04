@@ -40,14 +40,14 @@ class ETDbgHook(DBG_Hooks):
         self.memoryWriter = FileWriter()
         self.tracefileName = targetProcess.traceFile
         self.checkInput = targetProcess.checkInput
-        print "ETDbgHook created."
+        self.memoryWriter.fileOpen(self.tracefileName)
+        #print "ETDbgHook created."
         
     def __del__(self):
         print  'ETDbgHook died'
         
     def dbg_process_start(self, pid, tid, ea, name, base, size):
         self.logger.info("Process started, pid=%d tid=%d name=%s ea=0x%x" % (pid, tid, name,ea))
-        self.memoryWriter.fileOpen(self.tracefileName)
         self.memoryWriter.writeToFile("L %s %x %x\n" % (name, base, size))
 
     def dbg_process_exit(self, pid, tid, ea, code):
@@ -87,6 +87,7 @@ class ETDbgHook(DBG_Hooks):
 
     def dbg_suspend_process(self):
         self.logger.info( "Process suspended" )
+        self.dbg_step_into()
         idaapi.request_step_into()
         idaapi.run_requests()
 
@@ -323,10 +324,12 @@ class ETDbgHook(DBG_Hooks):
         self.logger.info("dbg_step_until_ret: 0x%x %s" % (eip, GetDisasm(eip)))
         
     def callbackProcessing(self,addr,data_size,data):
-        threaId = GetCurrentThreadId()
         #self.memoryWriter.writeToFile("I %x %d %s (%s)\n" % (addr,data_size,Util.toHex(data), data))
-        self.logger.info("CallbackProcessing called [%d].  Logging input... I %x %d %s" % (threaId,addr,data_size,Util.toHex(data)) )
+        self.logger.info("CallbackProcessing called.  Logging input... I %x %d %s" % (addr,data_size,Util.toHex(data)) )
         self.memoryWriter.writeToFile("I %x %d %s\n" % (addr,data_size,Util.toHex(data)))
+        eip = GetRegValue("EIP")
+        DelBpt(eip)
+        
         PauseProcess()
         
 
