@@ -16,9 +16,6 @@ class IDATrace():
         self.linuxFileIO         = funcCallbacks['linuxFileIO'] 
         self.customCallback = funcCallbacks['customCallback']
 
-    def getTraceFileName(self):
-        return self.tracefile
-        
     def removeBreakpoints(self):
         import idc
         
@@ -33,7 +30,6 @@ class IDATrace():
         import idc
         import logging
         import os
-        import dispatcher.config as idaConfiguration
         import sys
         
         from dispatcher.core.structures.Tracer import InputMonitor as InputMonitor
@@ -102,7 +98,7 @@ class IDATrace():
         print fileType
         
         #Get the root IDA directory in order to locate the config.xml file
-        root_dir = idaConfiguration.configuration["paths"]["dispatcher_root_dir"]
+        root_dir = idc.GetIdaDirectory() + "\\plugins\\"
         configFile = root_dir + "\dispatcher\core\structures\Tracer\Config\config.xml"
         print configFile
         

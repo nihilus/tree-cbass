@@ -34,112 +34,48 @@ class TraceGeneratorWidget(QtGui.QMainWindow):
         """
         # Create buttons
         from PySide import QtGui
-        self.processes_label = QtGui.QLabel("Processes (0/0)")
-        self.active_process_label = QtGui.QLabel("Selected Process:")
-        self.trace_nodes_label = QtGui.QLabel("Trace Nodes(0/0)")
+        config_info_label = QtGui.QLabel("Configurable Parameters")
+        process_info_label = QtGui.QLabel("Proces Information")
         
         self._createToolbar()
         
-        self._createProcessTable()
-        self._createDetailsTable() #create detailst able
-        self._createTraceTable()
-        
         trace_layout = QtGui.QVBoxLayout()
-        trace_info_widget = QtGui.QWidget()
-        trace_info_layout = QtGui.QHBoxLayout()
-        trace_info_layout.addWidget(self.trace_nodes_label)
-        trace_info_widget.setLayout(trace_info_layout)
         
-        upper_table_widget = QtGui.QWidget()
-        upper_table_layout = QtGui.QVBoxLayout()
-        upper_table_layout.addWidget(trace_info_widget)
-        upper_table_layout.addWidget(self.trace_table)
-        upper_table_widget.setLayout(upper_table_layout)
-        
-        process_info_widget = QtGui.QWidget()
-        process_info_layout = QtGui.QHBoxLayout()
-        #self.process_active_only_cb = QtGui.QCheckBox("Only active processes")
-        process_info_layout.addWidget(self.processes_label)
-        #process_info_layout.addWidget(self.process_table)
-        process_info_widget.setLayout(process_info_layout)
-        
-        details_widget = QtGui.QWidget()
-        details_layout = QtGui.QHBoxLayout()
-        details_layout.addWidget(self.process_table)
-        details_layout.addWidget(self.details_table)
-        details_widget.setLayout(details_layout)
-        
-        lower_tables_widget = QtGui.QWidget()
-        lower_tables_layout = QtGui.QVBoxLayout()
-        lower_tables_layout.addWidget(process_info_widget)
-        lower_tables_layout.addWidget(details_widget)
-        lower_tables_widget.setLayout(lower_tables_layout)
+        cb = QtGui.QCheckBox('Show title', self)
+        cb.move(20, 20)
+        cb.toggle()
+
+        proc_info_widget = QtGui.QWidget()
+        proc_info_layout = QtGui.QVBoxLayout()
+        proc_info_layout.addWidget(cb)
+        proc_info_widget.setLayout(proc_info_layout)
+
+        config_info_widget = QtGui.QWidget()
+        config_info_layout = QtGui.QVBoxLayout()
+        config_info_widget.setLayout(config_info_layout)
         
         splitter = self.QtGui.QSplitter(self.QtCore.Qt.Vertical)
         q_clean_style = QtGui.QStyleFactory.create('Plastique')
         splitter.setStyle(q_clean_style)
-        splitter.addWidget(upper_table_widget)
-        splitter.addWidget(lower_tables_widget)
+        splitter.addWidget(process_info_label)
+        splitter.addWidget(proc_info_widget)
+        splitter.addWidget(config_info_label)
+        splitter.addWidget(config_info_widget)
         trace_layout.addWidget(splitter)
         
         self.central_widget.setLayout(trace_layout)
-        self.populateProcessTable()
-        self.populateTraceTable()
+
         
     def _createToolbar(self):
         """
         Create the toolbar
         """
-        self._createImportConfigAction()
-        self._createImportTraceAction()
+
         self._createGenerateTraceAction() 
         self._createSaveConfigAction() 
         self.toolbar = self.addToolBar('Trace Generation Toolbar')
-        self.toolbar.addAction(self.importConfigAction)
-        self.toolbar.addAction(self.importTraceAction)
         self.toolbar.addAction(self.saveConfigAction)
         self.toolbar.addAction(self.generateTraceAction)
-        
-    def _createImportConfigAction(self):
-        """
-        Create the import config action
-        """
-        from PySide import QtGui
-        from PySide.QtGui import QIcon
-        self.importConfigAction = QtGui.QAction(QIcon(self.parent.iconPath +
-        "import2.png"),
-            "Import the XML config", self)
-        self.importConfigAction.triggered.connect(self.onImportConfigButtonClicked)
-        
-    def onImportConfigButtonClicked(self):
-        """
-        Action for importing an XML file containing VM information
-        """
-        from dispatcher.trace_config import TraceConfig
-        fname, _ = self.QtGui.QFileDialog.getOpenFileName(self, 'Import Config')
-        self.t_config_fname = fname
-        self.t_config = TraceConfig(fname)
-        print self.t_config
-        self.populateProcessTable()
-        
-    def _createImportTraceAction(self):
-        """
-        Create the import trace action
-        """
-        from PySide import QtGui
-        from PySide.QtGui import QIcon
-        self.importTraceAction = QtGui.QAction(QIcon(self.parent.iconPath +
-        "import.png"),
-            "Import the trace file", self)
-        self.importTraceAction.triggered.connect(self.onImportTraceButtonClicked)
-        
-    def onImportTraceButtonClicked(self):
-        """ 
-        Action for importing an Trace file and populate table
-        """
-        from dispatcher.core.structures.Parse import TrNode
-        fname, _ = self.QtGui.QFileDialog.getOpenFileName(self, 'Import Trace')
-        self.trace_fname = fname
         
     def _createGenerateTraceAction(self):
         """
@@ -177,8 +113,6 @@ class TraceGeneratorWidget(QtGui.QMainWindow):
         """
         
         #start debugging
-
-        
         
     def _createTraceTable(self):
         """
