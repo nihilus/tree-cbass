@@ -21,7 +21,7 @@ class ConcurrencyWidget(QtGui.QMainWindow):
         # Access to shared modules
         self.parent = parent
         self.name = "Concurrency"
-        self.icon = QIcon(self.parent.config.icon_file_path + "trace.png")
+        self.icon = QIcon(self.parent.iconPath + "trace.png")
         
         #References to qt-specific modules
         self.QtGui = QtGui
@@ -84,7 +84,7 @@ class ConcurrencyWidget(QtGui.QMainWindow):
         """
         Create the refresh action for the oolbar. triggers a scan of virtualmachines and updates the GUI.
         """
-        self.refreshAction = QtGui.QAction(QIcon(self.parent.config.icon_file_path + "refresh.png"), "Refresh the " \
+        self.refreshAction = QtGui.QAction(QIcon(self.parent.iconPath + "refresh.png"), "Refresh the " \
             + "view by scanning all the processes again", self)
         self.refreshAction.triggered.connect(self._onRefreshButtonClicked)
         
@@ -92,7 +92,7 @@ class ConcurrencyWidget(QtGui.QMainWindow):
         """
         Create that action that performs the trace
         """
-        self.generateAnalyzeAction = QtGui.QAction(QIcon(self.parent.config.icon_file_path + \
+        self.generateAnalyzeAction = QtGui.QAction(QIcon(self.parent.iconPath + \
             "trace.png"), "Generate the trace.", self)
         self.generateAnalyzeAction.triggered.connect(self.onStartAnalyzeButtonClicked)
         
@@ -100,7 +100,7 @@ class ConcurrencyWidget(QtGui.QMainWindow):
         """
         Create the import trace action
         """
-        self.importThreadAction = QtGui.QAction(QIcon(self.parent.config.icon_file_path +
+        self.importThreadAction = QtGui.QAction(QIcon(self.parent.iconPath +
         "import.png"),
             "Import the thread file", self)
         self.importThreadAction.triggered.connect(self.onImportThreadButtonClicked)

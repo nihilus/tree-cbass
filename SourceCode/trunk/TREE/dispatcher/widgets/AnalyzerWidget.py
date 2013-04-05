@@ -17,7 +17,7 @@ class AnalyzerWidget(QtGui.QMainWindow):
         # Access to shared modules
         self.parent = parent
         self.name = "Taint Analysis"
-        self.icon = QIcon(self.parent.config.icon_file_path + "trace.png")
+        self.icon = QIcon(self.parent.iconPath + "trace.png")
         
         #References to qt-specific modules
         self.QtGui = QtGui
@@ -168,7 +168,7 @@ class AnalyzerWidget(QtGui.QMainWindow):
         """
         Create the refresh action for the oolbar. triggers a scan of virtualmachines and updates the GUI.
         """
-        self.refreshAction = QtGui.QAction(QIcon(self.parent.config.icon_file_path + "refresh.png"), "Refresh the " \
+        self.refreshAction = QtGui.QAction(QIcon(self.parent.iconPath + "refresh.png"), "Refresh the " \
             + "view by scanning all the processes again", self)
         self.refreshAction.triggered.connect(self._onRefreshButtonClicked)
         
@@ -176,7 +176,7 @@ class AnalyzerWidget(QtGui.QMainWindow):
         """
         Create that action that performs the trace
         """
-        self.generateAnalyzeAction = QtGui.QAction(QIcon(self.parent.config.icon_file_path + \
+        self.generateAnalyzeAction = QtGui.QAction(QIcon(self.parent.iconPath + \
             "trace.png"), "Generate the trace.", self)
         self.generateAnalyzeAction.triggered.connect(self.onStartAnalyzeButtonClicked)
         
@@ -184,7 +184,7 @@ class AnalyzerWidget(QtGui.QMainWindow):
         """
         Create the import trace action
         """
-        self.importTraceAction = QtGui.QAction(QIcon(self.parent.config.icon_file_path +
+        self.importTraceAction = QtGui.QAction(QIcon(self.parent.iconPath +
         "import.png"),
             "Import the trace file", self)
         self.importTraceAction.triggered.connect(self.onImportTraceButtonClicked)
@@ -508,6 +508,7 @@ class AnalyzerWidget(QtGui.QMainWindow):
                         print("ImageName=%s, LoadAddr = %x, Size=%x" %(tRecord.ImageName, tRecord.LoadAddress, tRecord.ImageSize))
                         out_str = "ImageName=%s, LoadAddr = %x, Size=%x" %(tRecord.ImageName, tRecord.LoadAddress, tRecord.ImageSize)
                         self.trace_table2.append(out_str)
+                     
                 elif (recordType == Input):
                     TP.SetInputTaint(tRecord.currentInputAddr, tRecord.currentInputSize)
                     if(self.verbose_trace_cb.isChecked()):

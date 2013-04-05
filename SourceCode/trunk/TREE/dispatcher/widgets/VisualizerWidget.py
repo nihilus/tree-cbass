@@ -21,7 +21,7 @@ class VisualizerWidget(QtGui.QMainWindow):
         # Access to shared modules
         self.parent = parent
         self.name = "Visualizer"
-        self.icon = QIcon(self.parent.config.icon_file_path + "trace.png")
+        self.icon = QIcon(self.parent.iconPath + "trace.png")
         
         #References to qt-specific modules
         self.QtGui = QtGui
@@ -61,10 +61,10 @@ class VisualizerWidget(QtGui.QMainWindow):
         cd = LineArrowOnStart()          
 
         #make root node and add it to the scene
-        root = ImageNode(nc, cd, None, "root", QImage(self.parent.config.icon_file_path + "trace.png"), 400, 20, 100,100 )
+        root = ImageNode(nc, cd, None, "root", QImage(self.parent.iconPath + "trace.png"), 400, 20, 100,100 )
         #create graph nodes
         #root.addChild( TextNode(nc, cd, root, "node", "Node" , 500, 340, 200, 30))  
-        root2 = ImageNode(nc, cd, root, "root", QImage(self.parent.config.icon_file_path + "trace.png"), 400, 20, 100,100 )
+        root2 = ImageNode(nc, cd, root, "root", QImage(self.parent.iconPath + "trace.png"), 400, 20, 100,100 )
         box = TextNode(nc, cd, root, "node1", "Node", 500, 340, 200, 30)
         box2 = TextNode(nc, cd, root2, "node2", "Node", 500, 340, 200, 30)
         box3 = TextNode(nc, cd, box2, "node3", "Node", 500, 340, 200, 30)
@@ -112,7 +112,7 @@ class VisualizerWidget(QtGui.QMainWindow):
         """
         Create the refresh action for the oolbar. triggers a scan of virtualmachines and updates the GUI.
         """
-        self.refreshAction = QtGui.QAction(QIcon(self.parent.config.icon_file_path + "refresh.png"), "Refresh the " \
+        self.refreshAction = QtGui.QAction(QIcon(self.parent.iconPath + "refresh.png"), "Refresh the " \
             + "view by scanning all the processes again", self)
         self.refreshAction.triggered.connect(self._onRefreshButtonClicked)
         
@@ -120,7 +120,7 @@ class VisualizerWidget(QtGui.QMainWindow):
         """
         Create that action that performs the trace
         """
-        self.generateAnalyzeAction = QtGui.QAction(QIcon(self.parent.config.icon_file_path + \
+        self.generateAnalyzeAction = QtGui.QAction(QIcon(self.parent.iconPath + \
             "trace.png"), "Generate the trace.", self)
         self.generateAnalyzeAction.triggered.connect(self.onStartAnalyzeButtonClicked)
         
@@ -128,7 +128,7 @@ class VisualizerWidget(QtGui.QMainWindow):
         """
         Create the import trace action
         """
-        self.importTraceAction = QtGui.QAction(QIcon(self.parent.config.icon_file_path +
+        self.importTraceAction = QtGui.QAction(QIcon(self.parent.iconPath +
         "import.png"),
             "Import the trace file", self)
         self.importTraceAction.triggered.connect(self.onImportTraceButtonClicked)
@@ -137,7 +137,7 @@ class VisualizerWidget(QtGui.QMainWindow):
         """
         Create the import trace action
         """
-        self.importIDAGraphAction = QtGui.QAction(QIcon(self.parent.config.icon_file_path +
+        self.importIDAGraphAction = QtGui.QAction(QIcon(self.parent.iconPath +
         "online.png"),
             "Generate IDA Graph", self)
         self.importIDAGraphAction.triggered.connect(self.onIDAGraphClicked)

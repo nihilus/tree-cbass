@@ -14,16 +14,13 @@ from idaapi import PluginForm, plugin_t
 from PySide import QtGui
 from PySide.QtGui import QIcon
 
-import dispatcher.config as config
-from dispatcher.core.structures.DispatcherConfiguration import DispatcherConfiguration
-
 from dispatcher.widgets.AnalyzerWidget import AnalyzerWidget
 from dispatcher.widgets.VisualizerWidget import VisualizerWidget
 from dispatcher.widgets.ConcurrencyWidget import ConcurrencyWidget
 
 HOTKEYS = None
 DISPATCHER = None
-NAME = "TREE Analyzer v0.1"
+NAME = "TREE Analyzer v0.2"
 
 class DispatcherForm(PluginForm):
     """
@@ -36,9 +33,10 @@ class DispatcherForm(PluginForm):
         global HOTKEYS
         HOTKEYS = []
         self.dispatcher_widgets = []
-        self.ensureRootPathSanity(config.configuration)
-        self.config = DispatcherConfiguration(config.configuration)
-        self.icon = QIcon(self.config.icon_file_path + "dispatcher.png")
+        self.idaPluginDir = GetIdaDirectory() + "\\plugins\\"
+        self.iconPath = self.idaPluginDir + "\\dispatcher\\icons\\"
+
+        self.icon = QIcon(self.iconPath + "dispatcher.png")
         
     def ensureRootPathSanity(self, configuration):
         try:
@@ -213,12 +211,14 @@ def main():
         return
     except Exception:
         DISPATCHER = DispatcherForm()
-        
+    """    
     if DISPATCHER.config.dispatcher_plugin_only:
         print "Dispatcher: configured as plugin-only mode, ignoring main function of script. " \
             + "This can be changed in \"cida/config.py\"."
     else:
         DISPATCHER.Show()
-        
+    """
+    DISPATCHER.Show()
+    
 if __name__ == "__main__":
     main()

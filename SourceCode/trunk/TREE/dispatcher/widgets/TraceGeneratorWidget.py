@@ -18,7 +18,7 @@ class TraceGeneratorWidget(QtGui.QMainWindow):
         self.idaTracer = IDATrace(funcCallbacks)
         self.parent = parent
         self.name = "Trace Generation"
-        tracer_icon_path = self.parent.config.icon_file_path + "trace.png"
+        tracer_icon_path = self.parent.iconPath+ "trace.png"
         self.icon = QIcon(tracer_icon_path)
         
         #References to qt-specific modules
@@ -106,7 +106,7 @@ class TraceGeneratorWidget(QtGui.QMainWindow):
         """
         from PySide import QtGui
         from PySide.QtGui import QIcon
-        self.importConfigAction = QtGui.QAction(QIcon(self.parent.config.icon_file_path +
+        self.importConfigAction = QtGui.QAction(QIcon(self.parent.iconPath +
         "import2.png"),
             "Import the XML config", self)
         self.importConfigAction.triggered.connect(self.onImportConfigButtonClicked)
@@ -128,7 +128,7 @@ class TraceGeneratorWidget(QtGui.QMainWindow):
         """
         from PySide import QtGui
         from PySide.QtGui import QIcon
-        self.importTraceAction = QtGui.QAction(QIcon(self.parent.config.icon_file_path +
+        self.importTraceAction = QtGui.QAction(QIcon(self.parent.iconPath +
         "import.png"),
             "Import the trace file", self)
         self.importTraceAction.triggered.connect(self.onImportTraceButtonClicked)
@@ -148,7 +148,7 @@ class TraceGeneratorWidget(QtGui.QMainWindow):
         from PySide import QtGui
         from PySide.QtGui import QIcon
         
-        self.generateTraceAction = QtGui.QAction(QIcon(self.parent.config.icon_file_path + "trace.png"), "Generate the trace.", self)
+        self.generateTraceAction = QtGui.QAction(QIcon(self.parent.iconPath + "trace.png"), "Generate the trace.", self)
         self.generateTraceAction.triggered.connect(self.onGenerateTraceButtonClicked)
         
     def onGenerateTraceButtonClicked(self):
@@ -167,7 +167,7 @@ class TraceGeneratorWidget(QtGui.QMainWindow):
         from PySide import QtGui
         from PySide.QtGui import QIcon
         
-        self.saveConfigAction = QtGui.QAction(QIcon(self.parent.config.icon_file_path + "save.png"), "Sasve config", self)
+        self.saveConfigAction = QtGui.QAction(QIcon(self.parent.iconPath + "save.png"), "Sasve config", self)
         self.saveConfigAction.triggered.connect(self.onSaveConfigButtonClicked)
   
         

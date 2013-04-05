@@ -8,11 +8,9 @@ from idaapi import PluginForm
 from PySide import QtGui
 from PySide.QtGui import QIcon
 
-import dispatcher.config as config
-from dispatcher.core.structures.DispatcherConfiguration import DispatcherConfiguration
 from dispatcher.widgets.TraceGeneratorWidget import TraceGeneratorWidget
 
-NAME = "TREE Tracer v0.1"
+NAME = "TREE Tracer v0.2"
 
 from dispatcher.core.structures.Tracer.Arch.x86.Windows import WindowsApiCallbacks as WindowsApiCallbacks
 from dispatcher.core.structures.Tracer.CustomCallbacks import CustomApiFunctions as CustomApiFunctions
@@ -30,30 +28,12 @@ class TreeTracerPluginFormClass(PluginForm):
     def __init__(self):
         super(TreeTracerPluginFormClass, self).__init__()
         print "TreeTracerPluginFormClass init called."
-        
+        self.idaPluginDir = GetIdaDirectory() + "\\plugins\\"
+        self.iconPath = self.idaPluginDir + "\\dispatcher\\icons\\"
         self.dispatcher_widgets = []
-        self.ensureRootPathSanity(config.configuration)
-        self.config = DispatcherConfiguration(config.configuration)
-        self.icon = QIcon(self.config.icon_file_path + "dispatcher.png")
-    
-    def ensureRootPathSanity(self, configuration):
         
-        try:
-            root_dir = configuration["paths"]["dispatcher_root_dir"]
-            print root_dir
-            if not os.path.exists(root_dir) or not "TREE_Tracer.py" in os.listdir(root_dir):
-                resolved_pathname = os.path.dirname(sys.argv[0])
-                if "TREE_Tracer.py" in os.listdir(resolved_pathname):
-                    print "[+] Tree Tracer root directory successfully resolved"
-                    configuration["paths"]["dispatcher_root_dir"] = resolved_pathname
-                else:
-                    print "[-] TREE_Tracer.py is not resolvable"
-                    raise Exception()
-        except:
-            print "[!] Dispatcher config is broken. Could not locate root directory. " \
-                 + "Try setting the field \"dispatcher_root_dir\" to the path where \"TREE_Tracer.py\" is located."
-            sys.exit(-1)
-            
+        self.icon = QIcon(self.iconPath + "dispatcher.png")
+
     def setupTreeTracerPluginForm(self):
         """
         Organize the initialized widgets into tabs
@@ -100,7 +80,7 @@ class TreeTracerPluginFormClass(PluginForm):
         """
         Called when the plugin form is closed
         """
-        #idaapi.msg("Plugin from closing.")
+        idaapi.msg("Plugin from closing.")
 
     def printBanner(self):
         banner = "#############################################\n" \
