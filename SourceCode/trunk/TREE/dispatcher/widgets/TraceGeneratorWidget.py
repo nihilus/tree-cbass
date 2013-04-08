@@ -191,6 +191,17 @@ class TraceGeneratorWidget(QtGui.QMainWindow):
         """
         from PySide import QtGui
         from PySide.QtGui import QIcon
+        from dispatcher.core.structures.Tracer.Config.config import ProcessConfig as ProcessConfig
+        
+        processConfig = ProcessConfig()
+        #Get all the process config data from the GUI
+        """
+        processConfig.name = name
+        processConfig.osType = osType
+        processConfig.osArch = osArch
+        """
+        
+        self.idaTracer.setsetProcessConfig(processConfig)
         
         self.saveConfigAction = QtGui.QAction(QIcon(self.parent.iconPath + "save.png"), "Sasve config", self)
         self.saveConfigAction.triggered.connect(self.onSaveConfigButtonClicked)

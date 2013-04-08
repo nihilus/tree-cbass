@@ -78,7 +78,10 @@ class IDATrace():
         print fileType
         
         return (app_name,os_type,os_arch)
-        
+       
+    def setProcessConfig(self,processConfig):
+        pass
+    
     def getProcessConfig(self,name,osType,osArch):
         import idc
         from dispatcher.core.structures.Tracer.Config.config import ConfigFile as ConfigFile
