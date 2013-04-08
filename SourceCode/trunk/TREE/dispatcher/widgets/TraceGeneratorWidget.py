@@ -155,7 +155,7 @@ class TraceGeneratorWidget(QtGui.QMainWindow):
         self.remote_cb.setText("Remote")
         self.path_label.setText("Path:")
         self.arguments_label.setText("Arguments:    ")
-        
+
     def _createToolbar(self):
         """
         Create the toolbar
@@ -183,7 +183,6 @@ class TraceGeneratorWidget(QtGui.QMainWindow):
         """
         
         #start debugging
-
         self.idaTracer.run()
   
     def _createSaveConfigAction(self):
@@ -348,3 +347,35 @@ class TraceGeneratorWidget(QtGui.QMainWindow):
     def updateProcessesLabel(self,n1, n2):
         self.processes_label.setText("Processes (%d/%d)" %
             (n1, n2))
+
+    def populateConfig(self):
+        config = self.idaTracer.processConfig
+        
+        if config is None:
+            print "Error"
+        else:
+            #False =>Use local debugger, True =>Use remote debugger
+            path  = config.getPath()
+            print path
+            application = config.getApplication()
+            args  = config.getArgs()
+            sdir  = config.getSdir()
+            host  = config.getHost()
+            _pass = config.getPass()
+            _debugger = config.getDebugger()
+            
+            if _debugger is not None:
+                debugger = _debugger
+            
+            port  = int(config.getPort())
+            
+            remote = config.getRemote()=="True"
+            filters = dict()
+            
+            fileFilter = config.getFileFilter()
+            if fileFilter is not None:
+                filters['file'] = fileFilter
+                
+            networkFilter = config.getNetworkFilter()
+            if networkFilter is not None:
+                filters['network'] = networkFilter
