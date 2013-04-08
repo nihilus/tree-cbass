@@ -15,6 +15,9 @@ class IDATrace():
         self.windowsFileIO       = funcCallbacks['windowsFileIO']
         self.linuxFileIO         = funcCallbacks['linuxFileIO'] 
         self.customCallback = funcCallbacks['customCallback']
+        
+        (processName, osType, osArch) = self.getProcessInfo()
+        self.processConfig = self.getProcessConfig(processName, osType, osArch)
 
     def removeBreakpoints(self):
         import idc
@@ -24,33 +27,11 @@ class IDATrace():
             
             if idc.DelBpt(bptAddr):
                 self.logger.info( "Breakpoint at 0x%x removed." % bptAddr )
-                    
-    def run(self):
+    
+    def getProcessInfo(self):
         import idaapi
         import idc
-        import logging
-        import os
-        import sys
         
-        from dispatcher.core.structures.Tracer import InputMonitor as InputMonitor
-        from dispatcher.core.structures.Tracer.Config.config import ConfigFile as ConfigFile
-        from dispatcher.core.structures.Tracer import TargetProcess as TargetProcess
-        from dispatcher.core.structures.Tracer.Arch.x86.Windows import WindowsApiCallbacks as WindowsApiCallbacks
-        from dispatcher.core.structures.Tracer.Arch.x86.Linux import LinuxApiCallbacks as LinuxApiCallbacks
-        from dispatcher.core.structures.Tracer import CustomCallbacks as CustomCallbacks
-        
-        from dispatcher.core.structures.Tracer.ETDbgHook import ETDbgHook as ETDbgHook
-
-        os_type = ""
-        os_arch = ""
-        checkInput = ""
-        filters = dict()
-        bDbg = False
-        bLog = False
-        
-        logfile = ""
-        debugger =""
-     
         #Get basic information from the file being Debugged
         idainfo = idaapi.get_inf_structure()
 
@@ -63,24 +44,24 @@ class IDATrace():
         if idainfo.filetype == idaapi.f_PE:
             print "Windows PE file"
             os_type = "windows"
-            debugger = "win32"
-            checkInput = InputMonitor.checkWindowsLibs
+            #debugger = "win32"
+            #checkInput = InputMonitor.checkWindowsLibs
         
         elif idainfo.filetype == idaapi.f_MACHO:
             print "Mac OSX Macho file"
             os_type = "macosx"
-            debugger = "macosx"
-            checkInput = InputMonitor.checkMacLibs
+            #debugger = "macosx"
+            #checkInput = InputMonitor.checkMacLibs
         
         elif idainfo.filetype == idaapi.f_ELF:
             print "Linux ELF file"
             os_type = "linux"
-            debugger = "linux"
-            checkInput = InputMonitor.checkLinuxLibs
+            #debugger = "linux"
+            #checkInput = InputMonitor.checkLinuxLibs
         
         else:
             print "Unknown binary, unable to debug"
-            sys.exit(1)
+            return None
             
         #Check the debugged executable if its 32 or 64bit
         if idainfo.is_64bit():
@@ -91,11 +72,20 @@ class IDATrace():
             os_arch = "32"
         else:
             print "Bad binary."
-            sys.exit(1)
+            return None
             
         #Get the file type for the executable being debugger
         fileType = idaapi.get_file_type_name()
         print fileType
+        
+        return (app_name,os_type,os_arch)
+    
+    def setProcessConfig(self,name,osType,osArch):
+        pass
+        
+    def getProcessConfig(self,name,osType,osArch):
+        import idc
+        from dispatcher.core.structures.Tracer.Config.config import ConfigFile as ConfigFile
         
         #Get the root IDA directory in order to locate the config.xml file
         root_dir = idc.GetIdaDirectory() + "\\plugins\\"
@@ -103,40 +93,35 @@ class IDATrace():
         print configFile
         
         #Call ConfigFile to grab all configuration information from the config.xml file
-        config = ConfigFile(app_name,os_type,os_arch,configFile)
+        config = ConfigFile(name,osType,osArch,configFile)
         
-        #False =>Use local debugger, True =>Use remote debugger
-        try:
-            path  = config.getPath()
-            application = config.getApplication()
-            args  = config.getArgs()
-            sdir  = config.getSdir()
-            host  = config.getHost()
-            _pass = config.getPass()
-            _debugger = config.getDebugger()
-            
-            if _debugger is not None:
-                debugger = _debugger
-            
-            port  = int(config.getPort())
-            
-            bDbg = config.getDebugFlag()=="True"
-            bLog = config.getLoggingFlag()=="True"
-            remote = config.getRemote()=="True"
-            
-            fileFilter = config.getFileFilter()
-            if fileFilter is not None:
-                filters['file'] = fileFilter
-                
-            networkFilter = config.getNetworkFilter()
-            if networkFilter is not None:
-                filters['network'] = networkFilter
-            
-        except:
-            print "Cannot run this executable."
-            print "Please make sure it is added to the path and config.xml file."
-            sys.exit(1)
-            
+        return config.processConfig
+        
+    def run(self):
+        import idaapi
+        import idc
+        import logging
+        import os
+        import sys
+        
+        from dispatcher.core.structures.Tracer import InputMonitor as InputMonitor
+        
+        from dispatcher.core.structures.Tracer import TargetProcess as TargetProcess
+        from dispatcher.core.structures.Tracer.Arch.x86.Windows import WindowsApiCallbacks as WindowsApiCallbacks
+        from dispatcher.core.structures.Tracer.Arch.x86.Linux import LinuxApiCallbacks as LinuxApiCallbacks
+        from dispatcher.core.structures.Tracer import CustomCallbacks as CustomCallbacks
+        
+        from dispatcher.core.structures.Tracer.ETDbgHook import ETDbgHook as ETDbgHook
+
+
+        checkInput = ""
+        filters = dict()
+        bDbg = False
+        bLog = False
+        
+        logfile = ""
+        debugger =""
+    
         filePath = os.path.splitext(config.getOutputPath())
         app = os.path.splitext(app_name)
         self.tracefile = filePath[0] + "_" + app[0] + filePath[1]
