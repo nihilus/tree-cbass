@@ -143,7 +143,7 @@ class AnalyzerWidget(QtGui.QMainWindow):
         Generate the taint propagation policies
         """
         self.taint_prop = []
-        self.taint_prop.append("TAINT_NOPE")
+        #self.taint_prop.append("TAINT_NOPE")
         self.taint_prop.append("TAINT_ADDRESS")
         self.taint_prop.append("TAINT_BRANCH")
         self.taint_prop.append("TAINT_COUNTER")
@@ -169,7 +169,7 @@ class AnalyzerWidget(QtGui.QMainWindow):
         Create the refresh action for the oolbar. triggers a scan of virtualmachines and updates the GUI.
         """
         self.refreshAction = QtGui.QAction(QIcon(self.parent.iconPath + "refresh.png"), "Refresh the " \
-            + "view by scanning all the processes again", self)
+            + "taint data", self)
         self.refreshAction.triggered.connect(self._onRefreshButtonClicked)
         
     def _createAnalyzeAction(self):
@@ -177,7 +177,7 @@ class AnalyzerWidget(QtGui.QMainWindow):
         Create that action that performs the trace
         """
         self.generateAnalyzeAction = QtGui.QAction(QIcon(self.parent.iconPath + \
-            "trace.png"), "Generate the trace.", self)
+            "trace.png"), "Generate the taint graph", self)
         self.generateAnalyzeAction.triggered.connect(self.onStartAnalyzeButtonClicked)
         
     def _createImportTraceAction(self):

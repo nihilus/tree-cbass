@@ -52,32 +52,8 @@ class VisualizerWidget(QtGui.QMainWindow):
         lower_tables_widget = QtGui.QWidget()
         lower_tables_layout = QtGui.QVBoxLayout()
         
-        self.graphView = QGraphicsView()
-        scene = QGraphicsScene()
-        scene.setSceneRect(0,0,800,600)
-
-        #Select node connection and its decorator types
-        nc = CenterCalc()
-        cd = LineArrowOnStart()          
-
-        #make root node and add it to the scene
-        root = ImageNode(nc, cd, None, "root", QImage(self.parent.iconPath + "trace.png"), 400, 20, 100,100 )
-        #create graph nodes
-        #root.addChild( TextNode(nc, cd, root, "node", "Node" , 500, 340, 200, 30))  
-        root2 = ImageNode(nc, cd, root, "root", QImage(self.parent.iconPath + "trace.png"), 400, 20, 100,100 )
-        box = TextNode(nc, cd, root, "node1", "Node", 500, 340, 200, 30)
-        box2 = TextNode(nc, cd, root2, "node2", "Node", 500, 340, 200, 30)
-        box3 = TextNode(nc, cd, box2, "node3", "Node", 500, 340, 200, 30)
-        scene.addItem(root)
-        scene.addItem(root2)
-        scene.addItem(box)
-        scene.addItem(box2)
-        scene.addItem(box3)
-
-        self.graphView.setScene(scene)
-        
         #lower_tables_layout.addWidget(QtGui.QGraphicsView(QtGui.QGraphicsScene()))
-        lower_tables_layout.addWidget(self.graphView)
+        #lower_tables_layout.addWidget(self.graphView)
         lower_tables_widget.setLayout(lower_tables_layout)
         
         splitter = self.QtGui.QSplitter(self.QtCore.Qt.Vertical)
@@ -99,13 +75,11 @@ class VisualizerWidget(QtGui.QMainWindow):
         self._createRefreshAction()
         self._createImportTraceAction()
         self._createImportIndexAction()
-        self._createAnalyzeAction()
         self._createIDAGraphAction()
         
         self.toolbar = self.addToolBar('Trace Generation Toolbar')
         self.toolbar.addAction(self.refreshAction)
         self.toolbar.addAction(self.importTraceAction)
-        self.toolbar.addAction(self.generateAnalyzeAction)
         self.toolbar.addAction(self.importIDAGraphAction)
         
     def _createRefreshAction(self):
@@ -113,16 +87,9 @@ class VisualizerWidget(QtGui.QMainWindow):
         Create the refresh action for the oolbar. triggers a scan of virtualmachines and updates the GUI.
         """
         self.refreshAction = QtGui.QAction(QIcon(self.parent.iconPath + "refresh.png"), "Refresh the " \
-            + "view by scanning all the processes again", self)
+            + "view", self)
         self.refreshAction.triggered.connect(self._onRefreshButtonClicked)
         
-    def _createAnalyzeAction(self):
-        """
-        Create that action that performs the trace
-        """
-        self.generateAnalyzeAction = QtGui.QAction(QIcon(self.parent.iconPath + \
-            "trace.png"), "Generate the trace.", self)
-        self.generateAnalyzeAction.triggered.connect(self.onStartAnalyzeButtonClicked)
         
     def _createImportTraceAction(self):
         """
@@ -305,100 +272,6 @@ class VisualizerWidget(QtGui.QMainWindow):
                             """, re.VERBOSE)
         m = pattern.search(s)
         return str(m.group('uuid'))
-        
-    def onStartAnalyzeButtonClicked(self):
-        """
-        Action for calling the trace functionality 
-        """
-        import sys
-        import os
-        #from optparse import OptionParser
-        import logging
-        import struct
-        from dispatcher.core.structures.Analyzer import CIDTaintProp
-        from dispatcher.core.structures.Analyzer.CIDParser import CIDATraceReader, CIDATextTraceReader, CIDAPinTraceReader
-        
-        from dispatcher.core.structures.Analyzer.CIDParser import Invalid, LoadImage, UnloadImage, Input, ReadMemory, WriteMemory, Execution, Snapshot, eXception
-        from dispatcher.core.structures.Analyzer.CIDTaintProp import TaintPropagator
-        #if hasattr(self, trace_fname):
-        #parser = OptionParser()
-		
-        if self.trace_fname is None:
-            self.taint_table2.append('No trace file imported')
-        else:
-            log = logging.getLogger('CIDATA')
-            
-            if self.verbose_trace_cb.isChecked():
-                logging.basicConfig(filename="debug.log",level=logging.DEBUG)
-            else:
-                logging.basicConfig(filename="warning.log",level=logging.INFO)
-            processBits = 32
-            #32Bit Check
-            if(sys.maxsize > 2**32):
-                processBits = 64
-            targetBits = 32
-            if (self.radioGroup.checkedButton().text() == "X86"):
-                targetBits=32
-            elif(self.radioGroup.checkedButton().text() == "X64"):
-                targetBits=64
-            if(self.pin_trace_cb.isChecked()):
-                tr = CIDAPinTraceReader(self.trace_fname, self.index_fname)
-                CIDTaintProp.traceType = CIDTaintProp.PIN
-            else:
-			    tr = CIDATextTraceReader(self.trace_fname)
-            CIDTaintProp.traceType = CIDTaintProp.IDA
-            if tr is None:
-                log.error("Failed to open trace file. Exit")
-                self.taint_table2.append("Failed to open trace file.")
-            out_str = "Processing trace file %s..." %(self.trace_fname)
-            self.taint_table2.append(out_str)
-            fTaint = "TaintGraph_"+os.path.basename(self.trace_fname)
-            out_fd = open(fTaint, 'w')
-            #self.out_fd = open(fTaint, 'r+b')
-            
-            TP = TaintPropagator(processBits, targetBits, out_fd)
-            tRecord = tr.getNext()
-            bEnd = False
-            tLastRecord = None
-            while tRecord!=None:
-                recordType = tRecord.getRecordType()
-                if (recordType == LoadImage):
-                    if (self.verbose_trace_cb.isChecked()):
-                        print("ImageName=%s, LoadAddr = %x, Size=%x" %(tRecord.ImageName, tRecord.LoadAddress, tRecord.ImageSize))
-                elif (recordType == Input):
-                    TP.SetInputTaint(tRecord.currentInputAddr, tRecord.currentInputSize)
-                    if(self.verbose_trace_cb.isChecked()):
-                        print("InputAddr = %x, InputSize =%x" %(tRecord.currentInputAddr, tRecord.currentInputSize))
-                        out_str = "InputAddr = %x, InputSize =%x" %(tRecord.currentInputAddr, tRecord.currentInputSize)
-                        self.taint_table2.append(out_str)
-                elif(recordType == Execution):
-                    tLastRecord = tRecord
-                    if(TP.Propagator(tRecord)==1):
-                        bEnd = True
-                        if(self.verbose_trace_cb.isChecked()):
-                            print "Tainted Security Warning!"
-                        break
-                elif(recordType == eXception):
-                    if(tLastRecord != None):
-                        TP.DumpFaultCause(tRecord, self.verbose_trace_cb.isChecked())
-                        print "Exception! Get out of the loop!"
-                        bEnd = True
-                        break
-                else:
-                    print "Type %d not supported:%d" %recordType
-                if (bEnd == True):
-                    tRecord = None
-                else:
-                    tRecord = tr.getNext()
-            out_fd.close()
-            out_fd = open(fTaint, 'r')
-            self.f_taint = fTaint
-            text=out_fd.read()
-            self.taint_table2.setText(text)
-            out_fd.close()
-            log.info("CIDATA Finished")
-            self.populateTaintsOnGen()
-            
             
     def onImportTraceButtonClicked(self):
         """ 
