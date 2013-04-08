@@ -1,4 +1,5 @@
 import xml.etree.ElementTree as ET
+from xml.etree.ElementTree import Element,SubElement
                 
 class ProcessConfig:
     def __init__(self):
@@ -64,18 +65,134 @@ class ProcessConfig:
         
 class ConfigFile:
     def __init__(self,configFile):
-        tree = ET.parse(configFile)
-        root = tree.getroot()
+        self.tree = ET.parse(configFile)
+        self.root = self.tree.getroot()
 
         self.processTable = dict()
-        self.getProcessData(root)
+        self.getProcessData(self.root)
             
-        self.outputPath = root.find("output/path").text
-        self.Debug = root.find('Debug').text
-        self.Logging = root.find('Logging').text
+        self.outputPath = self.root.find("output/path").text
+        self.Debug = self.root.find('Debug').text
+        self.Logging = self.root.find('Logging').text
+        self.configFile = configFile
     
-    def write(self,app_name,os_type,os_arch):
-        pass
+    def write(self,processConfig):
+        config = self.root
+        
+        newProcess = Element("process")
+        
+        if processTable.has_key(processConfig.app_name+processConfig.os_type+processConfig.os_arch):
+            newProcess_input = Element("input")
+            
+            application = Element("application")
+            application.text = ""
+            newProcess_input.append(application)
+            
+            path = Element("path")
+            path.text = ""
+            newProcess_input.append(path)
+            
+            args = Element("args")
+            args.text = ""
+            newProcess_input.append(args)
+            
+            args = Element("sdir")
+            args.text = "."
+            newProcess_input.append(args)
+            
+            remote = Element("remote")
+            remote.text = "False"
+            newProcess_input.append(remote)
+            
+            host = Element("host")
+            host.text = ""
+            newProcess_input.append(host)
+    
+            _pass = Element("pass")
+            _pass.text = ""
+            newProcess_input.append(_pass)
+            
+            port = Element("port")
+            port.text = "0"
+            newProcess_input.append(port)
+            
+            debugger = Element("debugger")
+            debugger.text = ""
+            newProcess_input.append(debugger)
+            
+            filter_file = Element("filter")
+            filter_file.attrib["type"] = "fileIO"
+            filter_file.text = ""
+            
+            filter_network = Element("filter")
+            filter_network.attrib["type"] = "networkIO"
+            filter_network.text = ""
+            
+            newProcess.append(newProcess_input)
+            newProcess.append(filter_file)
+            newProcess.append(filter_network)
+            
+            config.append(newProcess)
+        else:
+            #adding a new process config
+            newProcess.attrib["name"] = processConfig.app_name
+            newProcess.attrib["OS"] = processConfig.os_type
+            newProcess.attrib["Arch"] = processConfig.os_arch
+            
+            newProcess_input = Element("input")
+            
+            application = Element("application")
+            application.text = ""
+            newProcess_input.append(application)
+            
+            path = Element("path")
+            path.text = ""
+            newProcess_input.append(path)
+            
+            args = Element("args")
+            args.text = ""
+            newProcess_input.append(args)
+            
+            args = Element("sdir")
+            args.text = "."
+            newProcess_input.append(args)
+            
+            remote = Element("remote")
+            remote.text = "False"
+            newProcess_input.append(remote)
+            
+            host = Element("host")
+            host.text = ""
+            newProcess_input.append(host)
+    
+            _pass = Element("pass")
+            _pass.text = ""
+            newProcess_input.append(_pass)
+            
+            port = Element("port")
+            port.text = "0"
+            newProcess_input.append(port)
+            
+            debugger = Element("debugger")
+            debugger.text = ""
+            newProcess_input.append(debugger)
+            
+            filter_file = Element("filter")
+            filter_file.attrib["type"] = "fileIO"
+            filter_file.text = ""
+            
+            filter_network = Element("filter")
+            filter_network.attrib["type"] = "networkIO"
+            filter_network.text = ""
+            
+            newProcess.append(newProcess_input)
+            newProcess.append(filter_file)
+            newProcess.append(filter_network)
+            
+            config.append(newProcess)
+        
+        #self.tree.write("output.xml")
+        self.tree.write(self.configFile)
         
     def read(self,app_name,os_type,os_arch):
         key = app_name+os_type+os_arch
@@ -243,5 +360,7 @@ if __name__ == '__main__':
     print "Output path: %s" % config.getOutputPath()
     print config.getDebugFlag()
     print config.getLoggingFlag()
+    
+    config.write('shimgvw.dll','windows','32')
 
     

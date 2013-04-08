@@ -14,8 +14,9 @@ class IDATrace():
         """
         self.windowsFileIO       = funcCallbacks['windowsFileIO']
         self.linuxFileIO         = funcCallbacks['linuxFileIO'] 
-        self.customCallback = funcCallbacks['customCallback']
+        self.customCallback      = funcCallbacks['customCallback']
         
+        self.config = None
         (processName, osType, osArch) = self.getProcessInfo()
         self.processConfig = self.getProcessConfig(processName, osType, osArch)
 
@@ -44,8 +45,6 @@ class IDATrace():
         if idainfo.filetype == idaapi.f_PE:
             print "Windows PE file"
             os_type = "windows"
-            #debugger = "win32"
-            #checkInput = InputMonitor.checkWindowsLibs
         
         elif idainfo.filetype == idaapi.f_MACHO:
             print "Mac OSX Macho file"
@@ -79,13 +78,11 @@ class IDATrace():
         print fileType
         
         return (app_name,os_type,os_arch)
-    
-    def setProcessConfig(self,name,osType,osArch):
-        pass
         
     def getProcessConfig(self,name,osType,osArch):
         import idc
         from dispatcher.core.structures.Tracer.Config.config import ConfigFile as ConfigFile
+        from dispatcher.core.structures.Tracer.Config.config import ProcessConfig as ProcessConfig
         
         #Get the root IDA directory in order to locate the config.xml file
         root_dir = idc.GetIdaDirectory() + "\\plugins\\"
@@ -93,8 +90,16 @@ class IDATrace():
         print configFile
         
         #Call ConfigFile to grab all configuration information from the config.xml file
-        config = ConfigFile(configFile)
-        processConfig = config.read(name,osType,osArch)
+        self.config = ConfigFile(configFile)
+        processConfig = self.config.read(name,osType,osArch)
+        
+        if processConfig is None:
+            processConfig = ProcessConfig()
+            processConfig.name = name
+            processConfig.osType = osType
+            processConfig.osArch = osArch
+            self.config.write(processConfig)
+            
         return processConfig
         
     def run(self):
@@ -105,24 +110,63 @@ class IDATrace():
         import sys
         
         from dispatcher.core.structures.Tracer import InputMonitor as InputMonitor
-        
         from dispatcher.core.structures.Tracer import TargetProcess as TargetProcess
         from dispatcher.core.structures.Tracer.Arch.x86.Windows import WindowsApiCallbacks as WindowsApiCallbacks
         from dispatcher.core.structures.Tracer.Arch.x86.Linux import LinuxApiCallbacks as LinuxApiCallbacks
         from dispatcher.core.structures.Tracer import CustomCallbacks as CustomCallbacks
         
         from dispatcher.core.structures.Tracer.ETDbgHook import ETDbgHook as ETDbgHook
-
-
-        checkInput = ""
+            
         filters = dict()
         bDbg = False
+        if self.config.Debug == "True":
+            bDbg = True
+        else:
+            bDbg = False
+            
         bLog = False
-        
+
+        if self.config.Logging == "True":
+            bLog = True
+        else:
+            bLog = False
+            
         logfile = ""
-        debugger =""
-    
-        filePath = os.path.splitext(config.getOutputPath())
+
+        app_name = self.processConfig.name
+        os_type  = self.processConfig.osType
+        os_arch  = self.processConfig.osArch
+        
+        path  = self.processConfig.getPath()
+        application = self.processConfig.getApplication()
+        args  = self.processConfig.getArgs()
+        sdir  = self.processConfig.getSdir()
+        host  = self.processConfig.getHost()
+        _pass = self.processConfig.getPass()
+        _debugger = self.processConfig.getDebugger()
+        remote = self.processConfig.getRemote()=="True"
+        
+        port  = int(self.processConfig.getPort())
+        
+        fileFilter = self.processConfig.getFileFilter()
+        if fileFilter is not None:
+            filters['file'] = fileFilter
+            
+        networkFilter = self.processConfig.getNetworkFilter()
+        if networkFilter is not None:
+            filters['network'] = networkFilter
+        
+        if os_type == "macosx":
+            checkInput = InputMonitor.checkMacLibs
+            debugger   = "macosx"
+        elif os_type == "windows":
+            checkInput = InputMonitor.checkWindowsLibs
+            debugger   = "win32"
+        elif os_type == "linux":
+            checkInput = InputMonitor.checkLinuxLibs
+            debugger   = "linux"
+            
+        filePath = os.path.splitext(self.config.getOutputPath())
         app = os.path.splitext(app_name)
         self.tracefile = filePath[0] + "_" + app[0] + filePath[1]
         """
@@ -214,7 +258,7 @@ class IDATrace():
             self.linuxFileIO.SetFilters(filters)
             self.linuxFileIO.SetLoggerInstance(self.logger)
             
-        customBreakpoints = config.getCustomBreakpoints()
+        customBreakpoints = self.processConfig.getCustomBreakpoints()
         
         if len(customBreakpoints) > 0:
             self.customCallback.SetDebuggerInstance(EThook)
