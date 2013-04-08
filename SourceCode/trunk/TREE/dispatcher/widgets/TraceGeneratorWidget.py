@@ -35,7 +35,8 @@ class TraceGeneratorWidget(QtGui.QMainWindow):
         # Create buttons
         from PySide import QtGui, QtCore
         self._createToolbar()
-        self.filters_qb = QtGui.QGroupBox(self.central_widget)
+        trace_layout = QtGui.QVBoxLayout()
+        self.filters_qb = QtGui.QGroupBox()
         self.filters_qb.setGeometry(QtCore.QRect(10, 200, 511, 191))
         self.filters_qb.setObjectName("filters_qb")
         self.gridLayoutWidget_2 = QtGui.QWidget(self.filters_qb)
@@ -62,7 +63,7 @@ class TraceGeneratorWidget(QtGui.QMainWindow):
         self.filters_network_port_table.setObjectName("filters_network_port_table")
         self.verticalLayout_4.addWidget(self.filters_network_port_table)
         self.gridLayout_2.addLayout(self.verticalLayout_4, 0, 1, 1, 1)
-        self.process_qbox = QtGui.QGroupBox(self.central_widget)
+        self.process_qbox = QtGui.QGroupBox()
         self.process_qbox.setGeometry(QtCore.QRect(10, 10, 511, 51))
         self.process_qbox.setObjectName("process_qbox")
         self.layoutWidget = QtGui.QWidget(self.process_qbox)
@@ -83,7 +84,7 @@ class TraceGeneratorWidget(QtGui.QMainWindow):
         self.os_label_d = QtGui.QLabel(self.layoutWidget)
         self.os_label_d.setObjectName("os_label_d")
         self.horizontalLayout_8.addWidget(self.os_label_d)
-        self.params_qbox = QtGui.QGroupBox(self.central_widget)
+        self.params_qbox = QtGui.QGroupBox()
         self.params_qbox.setGeometry(QtCore.QRect(10, 60, 511, 121))
         self.params_qbox.setObjectName("params_qbox")
         self.gridLayoutWidget_3 = QtGui.QWidget(self.params_qbox)
@@ -138,6 +139,10 @@ class TraceGeneratorWidget(QtGui.QMainWindow):
         self.horizontalLayout_7.addLayout(self.verticalLayout_6)
         self.gridLayout_3.addLayout(self.horizontalLayout_7, 0, 0, 1, 1)
         self.retranslateUi()
+        trace_layout.addWidget(self.process_qbox)
+        trace_layout.addWidget(self.params_qbox)
+        trace_layout.addWidget(self.filters_qb)
+        self.central_widget.setLayout(trace_layout)
         
     def retranslateUi(self):
         self.filters_qb.setTitle("Filters")
@@ -191,6 +196,16 @@ class TraceGeneratorWidget(QtGui.QMainWindow):
         """
         from PySide import QtGui
         from PySide.QtGui import QIcon
+        self.saveConfigAction = QtGui.QAction(QIcon(self.parent.iconPath + "save.png"), "Save config", self)
+        self.saveConfigAction.triggered.connect(self.onSaveConfigButtonClicked)
+  
+        
+    def onSaveConfigButtonClicked(self):
+        """
+        Action for saving config
+        """
+        
+        #start debugging
         from dispatcher.core.structures.Tracer.Config.config import ProcessConfig as ProcessConfig
         
         processConfig = ProcessConfig()
@@ -202,17 +217,6 @@ class TraceGeneratorWidget(QtGui.QMainWindow):
         """
         
         self.idaTracer.setsetProcessConfig(processConfig)
-        
-        self.saveConfigAction = QtGui.QAction(QIcon(self.parent.iconPath + "save.png"), "Sasve config", self)
-        self.saveConfigAction.triggered.connect(self.onSaveConfigButtonClicked)
-  
-        
-    def onSaveConfigButtonClicked(self):
-        """
-        Action for saving config
-        """
-        
-        #start debugging
         
     def _createTraceTable(self):
         """
@@ -360,33 +364,33 @@ class TraceGeneratorWidget(QtGui.QMainWindow):
             (n1, n2))
 
     def populateConfig(self):
-        config = self.idaTracer.processConfig
+        self.t_config = self.idaTracer.processConfig
         
-        if config is None:
+        if self.t_config is None:
             print "Error, we need to add a new config"
         else:
             #False =>Use local debugger, True =>Use remote debugger
-            path  = config.getPath()
+            path  = self.t_config.getPath()
             print path
-            application = config.getApplication()
-            args  = config.getArgs()
-            sdir  = config.getSdir()
-            host  = config.getHost()
-            _pass = config.getPass()
-            _debugger = config.getDebugger()
+            application = self.t_config.getApplication()
+            args  = self.t_config.getArgs()
+            sdir  = self.t_config.getSdir()
+            host  = self.t_config.getHost()
+            _pass = self.t_config.getPass()
+            _debugger = self.t_config.getDebugger()
             
             if _debugger is not None:
                 debugger = _debugger
             
-            port  = int(config.getPort())
+            port  = int(self.t_config.getPort())
             
-            remote = config.getRemote()=="True"
+            remote = self.t_config.getRemote()=="True"
             filters = dict()
             
-            fileFilter = config.getFileFilter()
+            fileFilter = self.t_config.getFileFilter()
             if fileFilter is not None:
                 filters['file'] = fileFilter
                 
-            networkFilter = config.getNetworkFilter()
+            networkFilter = self.t_config.getNetworkFilter()
             if networkFilter is not None:
                 filters['network'] = networkFilter
