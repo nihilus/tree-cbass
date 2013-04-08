@@ -352,7 +352,7 @@ class TraceGeneratorWidget(QtGui.QMainWindow):
         config = self.idaTracer.processConfig
         
         if config is None:
-            print "Error"
+            print "Error, we need to add a new config"
         else:
             #False =>Use local debugger, True =>Use remote debugger
             path  = config.getPath()

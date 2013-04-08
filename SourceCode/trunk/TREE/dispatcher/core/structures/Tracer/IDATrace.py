@@ -93,9 +93,9 @@ class IDATrace():
         print configFile
         
         #Call ConfigFile to grab all configuration information from the config.xml file
-        config = ConfigFile(name,osType,osArch,configFile)
-        
-        return config.processConfig
+        config = ConfigFile(configFile)
+        processConfig = config.read(name,osType,osArch)
+        return processConfig
         
     def run(self):
         import idaapi
