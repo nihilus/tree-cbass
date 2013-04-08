@@ -50,9 +50,8 @@ class TraceConfig:
         for proc in root.findall('process'):
  
             if proc.attrib['name'] == app_name:
-                platform = proc.find('platform')
-                self.os = platform.find('OS').text
-                self.arch = platform.find('Arch').text
+                self.os = proc.attrib['OS']
+                self.arch = proc.attrib['Arch']
                 
                 _input = proc.find('input')
                 
@@ -74,19 +73,22 @@ class TraceConfig:
                 #print _input.find('pass').text
                 self.port = _input.find('port').text
                 #print _input.find('port').text
+                if _input.find('debugger') is not None:
+                    self.debugger = _input.find('debugger').text
                 
                 _filter = proc.find('filter')
-                if _filter.attrib['type']=="fileIO":
-                    
-                    for f in _filter:
-                        self.fileFilter.append(f.text)
-                    #print fileFilter
-                    
-                elif _filter.attrib['type']=="networkIO":
-                    
-                    for n in _filter:
-                        self.networkFilter.append(int(n.text))
-                    #print networkFilter
+                if _filter is not None:
+                    if _filter.attrib['type']=="fileIO":
+                        
+                        for f in _filter:
+                            self.fileFilter.append(f.text)
+                        #print fileFilter
+                        
+                    elif _filter.attrib['type']=="networkIO":
+                        
+                        for n in _filter:
+                            self.networkFilter.append(int(n.text))
+                        #print networkFilter
                     
     
     def getOutputPath(self):
@@ -126,6 +128,9 @@ class TraceConfig:
         else:
             #return network filters
             return self.networkFilter
+            
+    def writeToFile(self, f):
+        self.root.write(f, pretty_print=False)
     
 if __name__ == '__main__':
     
