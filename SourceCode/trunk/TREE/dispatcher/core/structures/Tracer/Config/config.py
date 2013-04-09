@@ -19,6 +19,15 @@ class ProcessConfig:
         self.customBreakpoints= dict()
         self.debugger = None
         
+    def getName(self):
+        return self.name
+    
+    def getOsType(self):
+        return self.osType
+    
+    def getOsArch(self):
+        return self.osArch
+    
     def getApplication(self):
         return self.application
     
@@ -81,64 +90,14 @@ class ConfigFile:
         
         newProcess = Element("process")
         
-        if processTable.has_key(processConfig.app_name+processConfig.os_type+processConfig.os_arch):
-            newProcess_input = Element("input")
-            
-            application = Element("application")
-            application.text = ""
-            newProcess_input.append(application)
-            
-            path = Element("path")
-            path.text = ""
-            newProcess_input.append(path)
-            
-            args = Element("args")
-            args.text = ""
-            newProcess_input.append(args)
-            
-            args = Element("sdir")
-            args.text = "."
-            newProcess_input.append(args)
-            
-            remote = Element("remote")
-            remote.text = "False"
-            newProcess_input.append(remote)
-            
-            host = Element("host")
-            host.text = ""
-            newProcess_input.append(host)
-    
-            _pass = Element("pass")
-            _pass.text = ""
-            newProcess_input.append(_pass)
-            
-            port = Element("port")
-            port.text = "0"
-            newProcess_input.append(port)
-            
-            debugger = Element("debugger")
-            debugger.text = ""
-            newProcess_input.append(debugger)
-            
-            filter_file = Element("filter")
-            filter_file.attrib["type"] = "fileIO"
-            filter_file.text = ""
-            
-            filter_network = Element("filter")
-            filter_network.attrib["type"] = "networkIO"
-            filter_network.text = ""
-            
-            newProcess.append(newProcess_input)
-            newProcess.append(filter_file)
-            newProcess.append(filter_network)
-            
-            config.append(newProcess)
+        if self.processTable.has_key(processConfig.getName()+processConfig.getOsType()+processConfig.getOsArch()):
+            self.update(processConfig)
         else:
             #adding a new process config
-            newProcess.attrib["name"] = processConfig.app_name
-            newProcess.attrib["OS"] = processConfig.os_type
-            newProcess.attrib["Arch"] = processConfig.os_arch
-            
+            newProcess.attrib["name"] = processConfig.getName()
+            newProcess.attrib["OS"] = processConfig.getOsType()
+            newProcess.attrib["Arch"] = processConfig.getOsArch()
+
             newProcess_input = Element("input")
             
             application = Element("application")
@@ -192,7 +151,7 @@ class ConfigFile:
             config.append(newProcess)
         
         #self.tree.write("output.xml")
-        self.tree.write(self.configFile)
+        self.tree.write(self.configFile, "UTF-8")
         
     def read(self,app_name,os_type,os_arch):
         key = app_name+os_type+os_arch
@@ -274,50 +233,46 @@ class ConfigFile:
     def getLoggingFlag(self):
         return self.Logging
     
-    """
-    def getProcessConfig(self,root,app_name,os_type,os_arch):
+    def update(self,processConfig):
+        name   = processConfig.getName()
+        osType = processConfig.getOsType()
+        osArch = processConfig.getOsArch()
         
-        for proc in root.findall('process'):
+        for proc in self.root.findall('process'):
  
-            if proc.attrib['name'] == app_name and proc.attrib['OS']== os_type and proc.attrib['Arch']== os_arch:
+            if proc.attrib['name'] == name and proc.attrib['OS']== osType and proc.attrib['Arch']== osArch:
                 
                 _input = proc.find('input')
-                
-                processConfig.networkFilter = []
-                processConfig.fileFilter = []
 
-                processConfig.application = _input.find('application').text
-                processConfig.path = _input.find('path').text
-                #print _input.find('path').text
-                processConfig.args = _input.find('args').text
-                #print _input.find('args').text
-                processConfig.sdir = _input.find('sdir').text
-                #print _input.find('sdir').text
-                processConfig.remote = _input.find('remote').text
-                
-                processConfig.host = _input.find('host').text
-                #print _input.find('host').text
-                processConfig._pass = _input.find('pass').text
-                #print _input.find('pass').text
-                processConfig.port = _input.find('port').text
-                #print _input.find('port').text
-                
+                _input.find('application').text = processConfig.getApplication()
+                _input.find('path').text = processConfig.getPath()
+                _input.find('args').text = processConfig.getArgs()
+                _input.find('sdir').text = processConfig.getSdir()
+                _input.find('remote').text = processConfig.getRemote()
+                _input.find('host').text = processConfig.getHost()
+                _input.find('pass').text = processConfig.getPass()
+                _input.find('port').text = processConfig.getPort()
+                _input.find('debugger').text = processConfig.getDebugger()
+
                 _filter = proc.find('filter')
                 
-                if _filter is not None:
-                    
-                    if _filter.attrib['type']=="fileIO":
-                        
-                        for f in _filter:
-                            processConfig.fileFilter.append(f.text)
-                        #print fileFilter
-                        
-                    elif _filter.attrib['type']=="networkIO":
-                        
-                        for n in _filter:
-                            processConfig.networkFilter.append(int(n.text))
-                        #print networkFilter
+                proc.remove(_filter)
                 
+                filter_file = Element("filter")
+                filter_file.attrib["type"] = "fileIO"
+                
+                for f in processConfig.getFileFilter():
+                    SubElement(filter_file, "fileName").text = f
+        
+                filter_network = Element("filter")
+                filter_network.attrib["type"] = "networkIO"
+                
+                for n in processConfig.getNetworkFilter():
+                    SubElement(filter_network, "port").text = n
+                
+                proc.append(filter_file)
+                proc.append(filter_network)
+                """
                 customBreakpoints = dict()
                 customBreakpoints = proc.find('customBreakpoints')
                 
@@ -327,16 +282,8 @@ class ConfigFile:
                         cb = customBreakpoint.attrib['callback']
     
                         processConfig.customBreakpoints[bp] = cb
-                    
-                if _input.find('debugger') is None:
-                    processConfig.debugger = None
-                else:
-                    processConfig.debugger = _input.find('debugger').text
-            
-                return True
-        
-        return False
-    """
+                """
+
 if __name__ == '__main__':
 
     config = ConfigFile('config.xml')
@@ -361,6 +308,7 @@ if __name__ == '__main__':
     print config.getDebugFlag()
     print config.getLoggingFlag()
     
-    config.write('shimgvw.dll','windows','32')
+    processConfig._pass = "password"
+    config.write(processConfig)
 
     

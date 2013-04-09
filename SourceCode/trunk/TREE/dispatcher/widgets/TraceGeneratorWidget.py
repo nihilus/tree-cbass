@@ -216,7 +216,7 @@ class TraceGeneratorWidget(QtGui.QMainWindow):
         processConfig.osArch = osArch
         """
         
-        self.idaTracer.setsetProcessConfig(processConfig)
+        self.idaTracer.setProcessConfig(processConfig)
         
     def _createTraceTable(self):
         """

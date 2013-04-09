@@ -80,7 +80,7 @@ class IDATrace():
         return (app_name,os_type,os_arch)
        
     def setProcessConfig(self,processConfig):
-        pass
+        self.config.write(processConfig)
     
     def getProcessConfig(self,name,osType,osArch):
         import idc
@@ -136,9 +136,9 @@ class IDATrace():
             
         logfile = ""
 
-        app_name = self.processConfig.name
-        os_type  = self.processConfig.osType
-        os_arch  = self.processConfig.osArch
+        app_name = self.processConfig.getName()
+        os_type  = self.processConfig.getOsType()
+        os_arch  = self.processConfig.getOsArch()
         
         path  = self.processConfig.getPath()
         application = self.processConfig.getApplication()
