@@ -23,7 +23,7 @@ import CIDTaintProp
 from CIDParser import CIDATraceReader, CIDATextTraceReader, CIDAPinTraceReader
 
 from CIDParser import Invalid, LoadImage,UnloadImage,Input,ReadMemory,WriteMemory,Execution, Snapshot, eXception
-from CIDTaintProp import TaintPropagator
+from CIDTaintProp import TaintPropagator, TAINT_ADDRESS, TAINT_BRANCH,TAINT_COUNTER,TAINT_DATA 
 
 X86 = 1
 X64 = 2
@@ -82,7 +82,7 @@ def main(args):
 	fTaint = "TaintGraph_"+options.trace_file
 	out_fd = open(fTaint, 'w')
     
-	TP = TaintPropagator(processBits, targetBits, out_fd)	
+	TP = TaintPropagator(processBits, targetBits, out_fd,TAINT_COUNTER)	
 	tRecord = tr.getNext()
 	tLastRecord = None
 	while tRecord!=None:
@@ -102,7 +102,9 @@ def main(args):
 					print("Tainted Security Warning!")
 		elif (recordType == eXception):
 			#print("Exception address = %x, code =%x" %(tRecord.currentExceptionAddress, tRecord.currentExceptionCode))
-			if(tLastRecord !=None):
+			if(tRecord.currentExceptionCode ==0): # termination
+			    TP.DumpLiveTaints()
+			elif(tLastRecord !=None):
 				TP.DumpFaultCause(tRecord, options.verbose)
 			break
 		else:
