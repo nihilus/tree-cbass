@@ -440,21 +440,22 @@ class TaintPropagator(object):
 
                             #if(str(instInfo.src_operands[k]._ea).strip("b'").lower().startswith('eflags')):
                             #    continue                          
-
-                            if(str(instInfo.src_operands[k]._ea).strip("b'").lower().startswith('ecx')): #loop counter: add later
-                                sDbg = "ECX REP Prefix StringOP Operands %s:\n" %(str(instInfo.src_operands[k]._ea).strip("b'").lower())
-                                log.debug(sDbg)  
-                                normalizedSrcRegNames = getNormalizedX86RegisterNames(str(instInfo.src_operands[k]._ea).strip("b'"), instInfo.src_operands[k]._width_bits/8,tid)
+                            #track counter taint based on policy setting
+                            if(self.taint_policy == TAINT_COUNTER):							
+                                if(str(instInfo.src_operands[k]._ea).strip("b'").lower().startswith('ecx')): #loop counter: add later
+                                    sDbg = "ECX REP Prefix StringOP Operands %s:\n" %(str(instInfo.src_operands[k]._ea).strip("b'").lower())
+                                    log.debug(sDbg)  
+                                    normalizedSrcRegNames = getNormalizedX86RegisterNames(str(instInfo.src_operands[k]._ea).strip("b'"), instInfo.src_operands[k]._width_bits/8,tid)
                                 # for binary mode
-                                srcLen = len(normalizedSrcRegNames)
-                                for l in range(srcLen):
-                                    if (normalizedSrcRegNames[l] in self.dynamic_taint):
-                                        if(taint is None):
-                                            taint = Taint(MEMORY_TAINT,destAddress+j, instRec.currentInstSeq,tid,instStr)
-                                            Taint.uid2Taint[taint.tuid]= taint
-                                            taint.addTaintCSources(self.dynamic_taint[normalizedSrcRegNames[l]])
-                                        else:
-                                            taint.addTaintCSources(self.dynamic_taint[normalizedSrcRegNames[l]])
+                                    srcLen = len(normalizedSrcRegNames)
+                                    for l in range(srcLen):
+                                        if (normalizedSrcRegNames[l] in self.dynamic_taint):
+                                            if(taint is None):
+                                                taint = Taint(MEMORY_TAINT,destAddress+j, instRec.currentInstSeq,tid,instStr)
+                                                Taint.uid2Taint[taint.tuid]= taint
+                                                taint.addTaintCSources(self.dynamic_taint[normalizedSrcRegNames[l]])
+                                            else:
+                                                taint.addTaintCSources(self.dynamic_taint[normalizedSrcRegNames[l]])
                         elif(instInfo.src_operands[k]._type == INDIRECT):
                             # esi, edi and ecx always???
                             #srcAddress = instRec.currentReadAddr

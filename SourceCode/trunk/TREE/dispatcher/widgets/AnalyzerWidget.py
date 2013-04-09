@@ -518,10 +518,10 @@ class AnalyzerWidget(QtGui.QMainWindow):
                 elif(recordType == Execution):
                     tLastRecord = tRecord
                     if(TP.Propagator(tRecord)==1):
-                        bEnd = True
+                        #bEnd = True
                         if(self.verbose_trace_cb.isChecked()):
                             print "Tainted Security Warning!"
-                        break
+                        #break
                 elif(recordType == eXception):
                     if(tRecord.currentExceptionCode ==0): # termination
                         TP.DumpLiveTaints()	
