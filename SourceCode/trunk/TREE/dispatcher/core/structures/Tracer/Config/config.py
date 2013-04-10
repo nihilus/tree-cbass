@@ -3,21 +3,21 @@ from xml.etree.ElementTree import Element,SubElement
                 
 class ProcessConfig:
     def __init__(self):
-        self.name = None
-        self.osType = None
-        self.osArch = None
+        self.name = ""
+        self.osType = ""
+        self.osArch = ""
         self.networkFilter = []
         self.fileFilter = []
-        self.application = None
-        self.path = None
-        self.args = None
-        self.sdir = None
-        self.remote = None
-        self.host = None
-        self._pass = None
-        self.port = None
+        self.application = ""
+        self.path = ""
+        self.args = ""
+        self.sdir = ""
+        self.remote = ""
+        self.host = ""
+        self._pass = ""
+        self.port = ""
         self.customBreakpoints= dict()
-        self.debugger = None
+        self.debugger = ""
         
     def getName(self):
         return self.name

@@ -10,12 +10,14 @@ class TraceGeneratorWidget(QtGui.QMainWindow):
         from PySide.QtGui import QIcon
 
         import dispatcher.core.structures.Tracer.IDATrace as IDATrace
-
+        from dispatcher.core.structures.Tracer.Config.config import ProcessConfig as ProcessConfig
+        
         QtGui.QMainWindow.__init__(self)
         print "[|] loading TraceGenerationWidget"
         # Access to shared modules
        
         self.idaTracer = IDATrace(funcCallbacks)
+        self.processConfig = ProcessConfig()
         self.parent = parent
         self.name = "Trace Generation"
         tracer_icon_path = self.parent.iconPath+ "trace.png"
@@ -65,10 +67,10 @@ class TraceGeneratorWidget(QtGui.QMainWindow):
         self.verticalLayout_4.addWidget(self.filters_network_port_table)
         self.gridLayout_2.addLayout(self.verticalLayout_4, 0, 1, 1, 1)
         self.process_qbox = QtGui.QGroupBox()
-        self.process_qbox.setGeometry(QtCore.QRect(10, 10, 511, 51))
+        #self.process_qbox.setGeometry(QtCore.QRect(10, 10, 511, 15))
         self.process_qbox.setObjectName("process_qbox")
         self.layoutWidget = QtGui.QWidget(self.process_qbox)
-        self.layoutWidget.setGeometry(QtCore.QRect(10, 14, 411, 22))
+        self.layoutWidget.setGeometry(QtCore.QRect(10, 14, 411, 30))
         self.layoutWidget.setObjectName("layoutWidget")
         self.horizontalLayout_8 = QtGui.QHBoxLayout(self.layoutWidget)
         #self.horizontalLayout_8.setMargin(0)
@@ -86,7 +88,7 @@ class TraceGeneratorWidget(QtGui.QMainWindow):
         self.os_label_d.setObjectName("os_label_d")
         self.horizontalLayout_8.addWidget(self.os_label_d)
         self.params_qbox = QtGui.QGroupBox()
-        self.params_qbox.setGeometry(QtCore.QRect(10, 60, 511, 121))
+        self.params_qbox.setGeometry(QtCore.QRect(10, 60, 511, 200))
         self.params_qbox.setObjectName("params_qbox")
         self.gridLayoutWidget_3 = QtGui.QWidget(self.params_qbox)
         self.gridLayoutWidget_3.setGeometry(QtCore.QRect(9, 15, 501, 103))
@@ -122,6 +124,9 @@ class TraceGeneratorWidget(QtGui.QMainWindow):
         self.horizontalLayout_7.setObjectName("horizontalLayout_7")
         self.verticalLayout_5 = QtGui.QVBoxLayout()
         self.verticalLayout_5.setObjectName("verticalLayout_5")
+        self.application_label = QtGui.QLabel(self.gridLayoutWidget_3)
+        self.application_label.setObjectName("applicationlabel")
+        self.verticalLayout_5.addWidget(self.application_label)
         self.path_label = QtGui.QLabel(self.gridLayoutWidget_3)
         self.path_label.setObjectName("path_label")
         self.verticalLayout_5.addWidget(self.path_label)
@@ -131,6 +136,9 @@ class TraceGeneratorWidget(QtGui.QMainWindow):
         self.horizontalLayout_7.addLayout(self.verticalLayout_5)
         self.verticalLayout_6 = QtGui.QVBoxLayout()
         self.verticalLayout_6.setObjectName("verticalLayout_6")
+        self.application_edit = QtGui.QLineEdit(self.gridLayoutWidget_3)
+        self.application_edit.setObjectName("application_edit")
+        self.verticalLayout_6.addWidget(self.application_edit)
         self.path_edit = QtGui.QLineEdit(self.gridLayoutWidget_3)
         self.path_edit.setObjectName("path_edit")
         self.verticalLayout_6.addWidget(self.path_edit)
@@ -152,6 +160,7 @@ class TraceGeneratorWidget(QtGui.QMainWindow):
         self.process_qbox.setTitle("Process Information")
         self.name_label.setText("Name:")
         self.name_label_d.setText("blank")
+        self.application_label.setText("Application:    ")
         self.os_label.setText("OS:")
         self.os_label_d.setText("blank")
         self.params_qbox.setTitle("Configurable Parameters")
@@ -189,7 +198,8 @@ class TraceGeneratorWidget(QtGui.QMainWindow):
         """
         
         #start debugging
-        self.idaTracer.run()
+        self.getConfigFromGUI()
+        self.idaTracer.run(self.processConfig)
   
     def _createSaveConfigAction(self):
         """
@@ -200,211 +210,62 @@ class TraceGeneratorWidget(QtGui.QMainWindow):
         self.saveConfigAction = QtGui.QAction(QIcon(self.parent.iconPath + "save.png"), "Save config", self)
         self.saveConfigAction.triggered.connect(self.onSaveConfigButtonClicked)
   
+    def getConfigFromGUI(self):
+        """
+        Action for saving config
+        """
+        
+        #Get all the process config data from the GUI
+        self.processConfig.application = str(self.application_edit.text())
+        self.processConfig.path = str(self.path_edit.text())
+        self.processConfig.args = str(self.arguments_edit.text())
+        self.processConfig.host = str(self.host_label_edit.text())
+        self.processConfig._pass = str(self.password_label_edit.text())
+        self.processConfig.port = str(self.port_label_edit.text())
+        #Hardcoded debugger until we integrate kernel trace
+        #self.processConfig.debugger = 
+        if self.remote_cb.isChecked():
+            self.processConfig.remote = "True"
         
     def onSaveConfigButtonClicked(self):
         """
         Action for saving config
         """
-        
         #start debugging
         from dispatcher.core.structures.Tracer.Config.config import ProcessConfig as ProcessConfig
         
-        processConfig = ProcessConfig()
-        #Get all the process config data from the GUI
-        """
-        processConfig.name = name
-        processConfig.osType = osType
-        processConfig.osArch = osArch
-        """
-        processConfig.name = self.name_label_d.text()
-        print processConfig.name
-        processConfig.osType = self.t_config.getOsType()
-        processConfig.osArch = self.t_config.getOsArch()
-        processConfig.path = self.path_edit.text()
-        processConfig.args = self.arguments_edit.text()
-        processConfig.host = self.host_label_edit.text()
-        processConfig._pass = self.password_label_edit.text()
-        processConfig.port = self.port_label_edit.text()
-        #Hardcoded debugger until we integrate kernel trace
-        processConfig.debugger = ""
-        if self.remote_cb.isChecked():
-            processConfig.remote = "True"
-        self.idaTracer.setProcessConfig(processConfig)
+        self.getConfigFromGUI()
+        self.idaTracer.setProcessConfig(self.processConfig)
         
-    def _createTraceTable(self):
-        """
-        Create the top table used for showing all
-        """
-        self.trace_table = self.QtGui.QTableWidget()
-        #self.trace_table.clicked.connect(self.onTraceClicked)
-        self.trace_table.doubleClicked.connect(self.onTraceDoubleClicked)
-        
-    def _createProcessTable(self):
-        """
-        Create the top table used for showing all
-        """
-        self.process_table = self.QtGui.QTableWidget()
-        self.process_table.clicked.connect(self.onProcessClicked)
-        
-    def _createDetailsTable(self):
-        """
-        Create the bottom left table
-        """
-        self.details_table = self.QtGui.QTableWidget()
-        
-    def onTraceDoubleClicked(self, mi):
-        """
-        if a trace cell is double clicked
-        """
-        self.double_clicked_trace = self.trace_table.item(mi.row(), 1).text()
-        self.trace_table.item(mi.row(), 1).setBackgroundColor(QColor(QtCore.red))
-    
-    def onProcessClicked(self, mi):
-        """
-        If a process is clicked, the view of the process and details are updated
-        """
-        self.clicked_process = self.process_table.item(mi.row(), 1).text()
-        self.populateDetailsTable(self.clicked_process)
-        
-    def populateDetailsTable(self, process_c):
-        """
-        Populate the details table based on the selected process in the process table.
-        For no uneditable
-        @Todo:
-            Make editable and have changes pushed out to file
-        """
-        from dispatcher.trace_config import TraceConfig
-        self.details_table.setSortingEnabled(False)
-        self.details_header_labels = ["node", "node value"]
-        self.details_table.clear()
-        self.details_table.setColumnCount(len(self.details_header_labels))
-        self.details_table.setHorizontalHeaderLabels(self.details_header_labels)
-        cur_config = TraceConfig(self.t_config_fname)
-        cur_config.setProcess(process_c)
-        #Account for if a member is a list and recurse the elements
-        mem_inc = 0
-        members = cur_config.getMembers()
-        self.details_table.setRowCount(cur_config.getMemberCount())
-        for row, member in enumerate(members):
-            if type(getattr(cur_config, member)) is list:
-                for item in getattr(cur_config, member):
-                    tmp_item = self.QtGui.QTableWidgetItem(member)
-                    self.details_table.setItem(row+mem_inc,0,tmp_item)
-                    tmp_item = self.QtGui.QTableWidgetItem(item)
-                    self.details_table.setItem(row+mem_inc,1,tmp_item)
-                    self.details_table.resizeRowToContents(row+mem_inc)
-                    mem_inc = mem_inc + 1
-            else:
-                tmp_item = self.QtGui.QTableWidgetItem(member)
-                self.details_table.setItem(row+mem_inc,0,tmp_item)
-                tmp_item = self.QtGui.QTableWidgetItem(getattr(cur_config, member))
-                self.details_table.setItem(row+mem_inc,1,tmp_item)
-                self.details_table.resizeRowToContents(row+mem_inc)
-        self.details_table.setSelectionMode(self.QtGui.QAbstractItemView.SingleSelection)
-        self.details_table.resizeColumnsToContents()
-        self.details_table.setSortingEnabled(True)
-        
-    def populateTraceTable(self):
-        """
-        Populate the VM table with information about the virtual machines
-        """
-        #If no config then connect to virtualbox in config
-        self.trace_table.setSortingEnabled(False)
-        self.trace_header_labels = ["Node", "Type", "EA", "Index1", "Index2", "Instr", "Anno"]
-        self.trace_table.clear()
-        self.trace_table.setColumnCount(len(self.trace_header_labels))
-        self.trace_table.setHorizontalHeaderLabels(self.trace_header_labels)
-        if hasattr(self, 'f_taint'):
-            processes = self.t_config.root.findall('process')
-            self.trace_table.setRowCount(len(processes))
-            for row, node in enumerate(processes):
-                for column, column_name in enumerate(self.process_header_labels):
-                    ##@todo Determine if VM and if online
-                    if column == 0:
-                        tmp_item = self.QtGui.QTableWidgetItem(node.find('input').find('remote').text)
-                    elif column == 1:
-                        tmp_item = self.QtGui.QTableWidgetItem(node.attrib['name'])
-                    elif column == 2:
-                        osarch = node.find('platform').find('OS').text + ' ' + node.find('platform').find('Arch').text
-                        tmp_item = self.QtGui.QTableWidgetItem(osarch)
-                    tmp_item.setFlags(tmp_item.flags() & self.QtCore.Qt.ItemIsEditable)
-                    self.trace_table.setItem(row, column, tmp_item)
-                self.trace_table.resizeRowToContents(row)
-            self.trace_table.setSelectionMode(self.QtGui.QAbstractItemView.SingleSelection)
-            self.trace_table.resizeColumnsToContents()
-            self.trace_table.setSortingEnabled(True)
-        else:
-            self.trace_table.setSelectionMode(self.QtGui.QAbstractItemView.SingleSelection)
-            self.trace_table.resizeColumnsToContents()
-            
-    def populateProcessTable(self):
-        """
-        Populate the VM table with information about the virtual machines
-        """
-        #If no config then connect to virtualbox in config
-        self.process_table.setSortingEnabled(False)
-        self.process_header_labels = ["Remote", "Process", "Platform"]
-        self.process_table.clear()
-        self.process_table.setColumnCount(len(self.process_header_labels))
-        self.process_table.setHorizontalHeaderLabels(self.process_header_labels)
-        if hasattr(self, 't_config'):
-            processes = self.t_config.root.findall('process')
-            self.process_table.setRowCount(len(processes))
-            self.updateProcessesLabel(len(processes),len(processes))
-            for row, node in enumerate(processes):
-                for column, column_name in enumerate(self.process_header_labels):
-                    ##@todo Determine if VM and if online
-                    if column == 0:
-                        tmp_item = self.QtGui.QTableWidgetItem(node.find('input').find('remote').text)
-                    elif column == 1:
-                        tmp_item = self.QtGui.QTableWidgetItem(node.attrib['name'])
-                    elif column == 2:
-                        osarch = node.find('platform').find('OS').text + ' ' + node.find('platform').find('Arch').text
-                        tmp_item = self.QtGui.QTableWidgetItem(osarch)
-                    tmp_item.setFlags(tmp_item.flags() & ~self.QtCore.Qt.ItemIsEditable)
-                    self.process_table.setItem(row, column, tmp_item)
-                self.process_table.resizeRowToContents(row)
-            self.process_table.setSelectionMode(self.QtGui.QAbstractItemView.SingleSelection)
-            self.process_table.resizeColumnsToContents()
-            self.process_table.setSortingEnabled(True)
-        else:
-            self.process_table.setSelectionMode(self.QtGui.QAbstractItemView.SingleSelection)
-            self.process_table.resizeColumnsToContents()
-            self.process_table.setSortingEnabled(True)
-            
-    def updateProcessesLabel(self,n1, n2):
-        self.processes_label.setText("Processes (%d/%d)" %
-            (n1, n2))
-
     def populateConfig(self):
-        self.t_config = self.idaTracer.processConfig
-        if self.t_config is None:
+        self.processConfig = self.idaTracer.getProcessConfig()
+        if self.processConfig is None:
             print "Error, we need to add a new config"
+            print "Should not get here!!!"
         else:
-            #False =>Use local debugger, True =>Use remote debugger
-            self.path_edit.setText(self.t_config.getPath())
-            self.name_label_d.setText(self.t_config.getApplication())
-            self.os_label_d.setText(self.t_config.getOsType() + " " + self.t_config.getOsArch())
-            self.arguments_edit.setText(self.t_config.getArgs())
-            sdir  = self.t_config.getSdir()
-            self.host_label_edit.setText(self.t_config.getHost())
-            self.password_label_edit.setText(self.t_config.getPass())
-            _debugger = self.t_config.getDebugger()
+            self.application_edit.setText(self.processConfig.getApplication())
+            self.path_edit.setText(self.processConfig.getPath())
+            self.name_label_d.setText(self.processConfig.getName())
+            self.os_label_d.setText(self.processConfig.getOsType() + " " + self.processConfig.getOsArch() + " Bit")
+            self.arguments_edit.setText(self.processConfig.getArgs())
+            sdir  = self.processConfig.getSdir()
+            self.host_label_edit.setText(self.processConfig.getHost())
+            self.password_label_edit.setText(self.processConfig.getPass())
+            _debugger = self.processConfig.getDebugger()
             
-            if _debugger is not None:
-                debugger = _debugger
-            
-            #port  = int(self.t_config.getPort())
-            self.port_label_edit.setText(self.t_config.getPort())
-            if self.t_config.getRemote()=="True":
+            #port  = int(self.processConfig.getPort())
+            self.port_label_edit.setText(self.processConfig.getPort())
+            if self.processConfig.getRemote()=="True":
                 self.remote_cb.setCheckState(self.QtCore.Qt.Checked)
+            else:
+                self.remote_cb.setCheckState(self.QtCore.Qt.Unchecked)
                 
             filters = dict()
             
-            fileFilter = self.t_config.getFileFilter()
+            fileFilter = self.processConfig.getFileFilter()
             if fileFilter is not None:
                 filters['file'] = fileFilter
                 
-            networkFilter = self.t_config.getNetworkFilter()
+            networkFilter = self.processConfig.getNetworkFilter()
             if networkFilter is not None:
                 filters['network'] = networkFilter

@@ -18,7 +18,7 @@ class IDATrace():
         
         self.config = None
         (processName, osType, osArch) = self.getProcessInfo()
-        self.processConfig = self.getProcessConfig(processName, osType, osArch)
+        self.processConfig = self.createProcessConfig(processName, osType, osArch)
 
     def removeBreakpoints(self):
         import idc
@@ -78,11 +78,14 @@ class IDATrace():
         print fileType
         
         return (app_name,os_type,os_arch)
-       
+    
+    def getProcessConfig(self):
+        return self.processConfig
+    
     def setProcessConfig(self,processConfig):
         self.config.write(processConfig)
     
-    def getProcessConfig(self,name,osType,osArch):
+    def createProcessConfig(self,name,osType,osArch):
         import idc
         from dispatcher.core.structures.Tracer.Config.config import ConfigFile as ConfigFile
         from dispatcher.core.structures.Tracer.Config.config import ProcessConfig as ProcessConfig
@@ -105,7 +108,7 @@ class IDATrace():
             
         return processConfig
         
-    def run(self):
+    def run(self,processConfig):
         import idaapi
         import idc
         import logging
@@ -136,26 +139,27 @@ class IDATrace():
             
         logfile = ""
 
-        app_name = self.processConfig.getName()
-        os_type  = self.processConfig.getOsType()
-        os_arch  = self.processConfig.getOsArch()
+        app_name = processConfig.getName()
+        os_type  = processConfig.getOsType()
+        os_arch  = processConfig.getOsArch()
         
-        path  = self.processConfig.getPath()
-        application = self.processConfig.getApplication()
-        args  = self.processConfig.getArgs()
-        sdir  = self.processConfig.getSdir()
-        host  = self.processConfig.getHost()
-        _pass = self.processConfig.getPass()
-        _debugger = self.processConfig.getDebugger()
-        remote = self.processConfig.getRemote()=="True"
+        path  = processConfig.getPath()
+
+        application = processConfig.getApplication()
+        args  = processConfig.getArgs()
+        sdir  = processConfig.getSdir()
+        host  = processConfig.getHost()
+        _pass = processConfig.getPass()
+        _debugger = processConfig.getDebugger()
+        remote = processConfig.getRemote()=="True"
         
-        port  = int(self.processConfig.getPort())
+        port  = int(processConfig.getPort())
         
-        fileFilter = self.processConfig.getFileFilter()
+        fileFilter = processConfig.getFileFilter()
         if fileFilter is not None:
             filters['file'] = fileFilter
             
-        networkFilter = self.processConfig.getNetworkFilter()
+        networkFilter = processConfig.getNetworkFilter()
         if networkFilter is not None:
             filters['network'] = networkFilter
         
@@ -261,7 +265,7 @@ class IDATrace():
             self.linuxFileIO.SetFilters(filters)
             self.linuxFileIO.SetLoggerInstance(self.logger)
             
-        customBreakpoints = self.processConfig.getCustomBreakpoints()
+        customBreakpoints = processConfig.getCustomBreakpoints()
         
         if len(customBreakpoints) > 0:
             self.customCallback.SetDebuggerInstance(EThook)
