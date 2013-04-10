@@ -27,6 +27,7 @@ class TraceGeneratorWidget(QtGui.QMainWindow):
         self.central_widget = self.QtGui.QWidget()
         self.setCentralWidget(self.central_widget)
         self._createGui()
+        self.populateConfig()
         
     def _createGui(self):
         """
@@ -215,7 +216,19 @@ class TraceGeneratorWidget(QtGui.QMainWindow):
         processConfig.osType = osType
         processConfig.osArch = osArch
         """
-        
+        processConfig.name = self.name_label_d.text()
+        print processConfig.name
+        processConfig.osType = self.t_config.getOsType()
+        processConfig.osArch = self.t_config.getOsArch()
+        processConfig.path = self.path_edit.text()
+        processConfig.args = self.arguments_edit.text()
+        processConfig.host = self.host_label_edit.text()
+        processConfig._pass = self.password_label_edit.text()
+        processConfig.port = self.port_label_edit.text()
+        #Hardcoded debugger until we integrate kernel trace
+        processConfig.debugger = ""
+        if self.remote_cb.isChecked():
+            processConfig.remote = "True"
         self.idaTracer.setProcessConfig(processConfig)
         
     def _createTraceTable(self):
@@ -365,26 +378,27 @@ class TraceGeneratorWidget(QtGui.QMainWindow):
 
     def populateConfig(self):
         self.t_config = self.idaTracer.processConfig
-        
         if self.t_config is None:
             print "Error, we need to add a new config"
         else:
             #False =>Use local debugger, True =>Use remote debugger
-            path  = self.t_config.getPath()
-            print path
-            application = self.t_config.getApplication()
-            args  = self.t_config.getArgs()
+            self.path_edit.setText(self.t_config.getPath())
+            self.name_label_d.setText(self.t_config.getApplication())
+            self.os_label_d.setText(self.t_config.getOsType() + " " + self.t_config.getOsArch())
+            self.arguments_edit.setText(self.t_config.getArgs())
             sdir  = self.t_config.getSdir()
-            host  = self.t_config.getHost()
-            _pass = self.t_config.getPass()
+            self.host_label_edit.setText(self.t_config.getHost())
+            self.password_label_edit.setText(self.t_config.getPass())
             _debugger = self.t_config.getDebugger()
             
             if _debugger is not None:
                 debugger = _debugger
             
-            port  = int(self.t_config.getPort())
-            
-            remote = self.t_config.getRemote()=="True"
+            #port  = int(self.t_config.getPort())
+            self.port_label_edit.setText(self.t_config.getPort())
+            if self.t_config.getRemote()=="True":
+                self.remote_cb.setCheckState(self.QtCore.Qt.Checked)
+                
             filters = dict()
             
             fileFilter = self.t_config.getFileFilter()

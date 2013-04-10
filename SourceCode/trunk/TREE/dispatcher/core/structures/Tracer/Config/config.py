@@ -90,7 +90,7 @@ class ConfigFile:
         
         newProcess = Element("process")
         
-        if self.processTable.has_key(processConfig.getName()+processConfig.getOsType()+processConfig.getOsArch()):
+        if self.processTable.has_key(str(processConfig.getName())+str(processConfig.getOsType())+str(processConfig.getOsArch())):
             self.update(processConfig)
         else:
             #adding a new process config
@@ -252,7 +252,10 @@ class ConfigFile:
                 _input.find('host').text = processConfig.getHost()
                 _input.find('pass').text = processConfig.getPass()
                 _input.find('port').text = processConfig.getPort()
-                _input.find('debugger').text = processConfig.getDebugger()
+                try:
+                    _input.find('debugger').text = processConfig.getDebugger()
+                except AttributeError:
+                    print "entry without debugger attribute"
 
                 _filter = proc.find('filter')
                 
