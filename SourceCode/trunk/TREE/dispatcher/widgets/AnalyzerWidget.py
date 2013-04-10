@@ -144,10 +144,10 @@ class AnalyzerWidget(QtGui.QMainWindow):
         """
         self.taint_prop = []
         #self.taint_prop.append("TAINT_NOPE")
+        self.taint_prop.append("TAINT_DATA")
         self.taint_prop.append("TAINT_ADDRESS")
         self.taint_prop.append("TAINT_BRANCH")
         self.taint_prop.append("TAINT_COUNTER")
-        self.taint_prop.append("TAINT_DATA")
         #self.taint_prop.append("TAINT_LAST")
         
     def _createToolbar(self):
