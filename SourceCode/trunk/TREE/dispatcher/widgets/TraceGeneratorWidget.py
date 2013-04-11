@@ -287,6 +287,11 @@ class TraceGeneratorWidget(QtGui.QMainWindow):
         filter_table.setColumnCount(len(table_header_labels))
         filter_table.setHorizontalHeaderLabels(table_header_labels)
         filter_table.setRowCount(len(filter))
+        filter_table.setContextMenuPolicy(self.QtCore.Qt.CustomContextMenu)
+        if filter_table.objectName() == "filters_filename_table":
+            filter_table.customContextMenuRequested.connect(self.handleFileFilterMenu)
+        elif filter_table.objectName() == "filters_network_port_table":
+            filter_table.customContextMenuRequested.connect(self.handleNetworkFilterMenu)
         for row, node in enumerate(filter):
             tmp_item = self.QtGui.QTableWidgetItem(node)
             tmp_item.setFlags(tmp_item.flags() & ~self.QtCore.Qt.ItemIsEditable)
@@ -295,3 +300,36 @@ class TraceGeneratorWidget(QtGui.QMainWindow):
         filter_table.setSelectionMode(self.QtGui.QAbstractItemView.SingleSelection)
         filter_table.resizeColumnsToContents()
         filter_table.setSortingEnabled(True)
+        
+    def handleFileFilterMenu(self, pos):
+        menu = self.QtGui.QMenu()
+        add = self.QtGui.QAction("Add", menu)
+        add.setStatusTip("Add a filter")
+        self.connect(add, self.QtCore.SIGNAL('triggered()'), self.addFileFilter)
+        menu.addAction(add)
+        menu.addAction(self.QtGui.QAction("Delete", menu))
+        menu.exec_(self.QtGui.QCursor.pos())
+        
+    def handleNetworkFilterMenu(self, pos):
+        menu = self.QtGui.QMenu()
+        add = self.QtGui.QAction("Add", menu)
+        add.setStatusTip("Add a filter")
+        self.connect(add, self.QtCore.SIGNAL('triggered()'), self.addFileFilter)
+        menu.addAction(add)
+        menu.addAction(self.QtGui.QAction("Delete", menu))
+        menu.exec_(self.QtGui.QCursor.pos())
+        
+    def addFileFilter(self):
+        print "test1"
+        print self.filters_filename_table.currentItem().row()
+        
+    def delFileFilter(self):
+        print "test2"
+        print self.filters_filename_table.currentItem().row()
+        
+    def addNetworkFilter(self):
+        print "test3"
+        
+    def delNetworkFilter(self):
+        print "test4"
+        print self.filters_network_port_table.currentItem().row()
