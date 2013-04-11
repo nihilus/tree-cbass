@@ -228,11 +228,11 @@ class TraceGeneratorWidget(QtGui.QMainWindow):
             self.processConfig.remote = "True"
         tempFileFilter = []
         for row in range(self.filters_filename_table.rowCount()):
-            tempFileFilter.append(self.filters_filename_table.item(row, 0))
+            tempFileFilter.append(self.filters_filename_table.item(row, 0).text())
         self.processConfig.fileFilter = tempFileFilter
         tempNetworkFilter = []
         for row in range(self.filters_network_port_table.rowCount()):
-            tempFileFilter.append(self.filters_network_port_table.item(row, 0))
+            tempNetworkFilter.append(self.filters_network_port_table.item(row, 0).text())
         self.processConfig.networkFilter = tempNetworkFilter
         
     def onSaveConfigButtonClicked(self):
