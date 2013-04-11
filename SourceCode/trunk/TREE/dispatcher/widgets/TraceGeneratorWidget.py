@@ -307,29 +307,33 @@ class TraceGeneratorWidget(QtGui.QMainWindow):
         add.setStatusTip("Add a filter")
         self.connect(add, self.QtCore.SIGNAL('triggered()'), self.addFileFilter)
         menu.addAction(add)
-        menu.addAction(self.QtGui.QAction("Delete", menu))
+        delete  = self.QtGui.QAction("Delete", menu)
+        delete.setStatusTip("Delete a filter")
+        self.connect(delete, self.QtCore.SIGNAL('triggered()'), self.delFileFilter)
+        menu.addAction(delete)
         menu.exec_(self.QtGui.QCursor.pos())
         
     def handleNetworkFilterMenu(self, pos):
         menu = self.QtGui.QMenu()
         add = self.QtGui.QAction("Add", menu)
         add.setStatusTip("Add a filter")
-        self.connect(add, self.QtCore.SIGNAL('triggered()'), self.addFileFilter)
+        self.connect(add, self.QtCore.SIGNAL('triggered()'), self.addNetworkFilter)
         menu.addAction(add)
-        menu.addAction(self.QtGui.QAction("Delete", menu))
+        delete  = self.QtGui.QAction("Delete", menu)
+        delete.setStatusTip("Delete a filter")
+        self.connect(delete, self.QtCore.SIGNAL('triggered()'), self.delNetworkFilter)
+        menu.addAction(delete)
         menu.exec_(self.QtGui.QCursor.pos())
         
     def addFileFilter(self):
-        print "test1"
         print self.filters_filename_table.currentItem().row()
+        self.filters_filename_table.insertRow(self.filters_filename_table.rowCount())
         
     def delFileFilter(self):
-        print "test2"
-        print self.filters_filename_table.currentItem().row()
+        self.filters_filename_table.removeRow(self.filters_filename_table.currentItem().row())
         
     def addNetworkFilter(self):
-        print "test3"
+        self.filters_network_port_table.insertRow(self.filters_network_port_table.rowCount())
         
     def delNetworkFilter(self):
-        print "test4"
-        print self.filters_network_port_table.currentItem().row()
+        self.filters_network_port_table.removeRow(self.filters_network_port_table.currentItem().row())
