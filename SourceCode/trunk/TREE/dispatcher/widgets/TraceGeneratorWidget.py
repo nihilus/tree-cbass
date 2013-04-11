@@ -53,7 +53,7 @@ class TraceGeneratorWidget(QtGui.QMainWindow):
         self.filename_label = QtGui.QLabel(self.gridLayoutWidget_2)
         self.filename_label.setObjectName("filename_label")
         self.verticalLayout_3.addWidget(self.filename_label)
-        self.filters_filename_table = QtGui.QTableView(self.gridLayoutWidget_2)
+        self.filters_filename_table = QtGui.QTableWidget(self.gridLayoutWidget_2)
         self.filters_filename_table.setObjectName("filters_filename_table")
         self.verticalLayout_3.addWidget(self.filters_filename_table)
         self.gridLayout_2.addLayout(self.verticalLayout_3, 0, 0, 1, 1)
@@ -62,7 +62,7 @@ class TraceGeneratorWidget(QtGui.QMainWindow):
         self.network_port_label = QtGui.QLabel(self.gridLayoutWidget_2)
         self.network_port_label.setObjectName("network_port_label")
         self.verticalLayout_4.addWidget(self.network_port_label)
-        self.filters_network_port_table = QtGui.QTableView(self.gridLayoutWidget_2)
+        self.filters_network_port_table = QtGui.QTableWidget(self.gridLayoutWidget_2)
         self.filters_network_port_table.setObjectName("filters_network_port_table")
         self.verticalLayout_4.addWidget(self.filters_network_port_table)
         self.gridLayout_2.addLayout(self.verticalLayout_4, 0, 1, 1, 1)
@@ -226,6 +226,14 @@ class TraceGeneratorWidget(QtGui.QMainWindow):
         #self.processConfig.debugger = 
         if self.remote_cb.isChecked():
             self.processConfig.remote = "True"
+        tempFileFilter = []
+        for row in range(self.filters_filename_table.rowCount()):
+            tempFileFilter.append(self.filters_filename_table.item(row, 0))
+        self.processConfig.fileFilter = tempFileFilter
+        tempNetworkFilter = []
+        for row in range(self.filters_network_port_table.rowCount()):
+            tempFileFilter.append(self.filters_network_port_table.item(row, 0))
+        self.processConfig.networkFilter = tempNetworkFilter
         
     def onSaveConfigButtonClicked(self):
         """
@@ -260,12 +268,29 @@ class TraceGeneratorWidget(QtGui.QMainWindow):
             else:
                 self.remote_cb.setCheckState(self.QtCore.Qt.Unchecked)
                 
-            filters = dict()
+            self.filters = dict()
             
             fileFilter = self.processConfig.getFileFilter()
             if fileFilter is not None:
-                filters['file'] = fileFilter
+                #self.filters['file'] = fileFilter
+                self.populateFiltersTable(fileFilter, self.filters_filename_table)
                 
             networkFilter = self.processConfig.getNetworkFilter()
             if networkFilter is not None:
-                filters['network'] = networkFilter
+                #self.filters['network'] = networkFilter
+                self.populateFiltersTable(networkFilter, self.filters_network_port_table)
+
+    def populateFiltersTable(self, filter, filter_table):
+        table_header_labels = ["Value"]
+        filter_table.clear()
+        filter_table.setColumnCount(len(table_header_labels))
+        filter_table.setHorizontalHeaderLabels(table_header_labels)
+        filter_table.setRowCount(len(filter))
+        for row, node in enumerate(filter):
+            tmp_item = self.QtGui.QTableWidgetItem(node)
+            tmp_item.setFlags(tmp_item.flags() & ~self.QtCore.Qt.ItemIsEditable)
+            filter_table.setItem(row, 0, tmp_item)
+            filter_table.resizeRowToContents(row)
+        filter_table.setSelectionMode(self.QtGui.QAbstractItemView.SingleSelection)
+        filter_table.resizeColumnsToContents()
+        filter_table.setSortingEnabled(True)
