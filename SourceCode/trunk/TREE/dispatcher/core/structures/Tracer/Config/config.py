@@ -264,14 +264,16 @@ class ConfigFile:
                 filter_file = Element("filter")
                 filter_file.attrib["type"] = "fileIO"
                 
-                for f in processConfig.getFileFilter():
-                    SubElement(filter_file, "fileName").text = f
+                if processConfig.getFileFilter():
+                    for f in processConfig.getFileFilter():
+                        SubElement(filter_file, "fileName").text = f
         
                 filter_network = Element("filter")
                 filter_network.attrib["type"] = "networkIO"
                 
-                for n in processConfig.getNetworkFilter():
-                    SubElement(filter_network, "port").text = n
+                if processConfig.getNetworkFilter():
+                    for n in processConfig.getNetworkFilter():
+                        SubElement(filter_network, "port").text = n
                 
                 proc.append(filter_file)
                 proc.append(filter_network)
