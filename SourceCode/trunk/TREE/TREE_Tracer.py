@@ -27,24 +27,12 @@ class TreeTracerPluginFormClass(PluginForm):
     
     def __init__(self):
         super(TreeTracerPluginFormClass, self).__init__()
-        print "TreeTracerPluginFormClass init called."
+        #print "TreeTracerPluginFormClass init called."
         self.idaPluginDir = GetIdaDirectory() + "\\plugins\\"
         self.iconPath = self.idaPluginDir + "\\dispatcher\\icons\\"
-        self.dispatcher_widgets = []
+        #self.dispatcher_widgets = []
         
         self.icon = QIcon(self.iconPath + "dispatcher.png")
-
-    def setupTreeTracerPluginForm(self):
-        """
-        Organize the initialized widgets into tabs
-        """
-        self.tabs = QtGui.QTabWidget()
-        self.tabs.setTabsClosable(False)
-        for widget in self.dispatcher_widgets:
-            self.tabs.addTab(widget, widget.icon, widget.name)
-        layout = QtGui.QVBoxLayout()
-        layout.addWidget(self.tabs)
-        self.parent.setLayout(layout)
         
     def setupWidgets(self):
         """
@@ -61,9 +49,10 @@ class TreeTracerPluginFormClass(PluginForm):
         functionCallbacks = dict()
         functionCallbacks = {'windowsFileIO':windowsFileIO ,'linuxFileIO':linuxFileIO ,'customCallback':customCallback }
         
-        self.dispatcher_widgets.append(TraceGeneratorWidget(self,functionCallbacks))
+        layout = QtGui.QVBoxLayout()
+        layout.addWidget(TraceGeneratorWidget(self,functionCallbacks))
+        self.parent.setLayout(layout)
 
-        self.setupTreeTracerPluginForm()
         print("[\\] this took %3.2f seconds.\n" % (time.time() - time_before))
         
     def OnCreate(self, form):

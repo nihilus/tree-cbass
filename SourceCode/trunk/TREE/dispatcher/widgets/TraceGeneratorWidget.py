@@ -37,13 +37,14 @@ class TraceGeneratorWidget(QtGui.QMainWindow):
         """
         # Create buttons
         from PySide import QtGui, QtCore
+        #self.setWindowTitle("Hello")
         self._createToolbar()
         trace_layout = QtGui.QVBoxLayout()
         self.filters_qb = QtGui.QGroupBox()
-        self.filters_qb.setGeometry(QtCore.QRect(10, 200, 511, 191))
+        #self.filters_qb.setGeometry(QtCore.QRect(10, 10, 500, 300))
         self.filters_qb.setObjectName("filters_qb")
         self.gridLayoutWidget_2 = QtGui.QWidget(self.filters_qb)
-        self.gridLayoutWidget_2.setGeometry(QtCore.QRect(10, 20, 491, 161))
+        self.gridLayoutWidget_2.setGeometry(QtCore.QRect(10, 10, 500, 300))
         self.gridLayoutWidget_2.setObjectName("gridLayoutWidget_2")
         self.gridLayout_2 = QtGui.QGridLayout(self.gridLayoutWidget_2)
         #self.gridLayout_2.setMargin(0)
@@ -70,7 +71,7 @@ class TraceGeneratorWidget(QtGui.QMainWindow):
         #self.process_qbox.setGeometry(QtCore.QRect(10, 10, 511, 15))
         self.process_qbox.setObjectName("process_qbox")
         self.layoutWidget = QtGui.QWidget(self.process_qbox)
-        self.layoutWidget.setGeometry(QtCore.QRect(10, 14, 411, 30))
+        self.layoutWidget.setGeometry(QtCore.QRect(10, 10, 400, 30))
         self.layoutWidget.setObjectName("layoutWidget")
         self.horizontalLayout_8 = QtGui.QHBoxLayout(self.layoutWidget)
         #self.horizontalLayout_8.setMargin(0)
@@ -88,10 +89,10 @@ class TraceGeneratorWidget(QtGui.QMainWindow):
         self.os_label_d.setObjectName("os_label_d")
         self.horizontalLayout_8.addWidget(self.os_label_d)
         self.params_qbox = QtGui.QGroupBox()
-        self.params_qbox.setGeometry(QtCore.QRect(10, 60, 511, 200))
+        #self.params_qbox.setGeometry(QtCore.QRect(10, 10, 500, 300))
         self.params_qbox.setObjectName("params_qbox")
         self.gridLayoutWidget_3 = QtGui.QWidget(self.params_qbox)
-        self.gridLayoutWidget_3.setGeometry(QtCore.QRect(9, 15, 501, 103))
+        self.gridLayoutWidget_3.setGeometry(QtCore.QRect(10, 10, 500, 300))
         self.gridLayoutWidget_3.setObjectName("gridLayoutWidget_3")
         self.gridLayout_3 = QtGui.QGridLayout(self.gridLayoutWidget_3)
         #self.gridLayout_3.setMargin(0)
@@ -148,9 +149,20 @@ class TraceGeneratorWidget(QtGui.QMainWindow):
         self.horizontalLayout_7.addLayout(self.verticalLayout_6)
         self.gridLayout_3.addLayout(self.horizontalLayout_7, 0, 0, 1, 1)
         self.retranslateUi()
-        trace_layout.addWidget(self.process_qbox)
-        trace_layout.addWidget(self.params_qbox)
-        trace_layout.addWidget(self.filters_qb)
+        
+        splitter1 = QtGui.QSplitter(QtCore.Qt.Horizontal)
+        splitter1.addWidget(self.params_qbox)
+        splitter1.addWidget(self.filters_qb)
+        valueList1 = [5,95]
+        splitter1.setSizes(valueList1)
+
+        splitter2 = QtGui.QSplitter(QtCore.Qt.Vertical)
+        splitter2.addWidget(splitter1)
+        splitter2.addWidget(self.process_qbox)
+        valueList2 = [80,20]
+        splitter2.setSizes(valueList2)
+        
+        trace_layout.addWidget(splitter2)
         self.central_widget.setLayout(trace_layout)
         
     def retranslateUi(self):
