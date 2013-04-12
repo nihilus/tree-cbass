@@ -17,10 +17,11 @@ class TaintGraph(GraphViewer):
     self.graph = graph
     self.selectedNode = None
     
-  def __init__(self, graph, node_ea):
+  def __init__(self, graph, node_ea, node_lib):
     GraphViewer.__init__(self, "Taint Graph")
     self.graph = graph
     self.node_ea = node_ea
+    self.node_lib = node_lib
     self.selectedNode = None
 
   def OnRefresh(self):

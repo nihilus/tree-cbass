@@ -98,7 +98,7 @@ class AnalyzerWidget(QtGui.QMainWindow):
         upper_table_widget = QtGui.QWidget()
         upper_table_layout = QtGui.QVBoxLayout()
         upper_table_layout.addWidget(taint_info_widget)
-        upper_table_layout.addWidget(self.trace_table)
+        #upper_table_layout.addWidget(self.trace_table)
         upper_table_widget.setLayout(upper_table_layout)
         
         details_widget = QtGui.QWidget()
@@ -549,10 +549,50 @@ class AnalyzerWidget(QtGui.QMainWindow):
                 print x
                 print y
                 print d
+            self.extendTaints()
             self.parent.setTabFocus("Visualizer")
             self.parent.passTaintGraph(self.t_graph, "Visualizer", self.radioGroup2.checkedButton().text())
             self.parent.passTraceFile(self.trace_fname, "Visualizer")
             
+    def extendTaints(self):
+        """
+        Method extend taint information with trace
+        """
+        self.node_ea = dict()
+        self.node_lib = dict()
+        f=open(self.trace_fname, 'r')
+        # read input file line by line
+        for line in f:
+            #Hard implementation of 'E' search
+            if line.startswith('E'):
+                splitted = line.split(' ')
+                self.node_ea[splitted[5]] = splitted[1]
+            #Hard implementation of 'L' search
+            elif line.startswith('L'):
+                splitted = line.split(' ')
+                internal_str = splitted[2] + " " + splitted[3]
+                self.node_lib[splitted[1]] = internal_str
+            else:
+                print ":"
+        print "[debug] trace imported from file into dictionary"
+        f.close()
+        for node in self.t_graph.nodes(data=True):
+            ind = node['inode'].startind.split(':')[0]
+            if node['inode'].endind is not None:
+                ind = node['inode'].endind.split(':')[0]
+            try:
+                addr = int(self.node_ea[ind], 16)
+                node['inode'].setEA(addr)
+            except KeyError:
+                node['inode'].setEA(None)
+            if node['inode'].ea:
+                for key in self.node_lib.keys():
+                    base_addr = self.node_lib(key).split(' ')[0]
+                    end_addr = int(base_addr, 16) + int(self.node_lib(key).split(' ')[1], 16)
+                    if node['inode'].ea >= base_addr and node['inode'].ea < end_addr:
+                        node['inode'].setLib(key)
+                        break
+        
             
     def onImportTraceButtonClicked(self):
         """ 

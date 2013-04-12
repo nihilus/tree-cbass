@@ -292,7 +292,7 @@ class VisualizerWidget(QtGui.QMainWindow):
         if self.policy == "TAINT_BRANCH":
             tv = BCTaintGraph(self.t_graph, self.node_ea)
         else:
-            tv = TaintGraph(self.t_graph, self.node_ea)
+            tv = TaintGraph(self.t_graph, self.node_ea, self.node_lib)
         tv.Show()
     
     def onImportIndexButtonClicked(self):
@@ -342,6 +342,7 @@ class VisualizerWidget(QtGui.QMainWindow):
         Method to set taint graph
         """
         self.node_ea = dict()
+        self.node_lib = dict()
         f=open(t, 'r')
         # read input file line by line
         tempNode = None
@@ -350,5 +351,9 @@ class VisualizerWidget(QtGui.QMainWindow):
             if line.startswith('E'):
                 splitted = line.split(' ')
                 self.node_ea[splitted[5]] = splitted[1]
+            #Hard implementation of 'L' search
+            elif line.startswith('L'):
+                splitted = line.split(' ')
+                self.node_lib[splitted[1]] = (str(splitted[2]) + " " + str(splitted[3]))
         print "[debug] trace imported from file into dictionary"
         f.close()
