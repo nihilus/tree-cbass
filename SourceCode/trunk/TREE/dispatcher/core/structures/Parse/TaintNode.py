@@ -3,16 +3,26 @@ class TaintNode(object):
         self.uuid=str(initial)
         self.nodeattr = None
         self.ea = None
+        self.lib = None
 
     def __str__(self):
         return self.uuid
 
     def label(self):
-        return "[%s]%s_%s\n[%s][%s]" % (self.uuid, self.typ, self.name, self.startind, self.endind)
+        if self.lib:
+            return "[%s][%s]%s_%s\n[%s][%s]" % (self.lib, self.uuid, self.typ, self.name, self.startind, self.endind)
+        else:
+            return "[%s]%s_%s\n[%s][%s]" % (self.uuid, self.typ, self.name, self.startind, self.endind)
     
     def SetNodeAttr(self, s):
         self.nodeattr = s
-
+        
+    def setEA(self, s):
+        self.ea = s
+        
+    def setLib(self, s):
+        self.lib = s
+        
     def ExtractData(self, s):
         #Temporary solution is to parse a text file until we get the C struct passed in
         import re
