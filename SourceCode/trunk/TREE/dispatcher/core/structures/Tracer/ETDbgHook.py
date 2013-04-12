@@ -301,6 +301,10 @@ class ETDbgHook(DBG_Hooks):
             self.logger.error("The instruction at 0x%x has 0 size." % cmd.ea)
         
     def dbg_run_to(self, pid, tid=0, ea=0):
+        self.logger.info( "Taking a memory snapshot then saving to the current idb file.")
+        idc.TakeMemorySnapshot(0)
+        idbPath = idc.GetIdbPath()
+        idc.SaveBase(idbPath)
         self.logger.info( "Runto: tid=%d pid=%d address=0x%x" % ( tid, pid, ea) )
         
     def dbg_step_over(self):   
