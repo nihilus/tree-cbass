@@ -68,13 +68,21 @@ class TaintGraph(GraphViewer):
     #prefer endind if exists
     try:
         addr = self.node_ea[ind]
+        int_addr = int(addr,16)
+        bLoaded = isLoaded(int_addr)
+        if bLoaded:
+          print "Found addr: 0x%x" % int_addr
+          idc.MakeCode(int_addr)
+          idc.Jump(int_addr)
+        else:
+          print "Invalid address at 0x%x" % int_addr
+      
     except KeyError:
         addr = 0
+        print "Index %s not found " % ind
+        
     print "[debug] %s" % ind
-    print "Found addr: %s" % addr
-    if addr != 0:
-        print int(addr, 16)
-        idc.Jump(int(addr,16))
+
     return True
     
   def OnHint(self, node_id):
