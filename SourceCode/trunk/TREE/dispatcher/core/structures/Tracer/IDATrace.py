@@ -104,6 +104,18 @@ class IDATrace():
             processConfig.name = name
             processConfig.osType = osType
             processConfig.osArch = osArch
+            processConfig.application = name
+            processConfig.path = name
+            processConfig.port = "0"
+            processConfig.remote = "False"
+            
+            if osType == "macosx":
+                processConfig.debugger = "macosx"
+            elif osType == "windows":
+                processConfig.debugger = "win32"
+            elif osType == "linux":
+                processConfig.debugger = "linux"
+            
             self.config.write(processConfig)
             
         return processConfig
@@ -150,7 +162,7 @@ class IDATrace():
         sdir  = processConfig.getSdir()
         host  = processConfig.getHost()
         _pass = processConfig.getPass()
-        _debugger = processConfig.getDebugger()
+        debugger = processConfig.getDebugger()
         remote = processConfig.getRemote()=="True"
         
         port  = int(processConfig.getPort())
@@ -165,14 +177,11 @@ class IDATrace():
         
         if os_type == "macosx":
             checkInput = InputMonitor.checkMacLibs
-            debugger   = "macosx"
         elif os_type == "windows":
             checkInput = InputMonitor.checkWindowsLibs
-            debugger   = "win32"
         elif os_type == "linux":
             checkInput = InputMonitor.checkLinuxLibs
-            debugger   = "linux"
-            
+
         filePath = os.path.splitext(self.config.getOutputPath())
         app = os.path.splitext(app_name)
         self.tracefile = filePath[0] + "_" + app[0] + filePath[1]
