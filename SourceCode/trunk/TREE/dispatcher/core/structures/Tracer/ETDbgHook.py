@@ -301,10 +301,6 @@ class ETDbgHook(DBG_Hooks):
             self.logger.error("The instruction at 0x%x has 0 size." % cmd.ea)
         
     def dbg_run_to(self, pid, tid=0, ea=0):
-        self.logger.info( "Taking a memory snapshot then saving to the current idb file.")
-        idc.TakeMemorySnapshot(0)
-        idbPath = idc.GetIdbPath()
-        idc.SaveBase(idbPath)
         self.logger.info( "Runto: tid=%d pid=%d address=0x%x" % ( tid, pid, ea) )
         
     def dbg_step_over(self):   
@@ -328,6 +324,10 @@ class ETDbgHook(DBG_Hooks):
         self.logger.info("dbg_step_until_ret: 0x%x %s" % (eip, GetDisasm(eip)))
         
     def callbackProcessing(self,addr,data_size,data):
+        self.logger.info( "Taking a memory snapshot then saving to the current idb file.")
+        idc.TakeMemorySnapshot(0)
+        idbPath = idc.GetIdbPath()
+        idc.SaveBase(idbPath)
         #self.memoryWriter.writeToFile("I %x %d %s (%s)\n" % (addr,data_size,Util.toHex(data), data))
         self.logger.info("CallbackProcessing called.  Logging input... I %x %d %s" % (addr,data_size,Util.toHex(data)) )
         self.memoryWriter.writeToFile("I %x %d %s\n" % (addr,data_size,Util.toHex(data)))
