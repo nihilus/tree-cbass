@@ -375,6 +375,7 @@ class AnalyzerWidget(QtGui.QMainWindow):
         self.t_graph.add_node(uuid, inode = tempNode)
         if depth == 0:
             self.cur_taint_node = tempNode
+            self.cur_depth = depth
             return
         elif (depth > self.cur_depth):
             if self.cur_taint_node.edgeann is not None:
@@ -387,7 +388,12 @@ class AnalyzerWidget(QtGui.QMainWindow):
                 self.t_graph.add_edge(self.t_graph.predecessors(str(self.cur_taint_node))[0], tempNode, anno=self.t_graph.predecessors(str(self.cur_taint_node))[0].edgeann)
             else:
                 self.t_graph.add_edge(self.t_graph.predecessors(str(self.cur_taint_node))[0], tempNode)
+        #Have to cover for the case where node is root of tree
         else:
+            print depth
+            print self.cur_taint_node
+            print s
+            print self.t_graph.predecessors(str(self.cur_taint_node))
             parent = self.t_graph.predecessors(str(self.cur_taint_node))[0]
             for i in range(0, self.cur_depth - depth):
                 parent = self.t_graph.predecessors(str(parent))[0]
