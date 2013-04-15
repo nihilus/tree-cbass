@@ -556,7 +556,7 @@ class AnalyzerWidget(QtGui.QMainWindow):
             
     def extendTaints(self):
         """
-        Method extend taint information with trace
+        Method to extend taint information with trace. Library context added to taint nodes from trace
         """
         self.node_ea = dict()
         self.node_lib = dict()
@@ -587,9 +587,10 @@ class AnalyzerWidget(QtGui.QMainWindow):
                 node[1]['inode'].setEA(None)
             if node[1]['inode'].ea:
                 for key in self.node_lib.keys():
-                    base_addr = self.node_lib[key].split(' ')[0]
-                    end_addr = int(base_addr, 16) + int(self.node_lib[key].split(' ')[1], 16)
+                    base_addr = int(self.node_lib[key].split(' ')[0], 16)
+                    end_addr = base_addr + int(self.node_lib[key].split(' ')[1], 16)
                     if node[1]['inode'].ea >= base_addr and node[1]['inode'].ea < end_addr:
+                        print "Found library: %s" % key
                         node[1]['inode'].setLib(key)
                         break
         
