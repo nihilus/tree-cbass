@@ -76,8 +76,6 @@ class AnalyzerWidget(QtGui.QMainWindow):
             vbox2.addWidget(radio)
             
         
-        self.verbose_trace_cb = QtGui.QCheckBox("Verbose")
-        vbox.addWidget(self.verbose_trace_cb)
         self.analyzeTypeGroup.setLayout(vbox)
         self.propPolicy.setLayout(vbox2)
         #self.sink_taint_only_cb.stateChanged.connect(self.populateVMTable)
@@ -85,11 +83,13 @@ class AnalyzerWidget(QtGui.QMainWindow):
         taint_info_layout.addWidget(self.propPolicy)
         taint_info_layout.addWidget(self.analyzeTypeGroup)
         
-        self.indexFileGroupBox = QtGui.QGroupBox("PIN Arguments")
+        self.indexFileGroupBox = QtGui.QGroupBox("Misc")
         vbox2 = QtGui.QVBoxLayout()
         vbox2.addWidget(self.pin_trace_cb)
-        vbox2.addWidget(self.indexFileIn)
-        vbox2.addWidget(self.indexFileStr)
+        self.verbose_trace_cb = QtGui.QCheckBox("Verbose")
+        vbox2.addWidget(self.verbose_trace_cb)
+        #vbox2.addWidget(self.indexFileIn)
+        #vbox2.addWidget(self.indexFileStr)
         self.indexFileGroupBox.setLayout(vbox2)
         taint_info_layout.addWidget(self.indexFileGroupBox)
         
