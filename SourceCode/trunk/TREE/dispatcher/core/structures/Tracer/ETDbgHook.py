@@ -87,6 +87,10 @@ class ETDbgHook(DBG_Hooks):
 
     def dbg_suspend_process(self):
         self.logger.info( "Process suspended" )
+        idc.TakeMemorySnapshot(0)
+        idbPath = idc.GetIdbPath()
+        idc.SaveBase(idbPath)
+        
         self.dbg_step_into()
         idaapi.request_step_into()
         idaapi.run_requests()
@@ -325,9 +329,7 @@ class ETDbgHook(DBG_Hooks):
         
     def callbackProcessing(self,addr,data_size,data):
         self.logger.info( "Taking a memory snapshot then saving to the current idb file.")
-        idc.TakeMemorySnapshot(0)
-        idbPath = idc.GetIdbPath()
-        idc.SaveBase(idbPath)
+
         #self.memoryWriter.writeToFile("I %x %d %s (%s)\n" % (addr,data_size,Util.toHex(data), data))
         self.logger.info("CallbackProcessing called.  Logging input... I %x %d %s" % (addr,data_size,Util.toHex(data)) )
         self.memoryWriter.writeToFile("I %x %d %s\n" % (addr,data_size,Util.toHex(data)))
