@@ -160,13 +160,19 @@ class IDATrace():
         application = processConfig.getApplication()
         args  = processConfig.getArgs()
         sdir  = processConfig.getSdir()
-        host  = processConfig.getHost()
-        _pass = processConfig.getPass()
+
         debugger = processConfig.getDebugger()
         remote = processConfig.getRemote()=="True"
         
-        port  = int(processConfig.getPort())
-        
+        if remote:
+            port  = int(processConfig.getPort())
+            host  = processConfig.getHost()
+            _pass = processConfig.getPass()
+        else:
+            port = 0
+            host = ""
+            _pass = ""
+            
         fileFilter = processConfig.getFileFilter()
         if fileFilter is not None:
             filters['file'] = fileFilter

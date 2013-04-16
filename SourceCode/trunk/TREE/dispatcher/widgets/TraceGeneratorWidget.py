@@ -103,6 +103,7 @@ class TraceGeneratorWidget(QtGui.QMainWindow):
         self.host_label.setObjectName("host_label")
         self.horizontalLayout_6.addWidget(self.host_label)
         self.host_label_edit = QtGui.QLineEdit(self.gridLayoutWidget_3)
+        self.host_label_edit.setInputMask("000.000.000.000;_");
         self.host_label_edit.setObjectName("host_label_edit")
         self.horizontalLayout_6.addWidget(self.host_label_edit)
         self.password_label = QtGui.QLabel(self.gridLayoutWidget_3)
@@ -115,11 +116,14 @@ class TraceGeneratorWidget(QtGui.QMainWindow):
         self.port_label.setObjectName("port_label")
         self.horizontalLayout_6.addWidget(self.port_label)
         self.port_label_edit = QtGui.QLineEdit(self.gridLayoutWidget_3)
+        self.port_label_edit.setInputMask("00000");
         self.port_label_edit.setObjectName("port_label_edit")
         self.horizontalLayout_6.addWidget(self.port_label_edit)
         self.gridLayout_3.addLayout(self.horizontalLayout_6, 2, 0, 1, 1)
         self.remote_cb = QtGui.QCheckBox(self.gridLayoutWidget_3)
         self.remote_cb.setObjectName("remote_cb")
+        self.remote_cb.stateChanged.connect(self.remote_cbStateChanged)
+        
         self.gridLayout_3.addWidget(self.remote_cb, 1, 0, 1, 1)
         self.horizontalLayout_7 = QtGui.QHBoxLayout()
         self.horizontalLayout_7.setObjectName("horizontalLayout_7")
@@ -269,18 +273,24 @@ class TraceGeneratorWidget(QtGui.QMainWindow):
             self.name_label_d.setText(self.processConfig.getName())
             self.os_label_d.setText(self.processConfig.getOsType() + " " + self.processConfig.getOsArch() + " Bit")
             self.arguments_edit.setText(self.processConfig.getArgs())
-            sdir  = self.processConfig.getSdir()
+            #sdir  = self.processConfig.getSdir()
             self.host_label_edit.setText(self.processConfig.getHost())
             self.password_label_edit.setText(self.processConfig.getPass())
-            _debugger = self.processConfig.getDebugger()
-            
+            #_debugger = self.processConfig.getDebugger()
+ 
             #port  = int(self.processConfig.getPort())
             self.port_label_edit.setText(self.processConfig.getPort())
             if self.processConfig.getRemote()=="True":
                 self.remote_cb.setCheckState(self.QtCore.Qt.Checked)
+                self.host_label_edit.setEnabled(1)
+                self.password_label_edit.setEnabled(1)
+                self.port_label_edit.setEnabled(1)
             else:
                 self.remote_cb.setCheckState(self.QtCore.Qt.Unchecked)
-                
+                self.host_label_edit.setDisabled(1)
+                self.password_label_edit.setDisabled(1)
+                self.port_label_edit.setDisabled(1)
+            
             self.filters = dict()
             
             fileFilter = self.processConfig.getFileFilter()
@@ -349,3 +359,13 @@ class TraceGeneratorWidget(QtGui.QMainWindow):
         
     def delNetworkFilter(self):
         self.filters_network_port_table.removeRow(self.filters_network_port_table.currentItem().row())
+        
+    def remote_cbStateChanged(self,state):
+        if state == QtCore.Qt.Checked:
+            self.host_label_edit.setEnabled(1)
+            self.password_label_edit.setEnabled(1)
+            self.port_label_edit.setEnabled(1)
+        else:
+            self.host_label_edit.setDisabled(1)
+            self.password_label_edit.setDisabled(1)
+            self.port_label_edit.setDisabled(1)
