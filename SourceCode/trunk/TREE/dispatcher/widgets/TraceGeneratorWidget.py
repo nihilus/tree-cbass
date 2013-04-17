@@ -350,18 +350,20 @@ class TraceGeneratorWidget(QtGui.QMainWindow):
     def addFileFilter(self):
         print self.filters_filename_table.currentItem().row()
         self.filters_filename_table.insertRow(self.filters_filename_table.rowCount())
+        self.filters_filename_table.setItem(self.filters_filename_table.rowCount()-1, 0, self.QtGui.QTableWidgetItem(" "))
         
     def delFileFilter(self):
         self.filters_filename_table.removeRow(self.filters_filename_table.currentItem().row())
         
     def addNetworkFilter(self):
         self.filters_network_port_table.insertRow(self.filters_network_port_table.rowCount())
+        self.filters_network_port_table.setItem(self.filters_network_port_table.rowCount()-1, 0, self.QtGui.QTableWidgetItem(" "))
         
     def delNetworkFilter(self):
         self.filters_network_port_table.removeRow(self.filters_network_port_table.currentItem().row())
         
     def remote_cbStateChanged(self,state):
-        if state == QtCore.Qt.Checked:
+        if state == self.QtCore.Qt.Checked:
             self.host_label_edit.setEnabled(1)
             self.password_label_edit.setEnabled(1)
             self.port_label_edit.setEnabled(1)
