@@ -96,11 +96,11 @@ class BCTaintGraph(GraphViewer):
     uuid = self.AddrNode[node_id]
     a = self.graph.node[uuid]['inode']
     if a.typ == 'bc':
-        return (a.label(), 0xff88ff) #pink
+        return (uuid, 0xff88ff) #pink
     if a.typ == 'reg':
-        return (a.label(), 0xff88ff) #pink
+        return (uuid, 0xff88ff) #pink
     if not a.nodeattr:
-        return (a.label(), 0x7fff00) #Was Green 0x7fff00, Change to red 0x0000ff to display the sink (XL)
+        return (uuid, 0x7fff00) #Was Green 0x7fff00, Change to red 0x0000ff to display the sink (XL)
     elif a.child_c is None and a.child_d is None:
         print "[debug] sink: %s" % uuid
         return (uuid, 0x0000ff) #Was Red 0x0000ff, Change to Grace 0x7fff00 to display the source (XL)

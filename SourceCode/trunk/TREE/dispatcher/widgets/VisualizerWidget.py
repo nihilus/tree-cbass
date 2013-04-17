@@ -79,7 +79,7 @@ class VisualizerWidget(QtGui.QMainWindow):
         
         self.toolbar = self.addToolBar('Trace Generation Toolbar')
         self.toolbar.addAction(self.refreshAction)
-        self.toolbar.addAction(self.importTraceAction)
+        #self.toolbar.addAction(self.importTraceAction)
         self.toolbar.addAction(self.importIDAGraphAction)
         
     def _createRefreshAction(self):
