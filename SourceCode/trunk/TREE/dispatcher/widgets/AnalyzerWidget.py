@@ -506,15 +506,15 @@ class AnalyzerWidget(QtGui.QMainWindow):
             
             tRecord = tr.getNext()
             bEnd = False
-            tLastRecord = None
+            tNextRecord = None
             while tRecord!=None:
+                tNextRecord = tr.getNext()
                 recordType = tRecord.getRecordType()
                 if (recordType == LoadImage):
                     if (self.verbose_trace_cb.isChecked()):
                         print("ImageName=%s, LoadAddr = %x, Size=%x" %(tRecord.ImageName, tRecord.LoadAddress, tRecord.ImageSize))
                         out_str = "ImageName=%s, LoadAddr = %x, Size=%x" %(tRecord.ImageName, tRecord.LoadAddress, tRecord.ImageSize)
-                        self.trace_table2.append(out_str)
-                     
+                        self.trace_table2.append(out_str)                     
                 elif (recordType == Input):
                     TP.SetInputTaint(tRecord.currentInputAddr, tRecord.currentInputSize)
                     if(self.verbose_trace_cb.isChecked()):
@@ -522,26 +522,27 @@ class AnalyzerWidget(QtGui.QMainWindow):
                         out_str = "InputAddr = %x, InputSize =%x" %(tRecord.currentInputAddr, tRecord.currentInputSize)
                         self.trace_table2.append(out_str)
                 elif(recordType == Execution):
-                    tLastRecord = tRecord
-                    if(TP.Propagator(tRecord)==1):
+                    if(tNextRecord.getRecordType() == eXception):
+                        if(tNextRecord.currentExceptionCode ==0): # termination
+                            TP.DumpLiveTaints()	
+                        else:
+                            TP.DumpFaultCause(tNextRecord, tRecord, self.verbose_trace_cb.isChecked())
+                            print "Exception! Get out of the loop!"
+                            bEnd = True
+                            break        					
+                    elif(TP.Propagator(tRecord)==1):
                         #bEnd = True
-                        if(self.verbose_trace_cb.isChecked()):
-                            print "Tainted Security Warning!"
+                        #if(self.verbose_trace_cb.isChecked()):
+                        print "Tainted Security Warning!"
                         #break
-                elif(recordType == eXception):
-                    if(tRecord.currentExceptionCode ==0): # termination
-                        TP.DumpLiveTaints()	
-                    elif(tLastRecord !=None):
-                        TP.DumpFaultCause(tRecord, self.verbose_trace_cb.isChecked())
-                        print "Exception! Get out of the loop!"
-                        bEnd = True
-                        break
                 else:
                     print "Type %d not supported:%d" %recordType
+
                 if (bEnd == True):
                     tRecord = None
                 else:
-                    tRecord = tr.getNext()
+                    tRecord = tNextRecord 				
+
             out_fd.close()
             out_fd = open(fTaint, 'r')
             self.f_taint = fTaint

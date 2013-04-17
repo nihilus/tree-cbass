@@ -275,10 +275,11 @@ class TaintPropagator(object):
             sWarn = "UNIMPLEMENTED for %s. Category=%s" %(instInfo.attDisa, self.category_name[instInfo.inst_category])
             log.warning(sWarn)
 
-        if(instInfo.inst_category in self.taint_category_sink):
-            return self.TaintCheckSink(instInfo, instRec)
-        else:
-            return 0
+        #Refining
+        #if(instInfo.inst_category in self.taint_category_sink):
+        #return self.TaintCheckSink(instInfo, instRec)
+        #else:
+        return 0
 
     def TaintPropogateBranch(self, instInfo, instRec):
         tid = instRec.currentThreadId
@@ -363,42 +364,62 @@ class TaintPropagator(object):
                 del self.dynamic_taint[normalizedEFlagName]                            
         
     def TaintCheckSink(self, instInfo, instRec):
-        sDbg = "Taint Check Sink %s:\n" %(instInfo.attDisa)
-        log.debug(sDbg)
+        sDbg = "Taint Check Sink %s at seq = %d:\n" %(instInfo.attDisa, instRec.currentInstSeq)
+        print ("%s" %sDbg)
         tid = instRec.currentThreadId
         instStr = str(instInfo.attDisa).strip("b'")
         bTaint = 0
         
-        normalizedEIPNames = getNormalizedX86RegisterNames("eip", 4,instRec.currentThreadId)
-        for normalizedEIP in normalizedEIPNames:
-            eipName = normalizedEIP
-            if(eipName in self.dynamic_taint):
-                if self.bDebug==1:
-                    print ("tainted = %s" %self.dynamic_taint[eipName].taint_tree())
-                self.dynamic_taint[eipName].dumpTaintTree(self.output_fd)
-                #self.output_fd.write("%s\n" %self.dynamic_taint[eipName].taint_tree())
-                bTaint =1
+        if (instInfo.inst_category in self.taint_category_ret): 
+            normalizedEIPNames = getNormalizedX86RegisterNames("eip", 4,instRec.currentThreadId)
+            for normalizedEIP in normalizedEIPNames:
+                eipName = normalizedEIP
+                if(eipName in self.dynamic_taint):
+                    if self.bDebug==1:
+                        print ("tainted = %s" %self.dynamic_taint[eipName].taint_tree())
+                    self.dynamic_taint[eipName].dumpTaintTree(self.output_fd)
+                    #self.output_fd.write("%s\n" %self.dynamic_taint[eipName].taint_tree())
+                    bTaint =1
 
-        normalizedEBPNames = getNormalizedX86RegisterNames("ebp", 4,instRec.currentThreadId)
-        for normalizedEBP in normalizedEIPNames:
-            ebpName = normalizedEBP
-            if(ebpName in self.dynamic_taint):
-                if self.bDebug==1:
-                    print ("tainted = %s" %self.dynamic_taint[ebpName].taint_tree())
-                    #self.output_fd.write("%s\n" %self.dynamic_taint[ebpName].taint_tree())
-                self.dynamic_taint[ebpName].dumpTaintTree(self.output_fd)
-                bTaint =1
+            normalizedEBPNames = getNormalizedX86RegisterNames("ebp", 4,instRec.currentThreadId)
+            for normalizedEBP in normalizedEIPNames:
+                ebpName = normalizedEBP
+                if(ebpName in self.dynamic_taint):
+                    if self.bDebug==1:
+                        print ("tainted = %s" %self.dynamic_taint[ebpName].taint_tree())
+                        #self.output_fd.write("%s\n" %self.dynamic_taint[ebpName].taint_tree())
+                    self.dynamic_taint[ebpName].dumpTaintTree(self.output_fd)
+                    bTaint =1
 
-        normalizedESPNames = getNormalizedX86RegisterNames("esp", 4,instRec.currentThreadId)
-        for normalizedESP in normalizedESPNames:
-            espName = normalizedESP
-            if(espName in self.dynamic_taint):
-                if self.bDebug==1:
-                    print ("tainted = %s" %self.dynamic_taint[espName].taint_tree())
-                    #self.output_fd.write("%s\n" %self.dynamic_taint[espName].taint_tree())
-                self.dynamic_taint[espName].dumpTaintTree(self.output_fd)
-                bTaint=1
-        
+            normalizedESPNames = getNormalizedX86RegisterNames("esp", 4,instRec.currentThreadId)
+            for normalizedESP in normalizedESPNames:
+                espName = normalizedESP
+                if(espName in self.dynamic_taint):
+                    if self.bDebug==1:
+                        print ("tainted = %s" %self.dynamic_taint[espName].taint_tree())
+                        #self.output_fd.write("%s\n" %self.dynamic_taint[espName].taint_tree())
+                    self.dynamic_taint[espName].dumpTaintTree(self.output_fd)
+                    bTaint=1
+        '''					
+        elif (instInfo.inst_category in self.taint_category_call): #check its register set 
+            for reg in instRec.reg_value: 
+                normalizedRegNames = getNormalizedX86RegisterNames(reg, 4,instRec.currentThreadId)
+                for normalizedRegName in normalizedRegNames:
+                    regName = normalizedRegName
+                    if(regName in self.dynamic_taint):
+                        if self.bDebug==1:
+                            print ("tainted = %s" %self.dynamic_taint[regName].taint_tree())
+                        self.dynamic_taint[regName].dumpTaintTree(self.output_fd)
+                        bTaint =1
+                #Check if the memory pointed by the reg is tainted
+                memBase = instRec.reg_value[reg]
+                for i in range(4):
+                    if(memBase+i in self.dynamic_taint):
+                        if self.bDebug==1:
+                            print ("tainted = %s" %self.dynamic_taint[memBase+i].taint_tree())
+                        self.dynamic_taint[memBase+i].dumpTaintTree(self.output_fd)
+                        bTaint =1
+        '''
         return bTaint
 
     '''
@@ -860,32 +881,53 @@ class TaintPropagator(object):
             else:
                 continue
  
-    def DumpFaultCause(self, tRecord, verBose):
+    def DumpFaultCause(self, tRecord, tLastERecord,verBose):
 
         faultAddress = tRecord.currentExceptionAddress
         
         self.output_fd.write("EXCEPTION:\n")
-        Taint.visited.clear()
-        for i in range(4):
-            if(faultAddress+i in self.dynamic_taint):
-                print ("tainted = %s" %self.dynamic_taint[faultAddress+i].taint_simple())
-                self.dynamic_taint[faultAddress+i].dumpTaintTree(self.output_fd)
-                #self.output_fd.write("%s\n" %self.dynamic_taint[faultAddress+i].taint_simple())
-        Taint.visited.clear()
-        
-        if(verBose==True):
-            self.DumpLiveTaints()
-            
-        '''
-        for reg in tRecord.reg_value:
-            print ("reg= %s, value=%s" %(reg,tRecord.reg_value[reg]))
-            normalizedRegNames = getNormalizedX86RegisterNames(reg, 4,tRecord.currentThreadId)
-            for normalizedRegName in normalizedRegNames:
-                regName = "reg_"+normalizedRegName
-                print ("Fault instruction: regName= %s" %regName)
-                if(regName in self.dynamic_taint):
-                    print ("tainted = %s" %self.dynamic_taint[regName].taint_tree())
-         '''
+        if(not(tLastERecord.sEncoding in self.static_taint)):                
+            instlen = tLastERecord.currentInstSize
+            instcode = c_byte*instlen
+            instBytes = instcode()
+            for i in range(instlen):
+                sBytes = tLastERecord.sEncoding[2*i:(2*i+2)]
+                instBytes[i]= int(sBytes,16)
+
+            instInfo = instDecode()            
+            result = self.xDecoder.decode_inst(instlen, pointer(instBytes),ctypes.byref((instInfo)))
+            if result !=0:
+                self.static_taint[tLastERecord.sEncoding] = instInfo
+            else:
+                sDbg = "instruction %s not supported" %(tLastERecord.sEncoding)
+                log.debug(sDbg)
+        else:
+            #print("static_taint template for %s has been cached:" %(instRec.sEncoding))
+            instInfo = self.static_taint[tLastERecord.sEncoding]
+
+        sException= "Instruction=0x%x, %s, Thread=%x, Seq=0x%x\n" %(tLastERecord.currentInstruction,instInfo.attDisa,tLastERecord.currentThreadId,tLastERecord.currentInstSeq)
+        instInfo.printInfo()		
+        self.output_fd.write("%s" %(sException))
+
+        #DEBUG self.DumpLiveTaints()
+        for reg in tLastERecord.reg_value:
+            print ("reg= %s, value=%s" %(reg,tLastERecord.reg_value[reg]))
+            if(faultAddress == tLastERecord.reg_value[reg]):
+                normalizedRegNames = getNormalizedX86RegisterNames(reg, 4,tLastERecord.currentThreadId)
+                for normalizedRegName in normalizedRegNames:
+                    print ("Fault instruction: regName= %s" %normalizedRegName)
+                    if(normalizedRegName in self.dynamic_taint):
+                        print ("tainted = %s" %self.dynamic_taint[normalizedRegName].taint_simple())
+                        self.dynamic_taint[normalizedRegName].dumpTaintTree(self.output_fd)
+
+			#Check if the memory pointed by the reg is tainted
+            memBase = tLastERecord.reg_value[reg]
+            if (tLastERecord.reg_value[reg]==faultAddress):
+                for i in range(4):
+                    if(memBase+i in self.dynamic_taint):
+                        self.dynamic_taint[faultAddress+i].dumpTaintTree(self.output_fd)
+                        print ("tainted = %s" %self.dynamic_taint[faultAddress+i].taint_simple())
+						
     def DumpLiveTaintsInOrder(self):
         self.output_fd.write("Live Taints in the order of creation:\n")
         
