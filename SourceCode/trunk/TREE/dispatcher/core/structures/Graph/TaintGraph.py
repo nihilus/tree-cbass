@@ -60,11 +60,11 @@ class TaintGraph(GraphViewer):
     addr = 0
     ind = ''
     ind = self.graph.node[uuid]['inode'].startind.split(':')[0]
-    print ind
-    if self.graph.node[uuid]['inode'].endind is not None:
-        ind = self.graph.node[uuid]['inode'].endind.split(':')[0]
-        print "endi"
-    print ind
+    #print ind
+    #if self.graph.node[uuid]['inode'].endind is not None:
+    #    ind = self.graph.node[uuid]['inode'].endind.split(':')[0]
+    #    print "endi"
+    #print ind
     #prefer endind if exists
     try:
         addr = self.node_ea[ind]
