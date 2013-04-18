@@ -348,7 +348,7 @@ class TraceGeneratorWidget(QtGui.QMainWindow):
         menu.exec_(self.QtGui.QCursor.pos())
         
     def addFileFilter(self):
-        print self.filters_filename_table.currentItem().row()
+        #print self.filters_filename_table.currentItem().row()
         self.filters_filename_table.insertRow(self.filters_filename_table.rowCount())
         self.filters_filename_table.setItem(self.filters_filename_table.rowCount()-1, 0, self.QtGui.QTableWidgetItem(" "))
         
