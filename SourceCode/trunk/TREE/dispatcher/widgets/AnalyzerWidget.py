@@ -608,7 +608,6 @@ class AnalyzerWidget(QtGui.QMainWindow):
                         print "Found library: %s" % key
                         node[1]['inode'].setLib(key)
                         break
-        
             
     def onImportTraceButtonClicked(self):
         """ 
