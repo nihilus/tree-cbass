@@ -593,8 +593,8 @@ class AnalyzerWidget(QtGui.QMainWindow):
         f.close()
         for node in self.t_graph.nodes(data=True):
             ind = node[1]['inode'].startind.split(':')[0]
-            if node[1]['inode'].endind is not None:
-                ind = node[1]['inode'].endind.split(':')[0]
+            #if node[1]['inode'].endind is not None:
+            #    ind = node[1]['inode'].endind.split(':')[0]
             try:
                 addr = int(self.node_ea[ind], 16)
                 node[1]['inode'].setEA(addr)
