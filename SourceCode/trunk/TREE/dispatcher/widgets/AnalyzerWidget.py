@@ -495,15 +495,23 @@ class AnalyzerWidget(QtGui.QMainWindow):
                 self.trace_table2.append("Failed to open trace file.")
             out_str = "Processing trace file %s..." %(self.trace_fname)
             self.trace_table2.append(out_str)
-            fTaint = "TaintGraph_"+os.path.basename(self.trace_fname)
-            out_fd = open(fTaint, 'w')
-            #self.out_fd = open(fTaint, 'r+b')
 
             #Need to get the setting from GUI, default taint policy is TAINT_DATA:
             #taintPolicy = CIDTaintProp.TAINT_BRANCH # Used to test condOV;     
             taintPolicy = getattr(CIDTaintProp, self.radioGroup2.checkedButton().text(), "TAINT_DATA")
+            #taint graph name begins with A(ddress), B(ranch), C(Counter) or D(ata) depending on policy
+            fTaint = "TaintGraph_"+os.path.basename(self.trace_fname)
+            if (taintPolicy == TAINT_BRANCH):
+                fTaint = "BTaintGraph_"+os.path.basename(self.trace_fname)
+            elif (taintPolicy == TAINT_DATA):
+                fTaint = "DTaintGraph_"+os.path.basename(self.trace_fname)
+            elif (taintPolicy == TAINT_COUNTER):
+                fTaint = "CTaintGraph_"+os.path.basename(self.trace_fname)
+            elif (taintPolicy == TAINT_ADDRESS):
+                fTaint = "ATaintGraph_"+os.path.basename(self.trace_fname)				
+            out_fd = open(fTaint, 'w')
             TP = TaintPropagator(processBits, targetBits, out_fd,taintPolicy)
-            
+			
             tRecord = tr.getNext()
             bEnd = False
             tNextRecord = None
