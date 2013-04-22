@@ -7,7 +7,7 @@
 #---------------------------------------------------------------------
 
         
-def checkWindowsLibs(name,ea):
+def checkWindowsLibs(name,ea,bCheckFileIO,bCheckNetworkIO):
     library_name = name.upper()
     
     if "KERNEL32" in library_name:
@@ -16,54 +16,104 @@ def checkWindowsLibs(name,ea):
         #print "Found kernel32 at 0x%x" % ea
 
         logger = logging.getLogger('IDATrace')
-        idc.RefreshDebuggerMemory()              
-        """
-        createFileA_func = idc.LocByName("kernel32_CreateFileA");
+        idc.RefreshDebuggerMemory()
         
-        if createFileA_func == idc.BADADDR:
-            logger.info( "Cannot find CreateFileA" )
-        else:
-            logger.info( "We found CreateFileA at 0x%x." % createFileA_func )
-        idc.AddBpt(createFileA_func)
-        idc.SetBptAttr(createFileA_func, idc.BPT_BRK, 0)
-        idc.SetBptCnd(createFileA_func, "windowsFileIO.MyCreateFileA()")
-        """
-        createFileW_func = idc.LocByName("kernel32_CreateFileW");
-        
-        if createFileW_func == idc.BADADDR:
-            logger.info( "Cannot find CreateFileW" )
-        else:
-            logger.info( "We found CreateFileW at 0x%x." % createFileW_func )
-        idc.AddBpt(createFileW_func)
-        idc.SetBptAttr(createFileW_func, idc.BPT_BRK, 0)
-        idc.SetBptCnd(createFileW_func, "windowsFileIO.MyCreateFileW()")
-        
-        readFile_func = idc.LocByName("kernel32_ReadFile");
-        
-        if readFile_func == idc.BADADDR:
-            logger.info( "Cannot find ReadFile" )
-        else:
-            logger.info( "We found ReadFile at 0x%x." % readFile_func )
+        if bCheckFileIO:
+            """
+            createFileA_func = idc.LocByName("kernel32_CreateFileA");
             
-            idc.AddBpt(readFile_func)
-            idc.SetBptAttr(readFile_func, idc.BPT_BRK, 0)
-            idc.SetBptCnd(readFile_func, "windowsFileIO.MyReadFile()")
-        
-        closeHandle_func = idc.LocByName("kernel32_CloseHandle");
-        
-        if closeHandle_func == idc.BADADDR:
-            logger.info( "Cannot find CloseHandle" )
-        else:
-            logger.info( "We found CloseHandle at 0x%x." % closeHandle_func )
+            if createFileA_func == idc.BADADDR:
+                logger.info( "Cannot find CreateFileA" )
+            else:
+                logger.info( "We found CreateFileA at 0x%x." % createFileA_func )
+            idc.AddBpt(createFileA_func)
+            idc.SetBptAttr(createFileA_func, idc.BPT_BRK, 0)
+            idc.SetBptCnd(createFileA_func, "windowsFileIO.MyCreateFileA()")
+            """
+            createFileW_func = idc.LocByName("kernel32_CreateFileW");
             
-            idc.AddBpt(closeHandle_func)
-            idc.SetBptAttr(closeHandle_func, idc.BPT_BRK, 0)
-            idc.SetBptCnd(closeHandle_func, "windowsFileIO.MyCloseHandle()")
+            if createFileW_func == idc.BADADDR:
+                logger.info( "Cannot find CreateFileW" )
+            else:
+                logger.info( "We found CreateFileW at 0x%x." % createFileW_func )
+            idc.AddBpt(createFileW_func)
+            idc.SetBptAttr(createFileW_func, idc.BPT_BRK, 0)
+            idc.SetBptCnd(createFileW_func, "windowsFileIO.MyCreateFileW()")
+            
+            readFile_func = idc.LocByName("kernel32_ReadFile");
+            
+            if readFile_func == idc.BADADDR:
+                logger.info( "Cannot find ReadFile" )
+            else:
+                logger.info( "We found ReadFile at 0x%x." % readFile_func )
+                
+                idc.AddBpt(readFile_func)
+                idc.SetBptAttr(readFile_func, idc.BPT_BRK, 0)
+                idc.SetBptCnd(readFile_func, "windowsFileIO.MyReadFile()")
+            
+            closeHandle_func = idc.LocByName("kernel32_CloseHandle");
+            
+            if closeHandle_func == idc.BADADDR:
+                logger.info( "Cannot find CloseHandle" )
+            else:
+                logger.info( "We found CloseHandle at 0x%x." % closeHandle_func )
+                
+                idc.AddBpt(closeHandle_func)
+                idc.SetBptAttr(closeHandle_func, idc.BPT_BRK, 0)
+                idc.SetBptCnd(closeHandle_func, "windowsFileIO.MyCloseHandle()")
 
     elif "WS2_32" in library_name:
         print "Found Ws2_32 at 0x%x" % ea
         import idc
+        import logging
+        logger = logging.getLogger('IDATrace')
         idc.RefreshDebuggerMemory()              
+        
+        if bCheckNetworkIO:
+            recv_func = idc.LocByName("ws2_32_recv");
+            
+            if recv_func == idc.BADADDR:
+                logger.info( "Cannot find recv" )
+            else:
+                logger.info( "We found recv at 0x%x." % recv_func )
+                
+                idc.AddBpt(recv_func)
+                idc.SetBptAttr(recv_func, idc.BPT_BRK, 0)
+                idc.SetBptCnd(recv_func, "windowsNetworkIO.checkRecv()")
+                
+            bind_func = idc.LocByName("ws2_32_bind");
+            
+            if bind_func == idc.BADADDR:
+                logger.info( "Cannot find bind" )
+            else:
+                logger.info( "We found bind at 0x%x." % bind_func )
+                
+                idc.AddBpt(bind_func)
+                idc.SetBptAttr(bind_func, idc.BPT_BRK, 0)
+                idc.SetBptCnd(bind_func, "windowsNetworkIO.checkBind()")
+                
+            accept_func = idc.LocByName("ws2_32_accept");
+            
+            if accept_func == idc.BADADDR:
+                logger.info( "Cannot find accept" )
+            else:
+                logger.info( "We found accept at 0x%x." % accept_func )
+                
+                idc.AddBpt(accept_func)
+                idc.SetBptAttr(accept_func, idc.BPT_BRK, 0)
+                idc.SetBptCnd(accept_func, "windowsNetworkIO.checkAccept()")
+                
+            closesocket_func = idc.LocByName("ws2_32_closesocket");
+            
+            if closesocket_func == idc.BADADDR:
+                logger.info( "Cannot find closesocket" )
+            else:
+                logger.info( "We found closesocket at 0x%x." % closesocket_func )
+                
+                idc.AddBpt(closesocket_func)
+                idc.SetBptAttr(closesocket_func, idc.BPT_BRK, 0)
+                idc.SetBptCnd(closesocket_func, "windowsNetworkIO.checkClosesocket()")
+                     
             
 def checkLinuxLibs(name,ea):
     

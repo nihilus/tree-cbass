@@ -12,16 +12,13 @@ import idc
 import logging
 import idaapi
 import os.path
+import struct
         
-class FileIO:
-    
+class IO(object):
     def __init__(self):
         self.logger = None
         self.lpBuffer = None
-        self.lpNumberOfBytesRead = None
-        self.debuggerInstance = None
         self.filter = None
-        self.handleSet = set()
         
     def SetLoggerInstance(self,logger):
         self.logger = logger
@@ -31,11 +28,18 @@ class FileIO:
 
     def SetFilters(self,_filter):
         self.filter = _filter
-        
+    
+class FileIO(IO):
+    
+    def __init__(self):
+        super(FileIO, self).__init__() 
+        self.lpBuffer = None
+        self.lpNumberOfBytesRead = None
+        self.handleSet = set()
+
     def MyCreateFileAEnd(self):
         handle = idc.GetRegValue("EAX")
         self.logger.info( "MyCreateFileAEnd HANDLE is 0x%x" % handle)
-            
         return 0
 
     def MyCreateFileA(self):
@@ -86,8 +90,7 @@ class FileIO:
     def MyCreateFileWEnd(self):
         #print "Returning from CreateFileW..."
         handle = idc.GetRegValue("EAX")
-        #print "HANDLE is 0x%x" % handle
-        
+
         self.handleSet.add(handle)
         self.logger.info( "HANDLE is 0x%x" % handle)
             
@@ -131,8 +134,7 @@ class FileIO:
         fileName = os.path.basename(filePath)
         
         self.logger.info( "The filename is %s" % fileName)
-        #print "The filename is %s" % fileName
-                
+
         retAddr = Util.GetData(0x0)
         
         if fileName in self.filter['file']:
@@ -161,10 +163,10 @@ class FileIO:
         """
         
         hObject = Util.GetData(0x4)
-        threaId = idc.GetCurrentThreadId()
+        #threaId = idc.GetCurrentThreadId()
         
         #  "MyCloseHandle hFile is 0x%x" % (hObject)
-        self.logger.info( "MyCloseHandle [%d] hFile is 0x%x" % (threaId,hObject) )
+        #self.logger.info( "MyCloseHandle [%d] hFile is 0x%x" % (threaId,hObject) )
 
         if hObject in self.handleSet:
             self.handleSet.remove(hObject)
@@ -237,37 +239,43 @@ class FileIO:
             
         return 0
 
-class NetworkIO(object):
-    def __init__(self,callback,_filter):
-        self.callback = callback
-        self.filter = _filter
+class NetworkIO(IO):
+    def __init__(self):
+        super(NetworkIO, self).__init__() 
         self.socket_dict = dict()
-    
-        self.logger = logging.getLogger('IDATrace')
-        
-        self.logger.info("[WindowsNetworkIO] constructor called.")
-        
-        if DbgDword is None:
-            self.logger.error( "[WindowsNetworkIO] Error: DbgDword is None" )
-        else:    
-            self.dbgDWord = DbgDword
-    
-        if dbg_read_memory is None:
-            self.logger.error( "[WindowsNetworkIO] Error: dbg_read_memory is None")
-        else:
-            self.dbg_read_memory = dbg_read_memory
-            
-        if GetRegValue is None:
-            self.logger.error( "[WindowsNetworkIO] Error: GetRegValue is None")
-        else:
-            self.getRegValue = GetRegValue
-        
-        if unpack is None:
-            self.logger.error( "[WindowsNetworkIO] Error: unpack is None")
-        else:
-            self.unpack = unpack
+        self.tempStack = []
 
-    def checkRecv(self,stack):
+    def checkRecvEnd(self):
+        
+        s = self.tempStack.pop(0)
+        buf = self.tempStack.pop(0)
+        _len = self.tempStack.pop(0)
+        
+        _buffer = idaapi.dbg_read_memory(buf,_len)
+
+        self.logger.debug( "buffer is %s" % _buffer )
+        
+        bytesRecv = idc.GetRegValue("EAX")
+        self.logger.info( "Number bytes received %d" % bytesRecv )
+        
+        if bytesRecv > 0:
+            self.logger.info( "recv succeeded." )
+            
+            if self.socket_dict.has_key(s):
+                self.logger.info( "Found socket 0x%x" % s )
+                self.debuggerInstance.callbackProcessing(buf,_len,_buffer)
+
+            else:
+                self.logger.info( "Cannot find socket socket 0x%x" % s )
+
+
+        else:
+            self.logger.error( "Recv function failed." )
+    
+        return 0
+
+            
+    def checkRecv(self):
         """
         int recv(
         _In_   SOCKET s,
@@ -277,42 +285,46 @@ class NetworkIO(object):
          );
         """
         
-        s = self.getData(stack)
+        s = Util.GetData(0x4)
         self.logger.info( "Socket is 0x%x" % (s) )
         
-        buf = self.getData(stack)
+        buf = Util.GetData(0x8)
         self.logger.info( "*buf is 0x%x" % (buf) )
         
-        _len = self.getData(stack)
+        _len = Util.GetData(0xC)
         self.logger.info( "len value is %d" % (_len) )
         
-        flag = self.getData(stack)
+        flag = Util.GetData(0x10)
         self.logger.info( "flag value is %d" % (flag) )
   
-        _buffer = self.dbg_read_memory(buf,_len)
+        retAddr = Util.GetData(0x0)
 
-        self.logger.debug( "buffer is %s" % _buffer )
-        
-        bytesRecv = self.getRegValue("EAX")
-        self.logger.info( "Number bytes received %d" % bytesRecv )
-        
-        if bytesRecv > 0:
-            self.logger.info( "recv succeeded." )
-            
-            if self.socket_dict.has_key(s):
-                self.logger.info( "Found socket 0x%x" % s )
-                self.callback(buf,_len,_buffer)
-                return True
-            else:
-                self.logger.info( "Cannot find socket socket 0x%x" % s )
-                return False
+        self.tempStack.append(s)
+        self.tempStack.append(buf)
+        self.tempStack.append(_len)
 
+        idc.AddBpt(retAddr)
+        idc.SetBptAttr(retAddr, idc.BPT_BRK, 0)
+        idc.SetBptCnd(retAddr,"windowsNetworkIO.checkRecvEnd()")
+        
+        return 0
+        
+
+    def checkBindEnd(self):        
+        retVal = idc.GetRegValue("EAX")
+        
+        if retVal==0:
+            self.logger.info( "Bind succeeded.")
+            socket = self.tempStack.pop(0)
+            port = self.tempStack.pop(0)
+            print "the port is " + port
+            self.socket_dict[socket]=port
         else:
-            self.logger.error( "Recv function failed." )
-            return False
+            self.logger.info ("Bind failed.")         
 
-
-    def checkBind(self,stack):
+        return 0
+    
+    def checkBind(self):
   
         """  
         int bind(
@@ -329,30 +341,53 @@ class NetworkIO(object):
         };
         """
 
-        s = self.getData(stack)
+        s = Util.GetData(0x4)
         self.logger.info ("SOCKET is 0x%x" % (s))
         
-        sockaddr_name = self.getData(stack)
+        sockaddr_name = Util.GetData(0x8)
         self.logger.info ("sockaddr_name is 0x%x" % (sockaddr_name))
         
-        port = self.unpack(">H", self.dbg_read_memory(sockaddr_name+0x2,2) )
-
-        self.logger.info ("port value is %d" % (port[0]))
+        port = struct.unpack(">H", idaapi.dbg_read_memory(sockaddr_name+0x2,2) )
+        portName = str(port[0])
+        self.logger.info ("port value is %s" % (portName))
         
-        namelen = self.getData(stack)
+        namelen = Util.GetData(0xC)
         self.logger.info ("namelen value is %d" % (namelen))
 
-        retVal = self.getRegValue("EAX")
-        
-        if retVal==0:
-            self.logger.info( "Bind succeeded.")
-            self.socket_dict[s]=int(port[0])
+        retAddr = Util.GetData(0x0)
+        print self.filter['network']
+        if portName in self.filter['network']:
+            self.tempStack.append(s)
+            self.tempStack.append(portName)
+            idc.AddBpt(retAddr)
+            idc.SetBptAttr(retAddr, idc.BPT_BRK, 0)
+            idc.SetBptCnd(retAddr,"windowsNetworkIO.checkBindEnd()")
+            self.logger.info( "Netork Filter matched. Adding port to the Handle's dictionary to start logging.")
+            #print "Filter matched. Add handle to the handle's dictionary to start logging."
 
         else:
-            self.logger.info ("Bind failed.")
+            if idc.CheckBpt(retAddr) >= 0:
+                #print "Removing un-needed breakpoint."
+                self.logger.info("Removing un-needed breakpoint.")
+                idc.DelBpt(retAddr)
+                
+            self.logger.info( "Network Filter did not match.")
             
-    
-    def checkAccept(self,stack):
+        return 0
+            
+    def checkAcceptEnd(self):
+
+        recvSocket = idc.GetRegValue("EAX")
+        self.logger.info("The receive socket is 0x%x" % recvSocket)
+        
+        socket = self.tempStack.pop(0)
+        if self.socket_dict.has_key(socket):
+            self.logger.info("checkAccept: Found key 0x%x in dictionary." % (socket))
+            _port = self.socket_dict.get(socket)
+            self.socket_dict[recvSocket] = self.socket_dict[socket]
+            del self.socket_dict[socket]
+
+    def checkAccept(self):
         """
         SOCKET accept(
           _In_     SOCKET s,
@@ -361,47 +396,56 @@ class NetworkIO(object):
         );
         """
 
-        s = self.getData(stack)
+        s = Util.GetData(0x4)
         self.logger.info("SOCKET is 0x%x" % (s))
          
-        sockaddr_addr = self.getData(stack)
+        sockaddr_addr = Util.GetData(0x8)
         self.logger.info("sockaddr_addr is 0x%x" % (sockaddr_addr))
   
-        addrlen = self.getData(stack)
+        addrlen =Util.GetData(0xC)
         self.logger.info("*addrlen value is 0x%x" % (addrlen))
         
-        recvSocket = self.getRegValue("EAX")
-        self.logger.info("The receive socket is 0x%x" % recvSocket)
-        
-        if self.socket_dict.has_key(s):
-            self.logger.info("checkAccept: Found key 0x%x in dictionary." % (s))
-            _port = self.socket_dict.get(s)
-            self.logger.info(self.filter)
+        retAddr = Util.GetData(0x0)
+
+        self.tempStack.append(s)
+
+        idc.AddBpt(retAddr)
+        idc.SetBptAttr(retAddr, idc.BPT_BRK, 0)
+        idc.SetBptCnd(retAddr,"windowsNetworkIO.checkAcceptEnd()")            
+
+        return 0
+    
+    def checkClosesocketEnd(self):
             
-            if  _port in self.filter:
-                self.logger.info("checkAccept: Filter matches")
-                self.socket_dict[recvSocket] = _port
-            else:
-                self.logger.info("Cannot find match for %d"% _port)
-
-    def checkClosesocket(self,stack):
-        """
-        int closesocket(
-          _In_  SOCKET s
-        );
-        """
-
-        s = self.getData(stack)
-        self.logger.info("SOCKET is 0x%x" % (s))
-        
-        retVal = self.getRegValue("EAX")
+        retVal = idc.GetRegValue("EAX")
         
         if retVal==0:
-            
+            s = self.tempStack.pop(0)
             if self.socket_dict.has_key(s):
                 del self.socket_dict[s]
                 self.logger.info("Removing socket 0x%x from socket dictionary.")
         else:
             
             self.logger.info("Socket closed.")
-    
+            
+        return 0
+  
+    def checkClosesocket(self):
+        """
+        int closesocket(
+          _In_  SOCKET s
+        );
+        """
+
+        s = Util.GetData(0x4)
+        self.logger.info("SOCKET is 0x%x" % (s))
+        
+        retAddr = Util.GetData(0x0)
+        self.tempStack.append(s)
+
+        idc.AddBpt(retAddr)
+        idc.SetBptAttr(retAddr, idc.BPT_BRK, 0)
+        idc.SetBptCnd(retAddr,"windowsNetworkIO.checkClosesocketEnd()")
+        
+        return 0
+

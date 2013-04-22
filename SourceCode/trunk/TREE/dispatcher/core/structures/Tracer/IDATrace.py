@@ -13,8 +13,9 @@ class IDATrace():
         This is the start of the debugger.
         """
         self.windowsFileIO       = funcCallbacks['windowsFileIO']
+        self.windowsNetworkIO    = funcCallbacks['windowsNetworkIO']
         self.linuxFileIO         = funcCallbacks['linuxFileIO'] 
-        self.customCallback      = funcCallbacks['customCallback']
+        self.customCallback      = funcCallbacks['customCallback']   
         
         self.config = None
         (processName, osType, osArch) = self.getProcessInfo()
@@ -132,7 +133,6 @@ class IDATrace():
         from dispatcher.core.structures.Tracer.Arch.x86.Windows import WindowsApiCallbacks as WindowsApiCallbacks
         from dispatcher.core.structures.Tracer.Arch.x86.Linux import LinuxApiCallbacks as LinuxApiCallbacks
         from dispatcher.core.structures.Tracer import CustomCallbacks as CustomCallbacks
-        
         from dispatcher.core.structures.Tracer.ETDbgHook import ETDbgHook as ETDbgHook
             
         filters = dict()
@@ -174,19 +174,7 @@ class IDATrace():
             _pass = ""
             
         fileFilter = processConfig.getFileFilter()
-        if fileFilter is not None:
-            filters['file'] = fileFilter
-            
         networkFilter = processConfig.getNetworkFilter()
-        if networkFilter is not None:
-            filters['network'] = networkFilter
-        
-        if os_type == "macosx":
-            checkInput = InputMonitor.checkMacLibs
-        elif os_type == "windows":
-            checkInput = InputMonitor.checkWindowsLibs
-        elif os_type == "linux":
-            checkInput = InputMonitor.checkLinuxLibs
 
         filePath = os.path.splitext(self.config.getOutputPath())
         app = os.path.splitext(app_name)
@@ -223,7 +211,7 @@ class IDATrace():
             print "Logging turned off."
             self.logger.disabled = True
 
-        targetProcess = TargetProcess.TargetProcess(app_name,os_arch,os_type,bDbg,self.tracefile,checkInput)
+        targetProcess = TargetProcess.TargetProcess(app_name,os_arch,os_type,bDbg,self.tracefile)
    
         if idaapi.dbg_is_loaded():
             self.logger.info( "The debugger is loaded, lets try to stop it." )
@@ -263,6 +251,7 @@ class IDATrace():
         
         if os_type == "macosx":
             print "Setting MacOsxApiCallbacks"
+            checkInput = InputMonitor.checkMacLibs
             """
             TODO: XZL
             MacOSXApiCallbacks.macFileIO.SetDebuggerInstance(EThook)
@@ -270,15 +259,42 @@ class IDATrace():
             """
         elif os_type == "windows":
             print "Setting WindowsApiCallbacks"
-            self.windowsFileIO.SetDebuggerInstance(EThook)
-            self.windowsFileIO.SetFilters(filters)
-            self.windowsFileIO.SetLoggerInstance(self.logger)
             
+            EThook.checkInput =  InputMonitor.checkWindowsLibs
+            
+            if fileFilter is not None:
+                print "Setting file filters for windows"
+                filters['file'] = fileFilter
+                EThook.bCheckFileIO = True
+                self.windowsFileIO.SetDebuggerInstance(EThook)
+                self.windowsFileIO.SetFilters(filters)
+                self.windowsFileIO.SetLoggerInstance(self.logger)
+            
+            if networkFilter is not None:
+                print "Setting network filters for windows"
+                filters['network'] = networkFilter
+                EThook.bCheckNetworkIO = True
+                self.windowsNetworkIO.SetDebuggerInstance(EThook)
+                self.windowsNetworkIO.SetFilters(filters)
+                self.windowsNetworkIO.SetLoggerInstance(self.logger)
+
         elif os_type == "linux":
             print "Setting LinuxsApiCallbacks"
-            self.linuxFileIO.SetDebuggerInstance(EThook)
-            self.linuxFileIO.SetFilters(filters)
-            self.linuxFileIO.SetLoggerInstance(self.logger)
+            EThook.checkInput =  InputMonitor.checkLinuxLibs
+            
+            if fileFilter is not None:
+                filters['file'] = fileFilter
+                EThook.bCheckFileIO = True
+                self.linuxFileIO.SetDebuggerInstance(EThook)
+                self.linuxFileIO.SetFilters(filters)
+                self.linuxFileIO.SetLoggerInstance(self.logger)
+            
+            if networkFilter is not None:
+                filters['network'] = networkFilter
+                EThook.bCheckNetworkIO = True
+                self.linuxNetworkIO.SetDebuggerInstance(EThook)
+                self.linuxNetworkIO.SetFilters(filters)
+                self.linuxNetworkIO.SetLoggerInstance(self.logger)
             
         customBreakpoints = processConfig.getCustomBreakpoints()
         

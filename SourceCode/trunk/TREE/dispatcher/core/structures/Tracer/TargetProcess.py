@@ -8,12 +8,12 @@
 
 
 class TargetProcess():
-    def __init__(self,app_name,os_arch,os_type,bDbg,traceFile,checkInput):
+    def __init__(self,app_name,os_arch,os_type,bDbg,traceFile):
 
         self.app_name  = app_name
         self.os_arch = os_arch
         self.os_type = os_type
         self.bDbg = bDbg
         self.traceFile = traceFile
-        self.checkInput = checkInput
+
     

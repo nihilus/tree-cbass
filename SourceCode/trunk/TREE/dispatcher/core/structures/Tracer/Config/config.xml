@@ -1,15 +1,15 @@
-<?xml version="1.0"?>
+<?xml version='1.0' encoding='UTF-8'?>
 <config>
-   <process name="kernelov.sys" OS="windows" Arch="32">
+   <process Arch="32" OS="windows" name="kernelov.sys">
       <input>
 	  <application>kernelov.sys</application>
 	  <path>kernelov.sys</path>
-	  <args></args>
+	  <args />
 	  <sdir>C:\Documents and Settings\Administrator\Desktop\</sdir>
 	  <remote>True</remote>
-	  <!-- For mac vm fusion only <host>com:port=com1,baud=115200</host> -->
+	  
 	  <host>com:port=\\.\pipe\com_2,baud=115200,pipe</host>
-	  <pass></pass>
+	  <pass />
 	  <port>23946</port>
 	  <debugger>windbg</debugger>
       </input>
@@ -17,15 +17,15 @@
 	<customBreakpoint breakpoint="0x00010D89" callback="CustomCallbacks.customCallbacksFunc.MySioctlDeviceControlCrashMonitor()" />
       </customBreakpoints>
    </process>
-      <process name="win32k.sys" OS="windows" Arch="32">
+      <process Arch="32" OS="windows" name="win32k.sys">
       <input>
 	  <application>win32k.sys</application>
 	  <path>win32k.sys</path>
-	  <args></args>
+	  <args />
 	  <sdir>C:\Windows\system32\</sdir>
 	  <remote>True</remote>
 	  <host>com:port=\\.\pipe\com_2,baud=115200,pipe</host>
-	  <pass></pass>
+	  <pass />
 	  <port>23946</port>
 	  <debugger>windbg</debugger>
       </input>
@@ -33,7 +33,7 @@
 	<customBreakpoint breakpoint="0xBF80EE99" callback="CustomCallbacks.customCallbacksFunc.MyNtUserMessageCall()" />
       </customBreakpoints>
       </process>
-      <process name="fontview.exe" OS="windows" Arch="32">
+      <process Arch="32" OS="windows" name="fontview.exe">
 	 <input>
 	     <application>fontview.exe</application>
 	     <path>fontview.exe</path>
@@ -41,7 +41,7 @@
 	     <sdir>c:\windows\system32\</sdir>
 	     <remote>True</remote>
 	     <host>192.168.214.150</host>
-	     <pass></pass>
+	     <pass />
 	     <port>23946</port>
 	     <debugger>win32</debugger>
 	 </input>
@@ -49,7 +49,7 @@
 		   <fileName>good.fon</fileName>
 	 </filter>
       </process>
-      <process name="basicov" OS="linux" Arch="32">
+      <process Arch="32" OS="linux" name="basicov">
       <input>
 	  <application>basicov</application>
 	  <path>basicov</path>
@@ -57,7 +57,7 @@
 	  <sdir>/home/user/Downloads/basicov</sdir>
 	  <remote>True</remote>
 	  <host>192.168.214.129</host>
-	  <pass></pass>
+	  <pass />
 	  <port>23946</port>
 	  <debugger>linux</debugger>
       </input>
@@ -65,7 +65,7 @@
 		<fileName>mytaint.txt</fileName>
       </filter>
    </process>
-      <process name="sox" OS="linux" Arch="32">
+      <process Arch="32" OS="linux" name="sox">
       <input>
 	  <application>sox</application>
 	  <path>sox</path>
@@ -73,7 +73,7 @@
 	  <sdir>/home/user/Downloads</sdir>
 	  <remote>True</remote>
 	  <host>172.16.73.199</host>
-	  <pass></pass>
+	  <pass />
 	  <port>23946</port>
 	  <debugger>linux</debugger>
       </input>
@@ -81,16 +81,16 @@
 		<fileName>BadWav.wav</fileName>
       </filter>
    </process>
-   <process name="shimgvw.dll" OS="windows" Arch="32">
+   <process Arch="32" OS="windows" name="shimgvw.dll">
       <input>
 	  <application>c:\windows\system32\rundll32.exe</application>
 	  <path>c:\windows\system32\shimgvw.dll</path>
 	  <args>c:\windows\system32\shimgvw.dll,ImageView_Fullscreen C:\escape\escape.wmf</args>
-	  <!--<args>c:\windows\system32\shimgvw.dll,ImageView_Fullscreen C:\escape\test.0.wmf</args> -->
+	  
 	  <sdir>c:\windows\system32\</sdir>
 	  <remote>True</remote>
 	  <host>192.168.214.188</host>
-	  <pass></pass>
+	  <pass />
 	  <port>23946</port>
 	  <debugger>win32</debugger>
       </input>
@@ -99,15 +99,15 @@
 		<fileName>test.0.wmf</fileName>
       </filter>
    </process>
-      <process name="WinHex.exe"  OS="windows" Arch="32">
+      <process Arch="32" OS="windows" name="WinHex.exe">
       <input>
 	  <application>WinHex.exe</application>
 	  <path>WinHex.exe</path>
-	  <args></args>
+	  <args />
 	  <sdir>.</sdir>
 	  <remote>False</remote>
-	  <host></host>
-	  <pass></pass>
+	  <host />
+	  <pass />
 	  <port>0</port>
 	  <debugger>win32</debugger>
       </input>
@@ -115,15 +115,15 @@
 		<fileName>basicov.exe</fileName>
       </filter>
    </process>
-   <process name="hexedit.exe"  OS="windows" Arch="32">
+   <process Arch="32" OS="windows" name="hexedit.exe">
       <input>
 	  <application>hexedit.exe</application>
 	  <path>hexedit.exe</path>
-	  <args></args>
+	  <args />
 	  <sdir>.</sdir>
 	  <remote>False</remote>
-	  <host></host>
-	  <pass></pass>
+	  <host />
+	  <pass />
 	  <port>0</port>
 	  <debugger>win32</debugger>
       </input>
@@ -131,15 +131,15 @@
 		<fileName>basicov.exe</fileName>
       </filter>
    </process>
-   <process name="basicov.exe"  OS="windows" Arch="32">
+   <process Arch="32" OS="windows" name="basicov.exe">
       <input>
 	  <application>basicov.exe</application>
 	  <path>basicov.exe</path>
 	  <args>mytaint.txt</args>
 	  <sdir>.</sdir>
 	  <remote>False</remote>
-	  <host></host>
-	  <pass></pass>
+	  <host />
+	  <pass />
 	  <port>0</port>
 	  <debugger>win32</debugger>
       </input>
@@ -147,15 +147,15 @@
 	 <fileName>mytaint.txt</fileName>
       </filter>
    </process>
-      <process name="basicov.exe" OS="macosx" Arch="32" >
+      <process Arch="32" OS="macosx" name="basicov.exe">
       <input>
 	  <application>basicov.exe</application>
 	  <path>basicov.exe</path>
 	  <args>mytaint.txt</args>
 	  <sdir>.</sdir>
 	  <remote>False</remote>
-	  <host></host>
-	  <pass></pass>
+	  <host />
+	  <pass />
 	  <port>0</port>
 	  <debugger>macosx</debugger>
       </input>
@@ -163,15 +163,15 @@
 	 <fileName>mytaint.txt</fileName>
       </filter>
    </process>
-      <process name="basicov0.exe" OS="windows" Arch="32" >
+      <process Arch="32" OS="windows" name="basicov0.exe">
       <input>
 	  <application>basicov0.exe</application>
 	  <path>basicov0.exe</path>
-	  <args></args>
+	  <args />
 	  <sdir>.</sdir>
 	  <remote>False</remote>
-	  <host></host>
-	  <pass></pass>
+	  <host />
+	  <pass />
 	  <port>0</port>
 	  <debugger>win32</debugger>
       </input>
@@ -179,15 +179,15 @@
 	 <fileName>mytaint.txt</fileName>
       </filter>
    </process>
-   <process name="condov.exe" OS="windows" Arch="32" >
+   <process Arch="32" OS="windows" name="condov.exe">
       <input>
 	  <application>condov.exe</application>
 	  <path>condov.exe</path>
-	  <args></args>
+	  <args />
 	  <sdir>.</sdir>
 	  <remote>False</remote>
-	  <host></host>
-	  <pass></pass>
+	  <host />
+	  <pass />
 	  <port>0</port>
 	  <debugger>win32</debugger>
       </input>
@@ -195,15 +195,15 @@
 	 <fileName>mytaint.txt</fileName>
       </filter>
    </process>
-      <process name="basicov1.exe" OS="windows" Arch="32" >
+      <process Arch="32" OS="windows" name="basicov1.exe">
       <input>
 	  <application>basicov1.exe</application>
 	  <path>basicov1.exe</path>
-	  <args></args>
+	  <args />
 	  <sdir>.</sdir>
 	  <remote>False</remote>
-	  <host></host>
-	  <pass></pass>
+	  <host />
+	  <pass />
 	  <port>0</port>
 	  <debugger>win32</debugger>
       </input>
@@ -211,15 +211,15 @@
 	 <fileName>mytaint.txt</fileName>
       </filter>
    </process>
-      <process name="basicovPlus.exe" OS="windows" Arch="32" >
+      <process Arch="32" OS="windows" name="basicovPlus.exe">
       <input>
 	  <application>basicovPlus.exe</application>
 	  <path>basicovPlus.exe</path>
-	  <args></args>
+	  <args />
 	  <sdir>.</sdir>
 	  <remote>False</remote>
-	  <host></host>
-	  <pass></pass>
+	  <host />
+	  <pass />
 	  <port>0</port>
 	  <debugger>win32</debugger>
       </input>
@@ -227,15 +227,15 @@
 	 <fileName>mytaint.txt</fileName>
       </filter>
    </process>
-   <process name="notepad.exe" OS="windows" Arch="32">
+   <process Arch="32" OS="windows" name="notepad.exe">
       <input>
 	  <application>notepad.exe</application>
 	  <path>notepad.exe</path>
-	  <args></args>
+	  <args />
 	  <sdir>.</sdir>
 	  <remote>False</remote>
-	  <host></host>
-	  <pass></pass>
+	  <host />
+	  <pass />
 	  <port>0</port>
 	  <debugger>win32</debugger>
       </input>
@@ -245,21 +245,19 @@
 	 <fileName>trace.txt</fileName>
       </filter>
    </process>
-   <process name="mev2_release.exe" OS="windows" Arch="32" >
+   <process Arch="32" OS="windows" name="mev2_release.exe">
       <input>
 	  <application>mev2_release.exe</application>
 	  <path>mev2_release.exe</path>
-	  <args></args>
+	  <args />
 	  <sdir>.</sdir>
 	  <remote>False</remote>
-	  <host></host>
-	  <pass></pass>
+	  <host>...</host>
+	  <pass>password</pass>
 	  <port>0</port>
 	  <debugger>win32</debugger>
       </input>
-      <filter type="networkIO">
-	 <port>6500</port>
-      </filter>
+      <filter type="networkIO"><port>6500</port></filter>
    </process>
    <output>
       <path>.//trace.txt</path>

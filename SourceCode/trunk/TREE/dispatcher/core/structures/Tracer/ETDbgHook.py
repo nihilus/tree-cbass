@@ -39,7 +39,9 @@ class ETDbgHook(DBG_Hooks):
         #self.memoryWriter = BufferWriter()
         self.memoryWriter = FileWriter()
         self.tracefileName = targetProcess.traceFile
-        self.checkInput = targetProcess.checkInput
+        self.checkInput = None
+        self.bCheckFileIO = False
+        self.bCheckNetworkIO = False
         self.memoryWriter.fileOpen(self.tracefileName)
         #print "ETDbgHook created."
         
@@ -68,7 +70,7 @@ class ETDbgHook(DBG_Hooks):
     def dbg_library_load(self, pid, tid, ea, name, base, size):
         self.logger.info( "Library loaded: pid=%d tid=%d name=%s base=%x" % (pid, tid, name, base) )
         self.memoryWriter.writeToFile("L %s %x %x\n" % (name, base,size))
-        self.checkInput(name,base)
+        self.checkInput(name,base,self.bCheckFileIO,self.bCheckNetworkIO)
                                   
     def dbg_trace(self, tid, ip):
         instruction = GetDisasm(ip)

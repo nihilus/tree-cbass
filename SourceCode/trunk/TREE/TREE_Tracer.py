@@ -40,14 +40,15 @@ class TreeTracerPluginFormClass(PluginForm):
         """
         time_before = time.time()
         print ("[/] setting up widgets...")
-        global windowsFileIO,linuxFileIO,customCallback
+        global windowsFileIO,windowsNetworkIO,linuxFileIO,customCallback
         
         windowsFileIO = WindowsApiCallbacks.FileIO()
+        windowsNetworkIO = WindowsApiCallbacks.NetworkIO()
         linuxFileIO = LinuxApiCallbacks.FileIO()
         customCallback = CustomApiFunctions()
         
         functionCallbacks = dict()
-        functionCallbacks = {'windowsFileIO':windowsFileIO ,'linuxFileIO':linuxFileIO ,'customCallback':customCallback }
+        functionCallbacks = {'windowsFileIO':windowsFileIO ,'linuxFileIO':linuxFileIO ,'customCallback':customCallback,'windowsNetworkIO':windowsNetworkIO }
         
         layout = QtGui.QVBoxLayout()
         layout.addWidget(TraceGeneratorWidget(self,functionCallbacks))

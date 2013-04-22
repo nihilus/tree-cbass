@@ -242,16 +242,32 @@ class TraceGeneratorWidget(QtGui.QMainWindow):
         #self.processConfig.debugger = 
         if self.remote_cb.isChecked():
             self.processConfig.remote = "True"
+        else:
+            self.processConfig.remote = "False"
+            
         tempFileFilter = []
         for row in range(self.filters_filename_table.rowCount()):
-            print self.filters_filename_table.item(row, 0).text()
-            tempFileFilter.append(self.filters_filename_table.item(row, 0).text())
-        self.processConfig.fileFilter = tempFileFilter
+            data = self.filters_filename_table.item(row, 0).text()
+            print "Adding file %s" % data
+            tempFileFilter.append(data)
+            
+        if len(tempFileFilter) > 0:
+            self.processConfig.fileFilter = tempFileFilter
+        else:
+            self.processConfig.fileFilter = None
+            
         tempNetworkFilter = []
-        for row in range(self.filters_network_port_table.rowCount()):
-            tempNetworkFilter.append(self.filters_network_port_table.item(row, 0).text())
-        self.processConfig.networkFilter = tempNetworkFilter
         
+        for row in range(self.filters_network_port_table.rowCount()):
+            data = self.filters_network_port_table.item(row, 0).text()
+            print "Adding port %s" % data
+            tempNetworkFilter.append(data)
+
+        if len(tempNetworkFilter) > 0:
+            self.processConfig.networkFilter = tempNetworkFilter
+        else:
+            self.processConfig.networkFilter = None
+            
     def onSaveConfigButtonClicked(self):
         """
         Action for saving config
@@ -296,25 +312,31 @@ class TraceGeneratorWidget(QtGui.QMainWindow):
             fileFilter = self.processConfig.getFileFilter()
             if fileFilter is not None:
                 #self.filters['file'] = fileFilter
+                print "Found %d file filters" % len(fileFilter)
                 self.populateFiltersTable(fileFilter, self.filters_filename_table)
+            else:
+                print "No file filters found"
                 
             networkFilter = self.processConfig.getNetworkFilter()
             if networkFilter is not None:
                 #self.filters['network'] = networkFilter
+                print "Found %d network filters" % len(networkFilter)
                 self.populateFiltersTable(networkFilter, self.filters_network_port_table)
+            else:
+                print "No network filters found"
 
-    def populateFiltersTable(self, filter, filter_table):
+    def populateFiltersTable(self, _filter, filter_table):
         table_header_labels = ["Value"]
         filter_table.clear()
         filter_table.setColumnCount(len(table_header_labels))
         filter_table.setHorizontalHeaderLabels(table_header_labels)
-        filter_table.setRowCount(len(filter))
+        filter_table.setRowCount(len(_filter))
         filter_table.setContextMenuPolicy(self.QtCore.Qt.CustomContextMenu)
         if filter_table.objectName() == "filters_filename_table":
             filter_table.customContextMenuRequested.connect(self.handleFileFilterMenu)
         elif filter_table.objectName() == "filters_network_port_table":
             filter_table.customContextMenuRequested.connect(self.handleNetworkFilterMenu)
-        for row, node in enumerate(filter):
+        for row, node in enumerate(_filter):
             tmp_item = self.QtGui.QTableWidgetItem(node)
             tmp_item.setFlags(tmp_item.flags() & ~self.QtCore.Qt.ItemIsEditable)
             filter_table.setItem(row, 0, tmp_item)

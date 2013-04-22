@@ -197,13 +197,11 @@ class ConfigFile:
                     
                     for f in _filter:
                         processConfig.fileFilter.append(f.text)
-                    #print fileFilter
-                    
+ 
                 elif _filter.attrib['type']=="networkIO":
                     
                     for n in _filter:
-                        processConfig.networkFilter.append(int(n.text))
-                    #print networkFilter
+                        processConfig.networkFilter.append(n.text)
             
             customBreakpoints = dict()
             customBreakpoints = proc.find('customBreakpoints')
@@ -292,8 +290,7 @@ class ConfigFile:
 if __name__ == '__main__':
 
     config = ConfigFile('config.xml')
-    
-    processConfig = config.read('shimgvw.dll','windows','32')
+    processConfig = config.read('mev2_release.exe','windows','32')
     print "Application: " + processConfig.getApplication()
     print "Input path: " +processConfig.getPath()
     print "Input parameters: %s" % processConfig.getArgs()
@@ -313,7 +310,5 @@ if __name__ == '__main__':
     print config.getDebugFlag()
     print config.getLoggingFlag()
     
-    processConfig._pass = "password"
-    config.write(processConfig)
 
     
