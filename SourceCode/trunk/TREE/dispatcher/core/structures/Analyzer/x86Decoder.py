@@ -39,6 +39,10 @@ REGISTER=2
 INDIRECT=3
 LAST=4
 
+#host OS
+WINDOWS = 1
+LINUX = 2
+
 class Operand(Structure):
     _fields_ = [("_width_bits", c_int),
                   ("_rw", c_int),
@@ -70,21 +74,30 @@ class instDecode(Structure):
             self.dest_operands[i].printInfo()        
               
 class x86Decoder(object):
-    def __init__(self, process_bits,target_bits):
+    def __init__(self, process_bits,target_bits,target_OS):
         self.process_bits = process_bits
         self.target_bits = target_bits
-        self.winlib = None
+        self.target_os = WINDOWS
+        if (target_OS is not None):
+            self.target_os = target_OS            
+        self.decode_lib = None
         self.decode_fun = None
         if (process_bits==32):
-            #self.winlib=windll.xdecoder_32
-            dll_name = "xdecoder_32.dll"
-            dllabspath = os.path.dirname(os.path.abspath(__file__)) + os.path.sep + dll_name
-            self.winlib=ctypes.windll.LoadLibrary(dllabspath)
+            if (self.target_os == WINDOWS):
+                #self.decode_lib=windll.xdecoder_32
+                dll_name = "xdecoder_32.dll"
+                dllabspath = os.path.dirname(os.path.abspath(__file__)) + os.path.sep + dll_name
+                self.decode_lib=ctypes.windll.LoadLibrary(dllabspath)
+            elif (self.target_os == LINUX):
+                dll_name = "xdecoder_32.so"
+                dllabspath = os.path.dirname(os.path.abspath(__file__)) + os.path.sep + dll_name
+                print("%s" %dllabspath)
+                self.decode_lib=ctypes.cdll.LoadLibrary(dllabspath)
         elif process_bits==64:
-            self.winlib=windll.xdecoder_64
-        if(self.winlib !=None):
+            self.decode_lib=cdll.xdecoder_64
+        if(self.decode_lib !=None):
             #print(self.winlib)
-            self.decode_fun = self.winlib.decode
+            self.decode_fun = self.decode_lib.decode
             #print(self.decode_fun)
         else:
             return None

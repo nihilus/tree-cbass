@@ -462,7 +462,7 @@ class AnalyzerWidget(QtGui.QMainWindow):
         from dispatcher.core.structures.Analyzer.CIDParser import Invalid, LoadImage, UnloadImage, Input, ReadMemory, WriteMemory, Execution, Snapshot, eXception
         from dispatcher.core.structures.Analyzer.CIDTaintProp import TaintPropagator
         from dispatcher.core.structures.Analyzer.CIDTaintProp import TAINT_NOPE,TAINT_ADDRESS,TAINT_BRANCH,TAINT_COUNTER,TAINT_DATA
-
+        from dispatcher.core.structures.Analyzer.x86Decoder import WINDOWS, LINUX
         #if hasattr(self, trace_fname):
         #parser = OptionParser()
 		
@@ -475,6 +475,18 @@ class AnalyzerWidget(QtGui.QMainWindow):
                 logging.basicConfig(filename="debug.log",level=logging.DEBUG)
             else:
                 logging.basicConfig(filename="warning.log",level=logging.INFO)
+
+            print ("Host System=%s" %sys.platform)
+
+            hostOS = None	
+            if(sys.platform == 'win32'):
+                hostOS = WINDOWS
+            elif (sys.platform == 'linux2'):
+                hostOS = LINUX
+            else:
+                print ("Platform Not Implemented!")
+                return
+
             processBits = 32
             #32Bit Check
             if(sys.maxsize > 2**32):
@@ -510,7 +522,7 @@ class AnalyzerWidget(QtGui.QMainWindow):
             elif (taintPolicy == TAINT_ADDRESS):
                 fTaint = "ATaintGraph_"+os.path.basename(self.trace_fname)				
             out_fd = open(fTaint, 'w')
-            TP = TaintPropagator(processBits, targetBits, out_fd,taintPolicy)
+            TP = TaintPropagator(hostOS, processBits, targetBits, out_fd,taintPolicy)
 			
             tRecord = tr.getNext()
             bEnd = False

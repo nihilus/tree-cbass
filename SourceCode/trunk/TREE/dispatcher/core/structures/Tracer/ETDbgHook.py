@@ -9,6 +9,7 @@
 
 import logging
 import Util
+import sys
 
 from idc import *
 from idaapi import *
@@ -18,6 +19,7 @@ from FileOutput.writer import BufferWriter
 from FileOutput.writer import FileWriter
 from Arch.x86.x86Decoder import x86Decoder
 from Arch.x86.x86Decoder import instDecode
+from dispatcher.core.structures.Analyzer.x86Decoder import WINDOWS, LINUX
 
 curid = 0
 nException=0
@@ -35,7 +37,12 @@ class ETDbgHook(DBG_Hooks):
         super(ETDbgHook, self ).__init__()
         self.logger = logger
         self.bDbg = targetProcess.bDbg
-        self.xDecoder32 = x86Decoder(isa_bits)
+        hostOS = None
+        if(sys.platform == 'win32'):
+            hostOS = WINDOWS
+        elif (sys.platform == 'linux2'):
+            hostOS = LINUX
+        self.xDecoder32 = x86Decoder(isa_bits,32, hostOS)
         #self.memoryWriter = BufferWriter()
         self.memoryWriter = FileWriter()
         self.tracefileName = targetProcess.traceFile
@@ -158,7 +165,7 @@ class ETDbgHook(DBG_Hooks):
             else:
                 self.logger.error( "Cannot decode instruction at 0x%x %x %s" % (cmd.ea,cmd.size,Util.toHex(bytes)) )
                 
-            instInfo.printInfo(self.logger);
+            #instInfo.printInfo();
             
             if self.bDbg:
                 self.logger.debug("source_operands_number=%d" % (instInfo.n_src_operand))

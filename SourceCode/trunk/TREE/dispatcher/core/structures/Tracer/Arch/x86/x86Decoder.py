@@ -39,15 +39,17 @@ REGISTER=2
 INDIRECT=3
 LAST=4
 
-class Operand(Structure):
+#host OS
+WINDOWS = 1
+LINUX = 2
 
+class Operand(Structure):
     _fields_ = [("_width_bits", c_int),
                   ("_rw", c_int),
                   ("_type", c_int),
-                  ("_ea",c_char * MAX_DIS_LEN)]
-        
-    def printInfo(self,logger):
-        logger.debug("width=%d, rw=%d, type=%d, ea_string=%s" %(self._width_bits,self._rw,self._type,self._ea))
+                  ("_ea",c_char * MAX_DIS_LEN)]  
+    def printInfo(self):
+        print("width=%d, rw=%d, type=%d, ea_string=%s" %(self._width_bits,self._rw,self._type,self._ea))
         
 class instDecode(Structure):
     _fields_ = [("n_src_operand", c_int),
@@ -61,38 +63,42 @@ class instDecode(Structure):
                 ("stack_address_width", c_int),
                 ("attDisa",c_char * MAX_DIS_LEN)]
     
-    def printInfo(self,logger):
-        logger.debug("src_operand_num=%d:\n" %(self.n_src_operand))
+    def printInfo(self):
+        print("Inst_category=%d, Disassembly: %s\n"  %(self.inst_category,self.attDisa))
+        print("src_operand_num=%d:\n" %(self.n_src_operand))
         for i in range(self.n_src_operand):
-            self.src_operands[i].printInfo(logger)
+            self.src_operands[i].printInfo()
 
-        logger.debug("\ndest_operand_num=%d:\n" %(self.n_dest_operand))
+        print("\ndest_operand_num=%d:\n" %(self.n_dest_operand))
         for i in range(self.n_dest_operand):
-            self.dest_operands[i].printInfo(logger)
-        
-        logger.debug("Disassembly: %s\n"  %(self.attDisa))
+            self.dest_operands[i].printInfo()        
               
 class x86Decoder(object):
-    def __init__(self, isa_bits):
-        self.logger = logging.getLogger('IDATrace')
-        self.isa_bits = isa_bits
-        self.winlib = None
+    def __init__(self, process_bits,target_bits,target_OS):
+        self.process_bits = process_bits
+        self.target_bits = target_bits
+        self.target_os = WINDOWS
+        if (target_OS is not None):
+            self.target_os = target_OS            
+        self.decode_lib = None
         self.decode_fun = None
-        if (isa_bits==32):
-            #this method allows calling the dll from its actual path not just from system32
-            dll_name = "xdecoder_32.dll"
-            dllabspath = os.path.dirname(os.path.abspath(__file__)) + os.path.sep + dll_name
-            #self.winlib=windll.LoadLibrary("C:\\Users\\xing\\Downloads\\trace\\xdecoder_32.dll")
-            self.winlib=ctypes.windll.LoadLibrary(dllabspath)
-        elif isa_bits==64:
-            #When the 64 bits decoder is available
-            dll_name = "xdecoder_64.dll"
-            dllabspath = os.path.dirname(os.path.abspath(__file__)) + os.path.sep + dll_name
-            self.winlib=ctypes.windll.LoadLibrary(dllabspath)
-        if(self.winlib !=None):
-            print(self.winlib)
-            self.decode_fun = self.winlib.decode
-            self.logger.info(self.decode_fun)
+        if (process_bits==32):
+            if (self.target_os == WINDOWS):
+                #self.decode_lib=windll.xdecoder_32
+                dll_name = "xdecoder_32.dll"
+                dllabspath = os.path.dirname(os.path.abspath(__file__)) + os.path.sep + dll_name
+                self.decode_lib=ctypes.windll.LoadLibrary(dllabspath)
+            elif (self.target_os == LINUX):
+                dll_name = "xdecoder_32.so"
+                dllabspath = os.path.dirname(os.path.abspath(__file__)) + os.path.sep + dll_name
+                print("%s" %dllabspath)
+                self.decode_lib=ctypes.cdll.LoadLibrary(dllabspath)
+        elif process_bits==64:
+            self.decode_lib=cdll.xdecoder_64
+        if(self.decode_lib !=None):
+            #print(self.winlib)
+            self.decode_fun = self.decode_lib.decode
+            #print(self.decode_fun)
         else:
             return None
         
@@ -100,14 +106,12 @@ class x86Decoder(object):
         nRes = 0
         if(self.decode_fun!=None):
             #print("decode parameters:instLen=%d, pINstBytes=0x%x, pBuffer=0x%x" %(c_int(instLen), pInstBytes, addressof(pInstDecode)))
-            self.logger.debug("decode parameters:isa_bits= %d, instLen=%d, pINstBytes=, pBuffer=" %(self.isa_bits, instLen))
-
-            nRes = self.decode_fun(self.isa_bits, instLen, pInstBytes, pInstDecode)
-                
+            #print("decode parameters:target_bits= %d, instLen=%d, pINstBytes=, pBuffer=" %(self.target_bits, instLen))
+            nRes = self.decode_fun(self.target_bits, instLen, pInstBytes, pInstDecode)
             #pInfo = cast(pInstDecode, POINTER(instDecode))
             #print("decode result=%d, n_src_operand = %d" %(nRes,pInfo.__getattribute__('n_src_operand')))
             return nRes
         else:
-            self.logger.error("NULL decode function!!!")
+            print("NULL decode function!!!")
             return 0
         

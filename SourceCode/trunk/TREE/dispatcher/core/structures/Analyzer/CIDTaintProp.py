@@ -14,7 +14,7 @@ from ctypes.util import *
 from ctypes import *
 import ctypes
 
-from x86Decoder import x86Decoder, instDecode, IMMEDIATE, REGISTER,INDIRECT
+from x86Decoder import x86Decoder, instDecode, IMMEDIATE, REGISTER,INDIRECT, WINDOWS, LINUX
 from CIDTaint import Taint, REGISTER_TAINT, MEMORY_TAINT, BRANCH_TAINT
 import operator
 
@@ -146,8 +146,8 @@ def getNormalizedX86RegisterNames(regname, width_bytes, tid):
 
 class TaintPropagator(object):
     
-    def __init__(self, processBits, targetBits, out_fd, taint_policy):
-        self.xDecoder = x86Decoder(processBits, targetBits)
+    def __init__(self, hostOS, processBits, targetBits, out_fd, taint_policy):
+        self.xDecoder = x86Decoder(processBits, targetBits, hostOS)
         self.targetBits = targetBits
         self.static_taint = {} #keyed by instruction encoding, and mapping to a static taint template
         self.dynamic_taint={} #keyed by memory or register/thread address, and mapping to its taint object(defined in CIDTaint) 
