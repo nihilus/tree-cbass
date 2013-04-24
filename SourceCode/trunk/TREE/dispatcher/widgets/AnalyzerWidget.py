@@ -556,7 +556,7 @@ class AnalyzerWidget(QtGui.QMainWindow):
                         print "Tainted Security Warning!"
                         #break
                 else:
-                    print "Type %d not supported:%d" %recordType
+                    print "Type not supported:%d" %recordType
 
                 if (bEnd == True):
                     tRecord = None
