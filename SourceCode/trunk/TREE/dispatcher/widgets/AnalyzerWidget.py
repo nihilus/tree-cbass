@@ -556,7 +556,7 @@ class AnalyzerWidget(QtGui.QMainWindow):
                         print "Tainted Security Warning!"
                         #break
                 else:
-                    print "Type %d not supported:%d" %recordType
+                    print "Type not supported:%d" %recordType
 
                 if (bEnd == True):
                     tRecord = None
@@ -625,7 +625,6 @@ class AnalyzerWidget(QtGui.QMainWindow):
         """ 
         Action for importing an XML file containing VM information
         """
-        from dispatcher.core.structures.Parse import TrNode
         fname, _ = self.QtGui.QFileDialog.getOpenFileName(self, 'Import Trace')
         self.trace_fname = fname
         #self.populateTraceTable()
