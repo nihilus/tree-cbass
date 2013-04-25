@@ -101,15 +101,15 @@ class ConfigFile:
             newProcess_input = Element("input")
             
             application = Element("application")
-            application.text = ""
+            application.text = processConfig.getApplication()
             newProcess_input.append(application)
             
             path = Element("path")
-            path.text = ""
+            path.text = processConfig.getPath()
             newProcess_input.append(path)
             
             args = Element("args")
-            args.text = ""
+            args.text = processConfig.getArgs()
             newProcess_input.append(args)
             
             args = Element("sdir")
@@ -133,7 +133,7 @@ class ConfigFile:
             newProcess_input.append(port)
             
             debugger = Element("debugger")
-            debugger.text = ""
+            debugger.text = processConfig.getDebugger()
             newProcess_input.append(debugger)
             
             filter_file = Element("filter")

@@ -118,6 +118,7 @@ class IDATrace():
                 processConfig.debugger = "linux"
             
             self.config.write(processConfig)
+            print "Saving new process configuration"
             
         return processConfig
         

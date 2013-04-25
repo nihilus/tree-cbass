@@ -299,6 +299,7 @@ class NetworkIO(IO):
   
         retAddr = Util.GetData(0x0)
 
+        self.tempStack = []
         self.tempStack.append(s)
         self.tempStack.append(buf)
         self.tempStack.append(_len)
@@ -357,6 +358,7 @@ class NetworkIO(IO):
         retAddr = Util.GetData(0x0)
         print self.filter['network']
         if portName in self.filter['network']:
+            self.tempStack = []
             self.tempStack.append(s)
             self.tempStack.append(portName)
             idc.AddBpt(retAddr)
@@ -384,8 +386,10 @@ class NetworkIO(IO):
         if self.socket_dict.has_key(socket):
             self.logger.info("checkAccept: Found key 0x%x in dictionary." % (socket))
             _port = self.socket_dict.get(socket)
-            self.socket_dict[recvSocket] = self.socket_dict[socket]
+            self.socket_dict[recvSocket] = _port
             del self.socket_dict[socket]
+        else:
+            self.logger.info("checkAccept: Socket 0x%x is not in the dictionary." % (socket))
 
     def checkAccept(self):
         """
@@ -394,6 +398,7 @@ class NetworkIO(IO):
           _Out_    struct sockaddr *addr,
           _Inout_  int *addrlen
         );
+        
         """
 
         s = Util.GetData(0x4)
@@ -406,7 +411,7 @@ class NetworkIO(IO):
         self.logger.info("*addrlen value is 0x%x" % (addrlen))
         
         retAddr = Util.GetData(0x0)
-
+        self.tempStack = []
         self.tempStack.append(s)
 
         idc.AddBpt(retAddr)
