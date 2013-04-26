@@ -84,15 +84,20 @@ class ConfigFile:
         self.Debug = self.root.find('Debug').text
         self.Logging = self.root.find('Logging').text
         self.configFile = configFile
+        print "Creating a new config object"
     
     def write(self,processConfig):
         config = self.root
         
         newProcess = Element("process")
+        #Before writing or updating the config.xml file, we need to refresh the internal process table
+        self.getProcessData(self.root)
         
         if self.processTable.has_key(str(processConfig.getName())+str(processConfig.getOsType())+str(processConfig.getOsArch())):
+            print "updating an existing configuration"
             self.update(processConfig)
         else:
+            print "Adding a new configuration"
             #adding a new process config
             newProcess.attrib["name"] = processConfig.getName()
             newProcess.attrib["OS"] = processConfig.getOsType()
@@ -135,7 +140,7 @@ class ConfigFile:
             debugger = Element("debugger")
             debugger.text = processConfig.getDebugger()
             newProcess_input.append(debugger)
-            
+            """
             filter_file = Element("filter")
             filter_file.attrib["type"] = "fileIO"
             filter_file.text = ""
@@ -143,10 +148,10 @@ class ConfigFile:
             filter_network = Element("filter")
             filter_network.attrib["type"] = "networkIO"
             filter_network.text = ""
-            
+            """
             newProcess.append(newProcess_input)
-            newProcess.append(filter_file)
-            newProcess.append(filter_network)
+            #newProcess.append(filter_file)
+            #newProcess.append(filter_network)
             
             config.append(newProcess)
         
@@ -189,18 +194,20 @@ class ConfigFile:
             processConfig.port = _input.find('port').text
             #print _input.find('port').text
             
-            _filter = proc.find('filter')
+            _filters = proc.findall('filter')
             
-            if _filter is not None:
+            for _filter in _filters:
                 
                 if _filter.attrib['type']=="fileIO":
                     
                     for f in _filter:
+                        #print f.text
                         processConfig.fileFilter.append(f.text)
  
-                elif _filter.attrib['type']=="networkIO":
+                if _filter.attrib['type']=="networkIO":
                     
                     for n in _filter:
+                        #print n.text
                         processConfig.networkFilter.append(n.text)
             
             customBreakpoints = dict()
@@ -255,26 +262,29 @@ class ConfigFile:
                 except AttributeError:
                     print "entry without debugger attribute"
 
-                _filter = proc.find('filter')
+                _filters = proc.findall('filter')
                 
-                proc.remove(_filter)
-                
-                filter_file = Element("filter")
-                filter_file.attrib["type"] = "fileIO"
+                for _filter in _filters:
+                    proc.remove(_filter)
                 
                 if processConfig.getFileFilter():
+                    filter_file = Element("filter")
+                    filter_file.attrib["type"] = "fileIO"
+                
                     for f in processConfig.getFileFilter():
                         SubElement(filter_file, "fileName").text = f
-        
-                filter_network = Element("filter")
-                filter_network.attrib["type"] = "networkIO"
+                        
+                    proc.append(filter_file)
                 
                 if processConfig.getNetworkFilter():
+                    filter_network = Element("filter")
+                    filter_network.attrib["type"] = "networkIO"
+                
                     for n in processConfig.getNetworkFilter():
                         SubElement(filter_network, "port").text = n
-                
-                proc.append(filter_file)
-                proc.append(filter_network)
+                    
+                    proc.append(filter_network)
+                    
                 """
                 customBreakpoints = dict()
                 customBreakpoints = proc.find('customBreakpoints')
@@ -290,11 +300,11 @@ class ConfigFile:
 if __name__ == '__main__':
 
     config = ConfigFile('config.xml')
-    processConfig = config.read('mev2_release.exe','windows','32')
+    processConfig = config.read('winVS.exe','windows','32')
     print "Application: " + processConfig.getApplication()
     print "Input path: " +processConfig.getPath()
     print "Input parameters: %s" % processConfig.getArgs()
-    print "Input base directory: " + processConfig.getSdir()
+    #print "Input base directory: " + processConfig.getSdir()
     print "Remote debugging host: %s" %processConfig.getHost()
     print processConfig.getRemote()=="True"
     print "Remote password: %s" % processConfig.getPass()

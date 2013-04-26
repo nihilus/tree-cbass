@@ -186,15 +186,12 @@
 	  <args />
 	  <sdir>.</sdir>
 	  <remote>False</remote>
-	  <host />
+	  <host>...</host>
 	  <pass />
 	  <port>0</port>
 	  <debugger>win32</debugger>
       </input>
-      <filter type="fileIO">
-	 <fileName>mytaint.txt</fileName>
-      </filter>
-   </process>
+      <filter type="fileIO"><fileName>mytaint.txt</fileName></filter></process>
       <process Arch="32" OS="windows" name="basicov1.exe">
       <input>
 	  <application>basicov1.exe</application>
@@ -264,4 +261,4 @@
    </output>
    <Debug>False</Debug>
    <Logging>True</Logging>
-</config>
+<process Arch="32" OS="windows" name="winVS.exe"><input><application>winVS.exe</application><path>winVS.exe</path><args /><sdir /><remote>False</remote><host>...</host><pass /><port>0</port><debugger>win32</debugger></input><filter type="networkIO"><port>50007</port></filter></process></config>
