@@ -303,7 +303,8 @@ class ETDbgHook(DBG_Hooks):
                             self.memoryWriter.writeToFile("%x" %(value))
                         else:
                             self.memoryWriter.writeToFile("_%x" %(value))
-    
+                    else:
+                        self.memoryWriter.writeToFile("X")    
             if lWriteEA!=0 and lWriteSize!=0: # no need to get contents from the write address
                 self.memoryWriter.writeToFile(" W %d %x " % (lWriteSize,lWriteEA))
                 

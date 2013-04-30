@@ -103,13 +103,11 @@ def main(args):
             if options.verbose:
                 print("ImageName=%s, LoadAddr = %x, Size=%x" %(tRecord.ImageName, tRecord.LoadAddress, tRecord.ImageSize))
                 out_str = "ImageName=%s, LoadAddr = %x, Size=%x" %(tRecord.ImageName, tRecord.LoadAddress, tRecord.ImageSize)
-                self.trace_table2.append(out_str)                     
         elif (recordType == Input):
             TP.SetInputTaint(tRecord.currentInputAddr, tRecord.currentInputSize)
             if options.verbose:
                 print("InputAddr = %x, InputSize =%x" %(tRecord.currentInputAddr, tRecord.currentInputSize))
                 out_str = "InputAddr = %x, InputSize =%x" %(tRecord.currentInputAddr, tRecord.currentInputSize)
-                self.trace_table2.append(out_str)
         elif(recordType == Execution):
             if(tNextRecord.getRecordType() == eXception):
                 if(tNextRecord.currentExceptionCode ==0): # termination

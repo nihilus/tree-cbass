@@ -262,16 +262,19 @@ class CIDATextTraceReader(CIDATraceReader):
                     sDbg= "Read %d bytes at 0x%x: " %(iRecord.currentReadSize,iRecord.currentReadAddr)
                     log.debug(sDbg)
                     
-                    j =0;
-                    iRecord.currentReadValue = c_byte*iRecord.currentReadSize
-                    readBytes = iRecord.currentReadValue()
-                    while j<iRecord.currentReadSize:
-                        readBytes[j] = int(memBytes[j],16)
-                        sDbg= "Offset:%d,Value=0x%x" %(j,readBytes[j])
-                        log.debug(sDbg)
+                    if(memBytes[0]!='X'):
+                        j =0;
+                        iRecord.currentReadValue = c_byte*iRecord.currentReadSize
+                        readBytes = iRecord.currentReadValue()
+                        while j<iRecord.currentReadSize:
+                            readBytes[j] = int(memBytes[j],16)
+                            sDbg= "Offset:%d,Value=0x%x" %(j,readBytes[j])
+                            log.debug(sDbg)
                         #TODO: validate if this matches exec simulation
-                        j=j+1               
-                    i=i+3
+                            j=j+1               
+                        i=i+3
+                    else:
+                        i = i+2
                     
             if(nParts-i>=3):                    
                 head = split[i+1].lstrip()
