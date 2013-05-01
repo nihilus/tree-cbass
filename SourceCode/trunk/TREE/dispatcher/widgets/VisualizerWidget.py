@@ -26,7 +26,6 @@ class VisualizerWidget(QtGui.QMainWindow):
         #References to qt-specific modules
         self.QtGui = QtGui
         self.QtCore = QtCore
-        #self.NumberQTableWidgetItem = NumberQTableWidgetItem
         self.central_widget = self.QtGui.QWidget()
         self.setCentralWidget(self.central_widget)
         self._createGui()
@@ -43,6 +42,7 @@ class VisualizerWidget(QtGui.QMainWindow):
         
         self._createTaintTable()
         #Layout information
+        self.graphView = QtGui.QGraphicsView()
         visualizer_layout = QtGui.QVBoxLayout()
         upper_table_widget = QtGui.QWidget()
         upper_table_layout = QtGui.QVBoxLayout()
@@ -53,7 +53,7 @@ class VisualizerWidget(QtGui.QMainWindow):
         lower_tables_layout = QtGui.QVBoxLayout()
         
         #lower_tables_layout.addWidget(QtGui.QGraphicsView(QtGui.QGraphicsScene()))
-        #lower_tables_layout.addWidget(self.graphView)
+        lower_tables_layout.addWidget(self.graphView)
         lower_tables_widget.setLayout(lower_tables_layout)
         
         splitter = self.QtGui.QSplitter(self.QtCore.Qt.Vertical)
@@ -102,11 +102,11 @@ class VisualizerWidget(QtGui.QMainWindow):
         
     def _createIDAGraphAction(self):
         """
-        Create the import trace action 
+        Create the import trace action
         """
         self.importIDAGraphAction = QtGui.QAction(QIcon(self.parent.iconPath +
         "online.png"),
-            "Generate IDA Graph", self) 
+            "Generate IDA Graph", self)
         self.importIDAGraphAction.triggered.connect(self.onIDAGraphClicked)
         
     def _createImportIndexAction(self):
@@ -336,6 +336,70 @@ class VisualizerWidget(QtGui.QMainWindow):
         """
         self.t_graph = t
         self.policy = p
+        self._createGraphView() 
+        
+    def _createGraphView(self):
+        from dispatcher.core.structures.Graph.PySideGraph import *
+        import networkx as nx
+        self.graphScene = self.QtGui.QGraphicsScene()
+        self.graphScene.setSceneRect(0,0,800,600)
+        pos = nx.spring_layout(self.t_graph, scale=800)
+
+        #Select node connection and its decorator types
+        nc = CenterCalc()
+        cd = LineArrowOnStart()      
+        node_dict = dict() #must contain the textnode object for parent lookup
+        for x,y in self.t_graph.nodes(data=True):
+            node = None
+            node_p = None
+            if not str(x) in node_dict:
+                cur_x = int(float(pos[str(x)][0]))
+                cur_y = int(float(pos[str(x)][1]))
+                node_p = TextNode(nc, cd, None, str(x), y['inode'].label(), cur_x, cur_y, 200, 30)
+                self.graphScene.addItem(node_p)
+                node_dict[str(x)] = node_p
+            for attr, value in y['inode'].__dict__.iteritems():
+                if(attr.startswith('child')):
+                    a = getattr(y['inode'], attr)
+                    if a is not None:
+                        for child in a.split():
+                            child_x = int(float(pos[str(x)][0]))
+                            child_y = int(float(pos[str(x)][1]))
+                            node = TextNode(nc, cd, node_dict[str(x)], child, self.t_graph.node[child]['inode'].label(), child_x, child_y, 200, 30)
+                            self.graphScene.addItem(node)
+                            node_dict[child] = node
+        self.graphView.setScene(self.graphScene)
+        self.graphView.update()
+        self.graphView.repaint()
+        
+    def _createGraphView2(self, A):
+        from dispatcher.core.structures.Graph.PySideGraph import *
+        self.graphScene = self.QtGui.QGraphicsScene()
+        self.graphScene.setSceneRect(0,0,800,600)
+
+        #Select node connection and its decorator types
+        nc = CenterCalc()
+        cd = LineArrowOnStart()          
+
+        cur_thread = [[]*(self.thread_count+1) for x in xrange(self.thread_count+1)]
+        cur_num = 0
+        for x in A.nodes_iter():
+            node = None
+            cur_x = int(thread.t1)*(800/self.thread_count)
+            cur_y = (600/len(self.thread_list))*cur_num
+            print thread.label()
+            if not cur_thread[int(thread.t1)]:
+                node = TextNode(nc, cd, None, thread.e, thread.label(), cur_x, cur_y, 200, 30)
+                cur_thread[int(thread.t1)].append(node)
+            else:
+                node = TextNode(nc, cd, cur_thread[int(thread.t1)][-1], thread.e, thread.label(), cur_x, cur_y, 200, 30)
+                cur_thread[int(thread.t1)].append(node)
+            self.graphScene.addItem(node)
+            cur_num = cur_num + 1
+
+        self.graphView.setScene(self.graphScene)
+        self.graphView.update()
+        self.graphView.repaint()
         
     def setTraceFile(self, t):
         """
