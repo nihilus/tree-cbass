@@ -382,20 +382,24 @@ class NetworkIO(IO):
         s = self.tempStack.pop(0)
         buf = self.tempStack.pop(0)
         _len = self.tempStack.pop(0)
-        
-        _buffer = idaapi.dbg_read_memory(buf,_len)
 
         self.logger.debug( "checkRecvEnd: buffer is %s" % _buffer )
         
         bytesRecv = idc.GetRegValue("EAX")
         self.logger.info( "checkRecvEnd: Number bytes received %d" % bytesRecv )
         
+        #bytesRecv is the number of bytes returned by the recv function
+        #use it for the logging size
+        
+        #Get the true size of the buffer
+        _buffer = idaapi.dbg_read_memory(buf,bytesRecv)
+                
         if bytesRecv > 0:
             self.logger.info( "checkRecvEnd: recv succeeded." )
             
             if self.socket_dict.has_key(s):
                 self.logger.info( "checkRecvEnd: Found socket 0x%x" % s )
-                self.debuggerInstance.callbackProcessing(buf,_len,_buffer)
+                self.debuggerInstance.callbackProcessing(buf,bytesRecv,_buffer)
 
             else:
                 self.logger.info( "checkRecvEnd: Cannot find socket socket 0x%x" % s )

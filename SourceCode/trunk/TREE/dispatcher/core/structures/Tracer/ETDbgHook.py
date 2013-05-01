@@ -120,8 +120,8 @@ class ETDbgHook(DBG_Hooks):
     
     def dbg_step_into(self):
         eip = GetRegValue("EIP")
-        threaId = GetCurrentThreadId()
-        self.logger.debug("StepInto: 0x%x, ThreadId: %d" % (eip,threaId))
+        #threaId = GetCurrentThreadId()
+        #self.logger.debug("StepInto: 0x%x, ThreadId: %d" % (eip,threaId))
         #print "StepInto: 0x%x ThreadId: %d" % (eip,threaId)
         """
         #There is a bug somewhere in IDA when we are stepping into code but IDA may not interpert the current instruction as code.
