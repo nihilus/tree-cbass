@@ -208,6 +208,7 @@ class TaintPropagator(object):
         self.taint_category_ret = {X86_RET}
         self.taint_category_sink = {X86_CALL,X86_RET}
         self.taint_category_branch = {X86_COND_BR}        
+        self.taint_category_logic = {X86_LOGICAL}        
         
         # A few more not defined, should be very rare 
     def Propagator(self, instRec):
@@ -271,6 +272,8 @@ class TaintPropagator(object):
         elif (instInfo.inst_category in self.taint_category_branch):
             if (self.taint_policy == TAINT_BRANCH):
                 self.TaintPropogateBranch(instInfo, instRec)
+        elif (instInfo.inst_category in self.taint_category_logic):
+            self.TaintPropogateLogic(instInfo, instRec)
         else:
             sWarn = "UNIMPLEMENTED for %s. Category=%s" %(instInfo.attDisa, self.category_name[instInfo.inst_category])
             log.warning(sWarn)
@@ -284,7 +287,8 @@ class TaintPropagator(object):
     def TaintPropogateBranch(self, instInfo, instRec):
         tid = instRec.currentThreadId
         instStr = str(instInfo.attDisa).strip("b'")
-        print "Taint propagating Branch!"
+        if (self.bDebug==True):
+            print "Taint propagating Branch!"
         sDbg = "Taint propagating Branch %s:\n" %(instStr)
         log.debug(sDbg)
         eFlagName = getNormalizedX86EFlagName(tid)
@@ -301,7 +305,8 @@ class TaintPropagator(object):
     def TaintPropogatePathCondition(self, instInfo, instRec):
         tid = instRec.currentThreadId
         instStr = str(instInfo.attDisa).strip("b'")
-        print "Taint propagating Path Condition!"
+        if (self.bDebug==True):
+            print "Taint propagating Path Condition!"
         sDbg = "Taint propagating Path Condition %s:\n" %(instStr)
         log.debug(sDbg)
         if (instStr.find("cmp")!=-1):
@@ -648,15 +653,94 @@ class TaintPropagator(object):
             sDbg ="\nERROR: Not expecting more than one source operand \n"
             log.debug(sDbg)
                      
+    '''
+    XCHG-Exchange Register/Memory with Register
+    Example:
+    Inst_category=11, Disassembly: xchg %eax, %esp
+    src_operand_num=2:
+    width=32, rw=1, type=2, ea_string=ESP
+    width=32, rw=1, type=2, ea_string=EAX
+    dest_operand_num=2:
+    width=32, rw=1, type=2, ea_string=ESP
+    width=32, rw=1, type=2, ea_string=EAX
+    end results:
+    eax <->esp
+    '''
+    def TaintPropogateXCHG(self, instInfo, instRec):
+        sDbg = "Taint propagating unary: %s\n" %(instInfo.attDisa)
+        log.debug(sDbg)
+        tid = instRec.currentThreadId
+        instStr = str(instInfo.attDisa).strip("b'")
+        if(instInfo.n_src_operand!=2 or instInfo.n_dest_operand!=2):
+            if (self.bDebug==True):
+                instInfo.printInfo()
+                print("Is this XCHG? %s, nsrc = %d, ndest=%d" %(instInfo.attDisa,instInfo.n_src_operand,instInfo.n_dest_operand))
+            return
         
+        ### TODO: complete all cases
+        if(instInfo.src_operands[0]._type == REGISTER):
+            normalizedSrcReg0Names = getNormalizedX86RegisterNames(str(instInfo.src_operands[0]._ea).strip("b'"), instInfo.src_operands[0]._width_bits/8,tid)
+        elif (instInfo.src_operands[0]._type == INDIRECT):
+            if (self.bDebug==True):
+                print("XCHG Mem Mode not implemented %s, nsrc = %d, ndest=%d" %(instInfo.attDisa,instInfo.n_src_operand,instInfo.n_dest_operand))
+            return
+        
+        if(instInfo.src_operands[1]._type == REGISTER):
+            normalizedSrcReg1Names = getNormalizedX86RegisterNames(str(instInfo.src_operands[0]._ea).strip("b'"), instInfo.src_operands[1]._width_bits/8,tid)
+        elif (instInfo.src_operands[1]._type == INDIRECT):
+            if (self.bDebug==True):
+                print("XCHG Mem Mode not implemented %s, nsrc = %d, ndest=%d" %(instInfo.attDisa,instInfo.n_src_operand,instInfo.n_dest_operand))
+            return        
+
+        srcLen = len(normalizedSrcReg0Names)
+        for j in range(srcLen):
+            if (normalizedSrcReg0Names[j] in self.dynamic_taint and normalizedSrcReg1Names[j] in self.dynamic_taint):
+                #  Corresponding Reg0 and Reg1 byte will taint each other
+                taint0 = Taint(REGISTER_TAINT,normalizedSrcReg0Names[j], instRec.currentInstSeq,tid,instStr)
+                Taint.uid2Taint[taint0.tuid]= taint0
+                srcTaint0 = self.dynamic_taint[normalizedSrcReg1Names[j]]
+                taint0.addTaintDSources(srcTaint0)                                
+
+                taint1 = Taint(REGISTER_TAINT,normalizedSrcReg1Names[j], instRec.currentInstSeq,tid,instStr)
+                Taint.uid2Taint[taint1.tuid]= taint1
+                srcTaint1 = self.dynamic_taint[normalizedSrcReg0Names[j]]
+                taint1.addTaintDSources(srcTaint1)                                
+            elif (normalizedSrcReg0Names[j] in self.dynamic_taint):
+                #taint R1
+                taint1 = Taint(REGISTER_TAINT,normalizedSrcReg1Names[j], instRec.currentInstSeq,tid,instStr)
+                Taint.uid2Taint[taint1.tuid]= taint1
+                srcTaint1 = self.dynamic_taint[normalizedSrcReg0Names[j]]
+                taint1.addTaintDSources(srcTaint1)                                
+                #untain R0
+                self.dynamic_taint[normalizedSrcReg0Names[j]].terminateTaint(instRec.currentInstSeq,instRec.currentThreadId)
+                sDbg = "UNTAINT %s\n" %(self.dynamic_taint[normalizedSrcReg0Names[j]])
+                log.debug(sDbg)
+                del self.dynamic_taint[normalizedSrcReg0Names[j]]
+            elif (normalizedSrcReg1Names[j] in self.dynamic_taint):
+                #taint R0, untaint R1
+                taint0 = Taint(REGISTER_TAINT,normalizedSrcReg0Names[j], instRec.currentInstSeq,tid,instStr)
+                Taint.uid2Taint[taint0.tuid]= taint0
+                srcTaint0 = self.dynamic_taint[normalizedSrcReg0Names[j]]
+                taint1.addTaintDSources(srcTaint0)                                
+                #untain R1
+                self.dynamic_taint[normalizedSrcReg1Names[j]].terminateTaint(instRec.currentInstSeq,instRec.currentThreadId)
+                sDbg = "UNTAINT %s\n" %(self.dynamic_taint[normalizedSrcReg1Names[j]])
+                log.debug(sDbg)
+                del self.dynamic_taint[normalizedSrcReg1Names[j]]
+                
     def TaintPropogateUnary(self, instInfo, instRec):
         sDbg = "Taint propagating unary: %s\n" %(instInfo.attDisa)
         log.debug(sDbg)
         tid = instRec.currentThreadId
         instStr = str(instInfo.attDisa).strip("b'")
         if(instInfo.n_src_operand!=1 or instInfo.n_dest_operand!=1):
-            print("Taint propagating unary is NOT Unary!!! %s, nsrc = %d, ndest=%d" %(instInfo.attDisa,instInfo.n_src_operand,instInfo.n_dest_operand))
+            if (str(instInfo.attDisa).find("xchg")!=-1):
+                self.TaintPropogateXCHG(instInfo, instRec)
+            elif (self.bDebug==True):
+                instInfo.printInfo()
+                print("Taint propagating unary is NOT Unary!!! %s, nsrc = %d, ndest=%d" %(instInfo.attDisa,instInfo.n_src_operand,instInfo.n_dest_operand))
         
+            
         for i in range(instInfo.n_src_operand):
             if(instInfo.src_operands[i]._type == REGISTER):
                 normalizedSrcRegNames = getNormalizedX86RegisterNames(str(instInfo.src_operands[i]._ea).strip("b'"), instInfo.src_operands[i]._width_bits/8,tid)
@@ -782,7 +866,108 @@ class TaintPropagator(object):
         if self.bDebug:
             print("Ignore CMP flags for now")
         return
+
+    def TaintPropogateXOR(self, instInfo, instRec):
+        sDbg = "Taint propagating XOR: %s\n" %(instInfo.attDisa)
+        log.debug(sDbg)
+
+        #handle special case first: when src and dest are both the same register         
+        if(instInfo.n_src_operand!=2):
+            if (self.bDebug==True):
+                print("Two source operands are expected!!!")
+            return
+
+        tid = instRec.currentThreadId
+        instStr = str(instInfo.attDisa).strip("b'")
+        
+        if((instInfo.src_operands[0]._type == REGISTER) and (instInfo.src_operands[1]._type == REGISTER)):
+            if(instInfo.src_operands[0]._ea.find(instInfo.src_operands[1]._ea)!=-1):
+                if (self.bDebug==True):
+                    print "Handle XOR Special case"
+                normalizedSrcRegNames = getNormalizedX86RegisterNames(str(instInfo.src_operands[0]._ea).strip("b'"), instInfo.src_operands[0]._width_bits/8,tid)
+                srcLen = len(normalizedSrcRegNames)
+                for j in range(srcLen):
+                    if (normalizedSrcRegNames[j] in self.dynamic_taint):
+                        #detaint
+                        self.dynamic_taint[normalizedSrcRegNames[j]].terminateTaint(instRec.currentInstSeq,instRec.currentThreadId) 
+                        sDbg = "DETAINT %s" %(normalizedSrcRegNames[j])
+                        log.debug(sDbg)
+                        del self.dynamic_taint[normalizedSrcRegNames[j]]
+                        print("Detaint %s" %normalizedSrcRegNames[j])
+            else:
+                if (self.bDebug==True):
+                    print"Handle XOR normal case"
+
+    def TaintPropogateOR(self, instInfo, instRec):
+        sDbg = "Taint propagating OR: %s\n" %(instInfo.attDisa)
+        log.debug(sDbg)
+
+        tid = instRec.currentThreadId
+        instStr = str(instInfo.attDisa).strip("b'")
+
+    def TaintPropogateAND(self, instInfo, instRec):
+        sDbg = "Taint propagating AND: %s\n" %(instInfo.attDisa)
+        log.debug(sDbg)
+
+        tid = instRec.currentThreadId
+        instStr = str(instInfo.attDisa).strip("b'")
+        if((instInfo.src_operands[1]._type == IMMEDIATE)):
+            if(int(instInfo.src_operands[1]._ea,16)==0):
+                if (self.bDebug==True):
+                    print "Handle AND Special case(0)"
+                if (instInfo.src_operands[0]._type == REGISTER):
+                    normalizedSrcRegNames = getNormalizedX86RegisterNames(str(instInfo.src_operands[0]._ea).strip("b'"), instInfo.src_operands[0]._width_bits/8,tid)
+                    srcLen = (int)(instInfo.src_operands[1]._width_bits/8) # this is the immediate width
+                    for j in range(srcLen): 
+                        if (normalizedSrcRegNames[j] in self.dynamic_taint):
+                            sDbg = "AND DETAINT %s" %(normalizedSrcRegNames[j])
+                            log.debug(sDbg)
+                            self.dynamic_taint[normalizedSrcRegNames[j]].terminateTaint(instRec.currentInstSeq,instRec.currentThreadId)
+                            del self.dynamic_taint[normalizedSrcRegNames[j]]
+                            if (self.bDebug==True):
+                                print("AND Detaint %s" %normalizedSrcRegNames[j])
+                elif (instInfo.src_operands[0]._type == INDIRECT):
+                    destAddress = instRec.currentWriteAddr
+                    nBytes = (int)(instInfo.src_operands[1]._width_bits/8) # this is the immediate width
+                    for l in range(nBytes):
+                        if(destAddress+l in self.dynamic_taint):
+                            sDbg = "AND DETAINT %s" %(destAddress+l)
+                            log.debug(sDbg)
+                            self.dynamic_taint[destAddress+l].terminateTaint(instRec.currentInstSeq,instRec.currentThreadId)
+                            del self.dynamic_taint[destAddress+l]
+                            if (self.bDebug==True):
+                                print("AND Detaint %s" %(destAddress+l))
+        else:
+            if (self.bDebug==True):
+                print("Taint AND normal cases!")
+
+    def TaintPropogateTEST(self, instInfo, instRec):
+        sDbg = "Taint propagating TEST: %s\n" %(instInfo.attDisa)
+        log.debug(sDbg)
+
+        tid = instRec.currentThreadId
+        instStr = str(instInfo.attDisa).strip("b'")
+        if (self.bDebug==True):
+            print("Taint FLAG %s NOT IMPLEMENTED\n" %instInfo.attDisa)
     
+    def TaintPropogateLogic(self, instInfo, instRec):
+        sDbg = "Taint propagating logic: %s\n" %(instInfo.attDisa)
+        log.debug(sDbg)
+        if self.bDebug:
+            instInfo.printInfo()
+
+        if (str(instInfo.attDisa).find("xor")!=-1):
+            self.TaintPropogateXOR(instInfo, instRec)
+        elif (str(instInfo.attDisa).find("or")!=-1):
+            self.TaintPropogateOR(instInfo, instRec)
+        elif (str(instInfo.attDisa).find("and")!=-1):
+            self.TaintPropogateAND(instInfo, instRec)
+        elif (str(instInfo.attDisa).find("test")!=-1):
+            self.TaintPropogateTEST(instInfo, instRec)
+        else:
+            if (self.bDebug==True):
+                print("Taint %s NOT IMPLEMENTED\n" %instInfo.attDisa)
+        
     def TaintPropogateBinary(self, instInfo, instRec):
         sDbg = "Taint propagating binary %s:\n" %(instInfo.attDisa)
         log.debug(sDbg)
@@ -906,19 +1091,25 @@ class TaintPropagator(object):
             instInfo = self.static_taint[tLastERecord.sEncoding]
 
         sException= "Instruction=0x%x, %s, Thread=%x, Seq=0x%x\n" %(tLastERecord.currentInstruction,instInfo.attDisa,tLastERecord.currentThreadId,tLastERecord.currentInstSeq)
-        instInfo.printInfo()		
+        if (self.bDebug==True):
+            instInfo.printInfo()		
         self.output_fd.write("%s" %(sException))
 
-        #DEBUG self.DumpLiveTaints()
+        #DEBUG
+        #self.DumpLiveTaints()
+        
         for reg in tLastERecord.reg_value:
-            print ("reg= %s, value=%s" %(reg,tLastERecord.reg_value[reg]))
-            if(faultAddress == tLastERecord.reg_value[reg]):
-                normalizedRegNames = getNormalizedX86RegisterNames(reg, 4,tLastERecord.currentThreadId)
-                for normalizedRegName in normalizedRegNames:
+            if (self.bDebug==True):
+                print ("reg= %s, value=%s" %(reg,tLastERecord.reg_value[reg]))
+            #if(faultAddress == tLastERecord.reg_value[reg]):
+            normalizedRegNames = getNormalizedX86RegisterNames(reg, 4,tLastERecord.currentThreadId)
+            for normalizedRegName in normalizedRegNames:
+                if (self.bDebug==True):
                     print ("Fault instruction: regName= %s" %normalizedRegName)
-                    if(normalizedRegName in self.dynamic_taint):
+                if(normalizedRegName in self.dynamic_taint):
+                    if (self.bDebug==True):
                         print ("tainted = %s" %self.dynamic_taint[normalizedRegName].taint_simple())
-                        self.dynamic_taint[normalizedRegName].dumpTaintTree(self.output_fd)
+                    self.dynamic_taint[normalizedRegName].dumpTaintTree(self.output_fd)
 
 			#Check if the memory pointed by the reg is tainted
             memBase = tLastERecord.reg_value[reg]
@@ -926,7 +1117,8 @@ class TaintPropagator(object):
                 for i in range(4):
                     if(memBase+i in self.dynamic_taint):
                         self.dynamic_taint[faultAddress+i].dumpTaintTree(self.output_fd)
-                        print ("tainted = %s" %self.dynamic_taint[faultAddress+i].taint_simple())
+                        if (self.bDebug==True):
+                            print ("tainted = %s" %self.dynamic_taint[faultAddress+i].taint_simple())
 						
     def DumpLiveTaintsInOrder(self):
         self.output_fd.write("Live Taints in the order of creation:\n")

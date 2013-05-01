@@ -476,7 +476,8 @@ class AnalyzerWidget(QtGui.QMainWindow):
             else:
                 logging.basicConfig(filename="warning.log",level=logging.INFO)
 
-            print ("Host System=%s" %sys.platform)
+            if self.verbose_trace_cb.isChecked():
+              print ("Host System=%s" %sys.platform)
 
             hostOS = None	
             if(sys.platform == 'win32'):
@@ -547,13 +548,14 @@ class AnalyzerWidget(QtGui.QMainWindow):
                             TP.DumpLiveTaints()	
                         else:
                             TP.DumpFaultCause(tNextRecord, tRecord, self.verbose_trace_cb.isChecked())
-                            print "Exception! Get out of the loop!"
+                            if self.verbose_trace_cb.isChecked():
+                              print "Exception! Get out of the loop!"
                             bEnd = True
                             break        					
                     elif(TP.Propagator(tRecord)==1):
                         #bEnd = True
-                        #if(self.verbose_trace_cb.isChecked()):
-                        print "Tainted Security Warning!"
+                        if(self.verbose_trace_cb.isChecked()):
+                          print "Tainted Security Warning!"
                         #break
                 else:
                     print "Type not supported:%d" %recordType
@@ -601,7 +603,8 @@ class AnalyzerWidget(QtGui.QMainWindow):
                 self.node_lib[splitted[1]] = internal_str
             else:
                 print ":"
-        print "[debug] trace imported from file into dictionary"
+        if self.verbose_trace_cb.isChecked():
+          print "[debug] trace imported from file into dictionary"
         f.close()
         for node in self.t_graph.nodes(data=True):
             ind = node[1]['inode'].startind.split(':')[0]
@@ -617,7 +620,8 @@ class AnalyzerWidget(QtGui.QMainWindow):
                     base_addr = int(self.node_lib[key].split(' ')[0], 16)
                     end_addr = base_addr + int(self.node_lib[key].split(' ')[1], 16)
                     if node[1]['inode'].ea >= base_addr and node[1]['inode'].ea < end_addr:
-                        print "Found library: %s" % key
+                        if self.verbose_trace_cb.isChecked():
+                          print "Found library: %s" % key
                         node[1]['inode'].setLib(key)
                         break
             
