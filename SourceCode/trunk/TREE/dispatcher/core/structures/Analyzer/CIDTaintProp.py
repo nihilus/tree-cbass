@@ -857,7 +857,7 @@ class TaintPropagator(object):
                                 destAddress = instRec.currentWriteAddr
                                 if(destAddress+j in self.dynamic_taint):
                                     self.dynamic_taint[destAddress+j].terminateTaint(instRec.currentInstSeq,instRec.currentThreadId) 
-                                    sDbg = "UNTAINT %s" %(self.dynamic_taint[destAddress+j])
+                                    sDbg = "DETAINT %s" %(self.dynamic_taint[destAddress+j])
                                     log.debug(sDbg)
                                     del self.dynamic_taint[destAddress+j]
             else:
@@ -881,7 +881,7 @@ class TaintPropagator(object):
         instStr = str(instInfo.attDisa).strip("b'")
         
         if((instInfo.src_operands[0]._type == REGISTER) and (instInfo.src_operands[1]._type == REGISTER)):
-            if(instInfo.src_operands[0]._ea.find(instInfo.src_operands[1]._ea)!=-1):
+            if(instInfo.src_operands[0]._ea.find(instInfo.src_operands[1]._ea)!=-1):# the same registers
                 if (self.bDebug==True):
                     print "Handle XOR Special case"
                 normalizedSrcRegNames = getNormalizedX86RegisterNames(str(instInfo.src_operands[0]._ea).strip("b'"), instInfo.src_operands[0]._width_bits/8,tid)
@@ -893,10 +893,13 @@ class TaintPropagator(object):
                         sDbg = "DETAINT %s" %(normalizedSrcRegNames[j])
                         log.debug(sDbg)
                         del self.dynamic_taint[normalizedSrcRegNames[j]]
-                        print("Detaint %s" %normalizedSrcRegNames[j])
-            else:
-                if (self.bDebug==True):
-                    print"Handle XOR normal case"
+                        if (self.bDebug==True):
+                            print("Detaint %s" %normalizedSrcRegNames[j])
+                return
+            
+        if (self.bDebug==True):
+            print"Handle XOR normal case"
+        self.TaintPropogateBinary(instInfo, instRec)
 
     def TaintPropogateOR(self, instInfo, instRec):
         sDbg = "Taint propagating OR: %s\n" %(instInfo.attDisa)
@@ -904,6 +907,37 @@ class TaintPropagator(object):
 
         tid = instRec.currentThreadId
         instStr = str(instInfo.attDisa).strip("b'")
+        if((instInfo.src_operands[1]._type == IMMEDIATE)):
+            if(int(instInfo.src_operands[1]._ea,16)==0xffffffff):
+                if (self.bDebug==True):
+                    print "Handle OR Special case(0xffffffff)" #simplified special case
+                if (instInfo.src_operands[0]._type == REGISTER):
+                    normalizedSrcRegNames = getNormalizedX86RegisterNames(str(instInfo.src_operands[0]._ea).strip("b'"), instInfo.src_operands[0]._width_bits/8,tid)
+                    srcLen = (int)(instInfo.src_operands[1]._width_bits/8) # this is the immediate width
+                    for j in range(srcLen): 
+                        if (normalizedSrcRegNames[j] in self.dynamic_taint):
+                            sDbg = "OR DETAINT %s" %(normalizedSrcRegNames[j])
+                            log.debug(sDbg)
+                            self.dynamic_taint[normalizedSrcRegNames[j]].terminateTaint(instRec.currentInstSeq,instRec.currentThreadId)
+                            del self.dynamic_taint[normalizedSrcRegNames[j]]
+                            if (self.bDebug==True):
+                                print("OR Detaint %s" %normalizedSrcRegNames[j])
+                elif (instInfo.src_operands[0]._type == INDIRECT):
+                    destAddress = instRec.currentWriteAddr
+                    nBytes = (int)(instInfo.src_operands[1]._width_bits/8) # this is the immediate width
+                    for l in range(nBytes):
+                        if(destAddress+l in self.dynamic_taint):
+                            sDbg = "OR DETAINT %s" %(destAddress+l)
+                            log.debug(sDbg)
+                            self.dynamic_taint[destAddress+l].terminateTaint(instRec.currentInstSeq,instRec.currentThreadId)
+                            del self.dynamic_taint[destAddress+l]
+                            if (self.bDebug==True):
+                                print("OR Detaint %s" %(destAddress+l))
+            return
+
+        if (self.bDebug==True):
+            print("Taint OR normal cases!")        
+        self.TaintPropogateBinary(instInfo, instRec)
 
     def TaintPropogateAND(self, instInfo, instRec):
         sDbg = "Taint propagating AND: %s\n" %(instInfo.attDisa)
@@ -937,9 +971,11 @@ class TaintPropagator(object):
                             del self.dynamic_taint[destAddress+l]
                             if (self.bDebug==True):
                                 print("AND Detaint %s" %(destAddress+l))
-        else:
-            if (self.bDebug==True):
-                print("Taint AND normal cases!")
+            return
+        
+        if (self.bDebug==True):
+            print("Taint AND normal cases!")
+        self.TaintPropogateBinary(instInfo, instRec)
 
     def TaintPropogateTEST(self, instInfo, instRec):
         sDbg = "Taint propagating TEST: %s\n" %(instInfo.attDisa)
