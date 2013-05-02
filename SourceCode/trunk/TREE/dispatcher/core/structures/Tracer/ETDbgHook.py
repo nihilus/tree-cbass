@@ -22,7 +22,7 @@ from dispatcher.core.structures.Analyzer.x86Decoder import WINDOWS, LINUX
 
 from dispatcher.core.Util import toHex
 
-curid = 0
+#curid = 0
 nException=0
 instSeq = 0
 
@@ -116,6 +116,8 @@ class ETDbgHook(DBG_Hooks):
         return 0
     
     def dbg_step_into(self):
+        global instSeq
+        
         eip = GetRegValue("EIP")
         #threaId = GetCurrentThreadId()
         #self.logger.debug("StepInto: 0x%x, ThreadId: %d" % (eip,threaId))
@@ -149,9 +151,8 @@ class ETDbgHook(DBG_Hooks):
             instBytes = instcode()
             for i in range(inslen):
                 instBytes[i]=get_byte(cmd.ea+i)
-       
-            global instSeq
     
+            curid = idc.GetCurrentThreadId()
             self.memoryWriter.writeToFile("0x%x 0x%x" % (curid, instSeq)) # current_thread_id
             instSeq = instSeq+1
     
@@ -332,14 +333,31 @@ class ETDbgHook(DBG_Hooks):
         eip = GetRegValue("EIP") 
         self.logger.info("dbg_step_until_ret: 0x%x %s" % (eip, GetDisasm(eip)))
         
-    def callbackProcessing(self,addr,data_size,data):
+    def callbackProcessing(self,inputLoggingList):
+        data_addr = inputLoggingList.pop(0)
+        data_size = inputLoggingList.pop(0)
+        data = inputLoggingList.pop(0)
+        handle = inputLoggingList.pop(0)
+        caller_addr = inputLoggingList.pop(0)
+        caller_name = inputLoggingList.pop(0)
+        thread_id = inputLoggingList.pop(0)
+        
+        global instSeq
+
         self.logger.info( "Taking a memory snapshot then saving to the current idb file.")
 
-        self.logger.info("CallbackProcessing called.  Logging input... I %x %d %s" % (addr,data_size,toHex(data)) )
-        self.memoryWriter.writeToFile("I %x %d %s\n" % (addr,data_size,toHex(data)))
+        self.logger.info("CallbackProcessing called.  Logging input... I %x %d %s 0x%x 0x%x %s 0x%x 0x%x" % \
+             (data_addr,data_size,toHex(data),thread_id,instSeq,caller_name,caller_addr,handle) )
+        self.memoryWriter.writeToFile("I %x %d %s 0x%x 0x%x %s 0x%x 0x%x\n" % \
+             (data_addr,data_size,toHex(data),thread_id,instSeq,caller_name,caller_addr,handle) )
+        
+        #update the instruction sequence counter
+        instSeq = instSeq+1
+        
+        """
         eip = GetRegValue("EIP")
         DelBpt(eip)
-        
+        """
         PauseProcess()
         
 

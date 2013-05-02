@@ -20,6 +20,7 @@ class IO(object):
         self.logger = None
         self.lpBuffer = None
         self.filter = None
+        self.tempStack = []
         
     def SetLoggerInstance(self,logger):
         self.logger = logger
@@ -33,9 +34,11 @@ class IO(object):
 class FileIO(IO):
     
     def __init__(self):
-        super(FileIO, self).__init__() 
+        super(FileIO, self).__init__()
+        """
         self.lpBuffer = None
         self.lpNumberOfBytesRead = None
+        """
         self.handleSet = set()
 
     def MyCreateFileAEnd(self):
@@ -181,20 +184,36 @@ class FileIO(IO):
         retVal = idc.GetRegValue("EAX")
         self.logger.info( "Returning from ReadFile... with %d" % retVal )
     
-        NumberOfBytesRead = idc.DbgDword(self.lpNumberOfBytesRead)
+        lpBuffer = self.tempStack.pop(0)
+        lpNumberOfBytesRead = self.tempStack.pop(0)
+        hFile = self.tempStack.pop(0)
+        callerAddr = self.tempStack.pop(0)
+        callerFuncName = self.tempStack.pop(0)
+        threadID = self.tempStack.pop(0)
+        
+        NumberOfBytesRead = idc.DbgDword(lpNumberOfBytesRead)
         self.logger.info( "NumberOfBytesRead is 0x%x" % NumberOfBytesRead)
         
-        _buffer = idaapi.dbg_read_memory(self.lpBuffer,NumberOfBytesRead)
+        _buffer = idaapi.dbg_read_memory(lpBuffer,NumberOfBytesRead)
         
         self.logger.debug( _buffer ) 
+        
+        inputLoggingList = []
+        
+        inputLoggingList.append(lpBuffer)
+        inputLoggingList.append(NumberOfBytesRead)
+        inputLoggingList.append(_buffer)
+        inputLoggingList.append(hFile)
+        inputLoggingList.append(callerAddr)
+        inputLoggingList.append(callerFuncName)
+        inputLoggingList.append(threadID)
         
         if retVal:
             Print(  "ReadFile succeeded." )
             self.logger.info( "ReadFile succeeded.")
-            self.debuggerInstance.callbackProcessing(self.lpBuffer,NumberOfBytesRead,_buffer)
-            
+            self.debuggerInstance.callbackProcessing(inputLoggingList)
         else:
-           # print "ReadFile failed."
+            Print ("ReadFile failed." )
             self.logger.info("ReadFile failed.")
         
         return 0
@@ -213,19 +232,30 @@ class FileIO(IO):
         hFile = Util.GetData(0x4)
         self.logger.info( "hFile is 0x%x" % (hFile))
         
-        self.lpBuffer = Util.GetData(0x8)
-        self.logger.info( "lpBuffer is 0x%x" % (self.lpBuffer))
+        lpBuffer = Util.GetData(0x8)
+        self.logger.info( "lpBuffer is 0x%x" % (lpBuffer))
         
         nNumberOfBytesToRead = Util.GetData(0xC)
         self.logger.info( "nNumberOfBytesToRead value is 0x%x" % (nNumberOfBytesToRead))
         
-        self.lpNumberOfBytesRead = Util.GetData(0x10)
-        self.logger.info( "lpNumberOfBytesRead value is 0x%x" % (self.lpNumberOfBytesRead))
+        lpNumberOfBytesRead = Util.GetData(0x10)
+        self.logger.info( "lpNumberOfBytesRead value is 0x%x" % (lpNumberOfBytesRead))
         
         lpOverlapped = Util.GetData(0x14)
         self.logger.info( "lpOverlapped is 0x%x" % (lpOverlapped))
         
         retAddr = Util.GetData(0x0)
+        
+        callerAddr = retAddr-idc.ItemSize(retAddr)
+        
+        self.tempStack = []
+        self.tempStack.append(lpBuffer)
+        self.tempStack.append(lpNumberOfBytesRead)
+        self.tempStack.append(hFile)
+        self.tempStack.append(callerAddr)
+        #self.tempStack.append(idc.GetDisasm(callerAddr))
+        self.tempStack.append("ReadFile")
+        self.tempStack.append(idc.GetCurrentThreadId())
         
         if hFile in self.handleSet:
             self.logger.info("Ready to read from handle 0x%x" % hFile )
@@ -244,7 +274,6 @@ class NetworkIO(IO):
     def __init__(self):
         super(NetworkIO, self).__init__() 
         self.socket_dict = dict()
-        self.tempStack = []
     
     def WSOCK32BindEnd(self):        
         retVal = idc.GetRegValue("EAX")
@@ -318,20 +347,33 @@ class NetworkIO(IO):
         s = self.tempStack.pop(0)
         buf = self.tempStack.pop(0)
         _len = self.tempStack.pop(0)
-        
-        _buffer = idaapi.dbg_read_memory(buf,_len)
-
-        self.logger.debug( "WSOCK32RecvEnd: buffer is %s" % _buffer )
+        callerAddr = self.tempStack.pop(0)
+        callerFuncName = self.tempStack.pop(0)
+        threadID = self.tempStack.pop(0)
         
         bytesRecv = idc.GetRegValue("EAX")
         self.logger.info( "WSOCK32RecvEnd: Number bytes received %d" % bytesRecv )
+        
+        _buffer = idaapi.dbg_read_memory(buf,bytesRecv)
+
+        self.logger.debug( "WSOCK32RecvEnd: buffer is %s" % _buffer )
+        
+        inputLoggingList = []
+        
+        inputLoggingList.append(buf)
+        inputLoggingList.append(bytesRecv)
+        inputLoggingList.append(_buffer)
+        inputLoggingList.append(s)
+        inputLoggingList.append(callerAddr)
+        inputLoggingList.append(callerFuncName)
+        inputLoggingList.append(threadID)
         
         if bytesRecv > 0:
             self.logger.info( "WSOCK32RecvEnd: recv succeeded." )
             
             if self.socket_dict.has_key(s):
                 self.logger.info( "WSOCK32RecvEnd: Found socket 0x%x" % s )
-                self.debuggerInstance.callbackProcessing(buf,_len,_buffer)
+                self.debuggerInstance.callbackProcessing(inputLoggingList)
 
             else:
                 self.logger.info( "WSOCK32RecvEnd: Cannot find socket socket 0x%x" % s )
@@ -367,11 +409,16 @@ class NetworkIO(IO):
   
         retAddr = Util.GetData(0x0)
 
+        callerAddr = retAddr-idc.ItemSize(retAddr)
+
         self.tempStack = []
         self.tempStack.append(s)
         self.tempStack.append(buf)
         self.tempStack.append(_len)
-
+        self.tempStack.append(callerAddr)
+        self.tempStack.append("wsock32_recv")
+        self.tempStack.append(idc.GetCurrentThreadId())
+        
         idc.AddBpt(retAddr)
         idc.SetBptAttr(retAddr, idc.BPT_BRK, 0)
         idc.SetBptCnd(retAddr,"windowsNetworkIO.WSOCK32RecvEnd()")
@@ -383,8 +430,9 @@ class NetworkIO(IO):
         s = self.tempStack.pop(0)
         buf = self.tempStack.pop(0)
         _len = self.tempStack.pop(0)
-
-        self.logger.debug( "checkRecvEnd: buffer is %s" % _buffer )
+        callerAddr = self.tempStack.pop(0)
+        callerFuncName = self.tempStack.pop(0)
+        threadID = self.tempStack.pop(0)
         
         bytesRecv = idc.GetRegValue("EAX")
         self.logger.info( "checkRecvEnd: Number bytes received %d" % bytesRecv )
@@ -394,17 +442,28 @@ class NetworkIO(IO):
         
         #Get the true size of the buffer
         _buffer = idaapi.dbg_read_memory(buf,bytesRecv)
-                
+        
+        self.logger.debug( "checkRecvEnd: buffer is %s" % _buffer )
+        
+        inputLoggingList = []
+        
+        inputLoggingList.append(buf)
+        inputLoggingList.append(bytesRecv)
+        inputLoggingList.append(_buffer)
+        inputLoggingList.append(s)
+        inputLoggingList.append(callerAddr)
+        inputLoggingList.append(callerFuncName)
+        inputLoggingList.append(threadID)
+        
         if bytesRecv > 0:
             self.logger.info( "checkRecvEnd: recv succeeded." )
             
             if self.socket_dict.has_key(s):
                 self.logger.info( "checkRecvEnd: Found socket 0x%x" % s )
-                self.debuggerInstance.callbackProcessing(buf,bytesRecv,_buffer)
+                self.debuggerInstance.callbackProcessing(inputLoggingList)
 
             else:
                 self.logger.info( "checkRecvEnd: Cannot find socket socket 0x%x" % s )
-
 
         else:
             self.logger.error( "checkRecvEnd: Recv function failed." )
@@ -435,12 +494,17 @@ class NetworkIO(IO):
         self.logger.info( "checkRecv: flag value is %d" % (flag) )
   
         retAddr = Util.GetData(0x0)
+        
+        callerAddr = retAddr-idc.ItemSize(retAddr)
 
         self.tempStack = []
         self.tempStack.append(s)
         self.tempStack.append(buf)
         self.tempStack.append(_len)
-
+        self.tempStack.append(callerAddr)
+        self.tempStack.append("recv")
+        self.tempStack.append(idc.GetCurrentThreadId())
+        
         idc.AddBpt(retAddr)
         idc.SetBptAttr(retAddr, idc.BPT_BRK, 0)
         idc.SetBptCnd(retAddr,"windowsNetworkIO.checkRecvEnd()")
