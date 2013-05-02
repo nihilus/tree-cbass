@@ -8,7 +8,6 @@
 #---------------------------------------------------------------------
 
 import logging
-import Util
 import sys
 
 from idc import *
@@ -20,6 +19,8 @@ from FileOutput.writer import FileWriter
 from Arch.x86.x86Decoder import x86Decoder
 from Arch.x86.x86Decoder import instDecode
 from dispatcher.core.structures.Analyzer.x86Decoder import WINDOWS, LINUX
+
+from dispatcher.core.Util import toHex
 
 curid = 0
 nException=0
@@ -50,10 +51,6 @@ class ETDbgHook(DBG_Hooks):
         self.bCheckFileIO = False
         self.bCheckNetworkIO = False
         self.memoryWriter.fileOpen(self.tracefileName)
-        #print "ETDbgHook created."
-        
-    def __del__(self):
-        print  'ETDbgHook died'
         
     def dbg_process_start(self, pid, tid, ea, name, base, size):
         self.logger.info("Process started, pid=%d tid=%d name=%s ea=0x%x" % (pid, tid, name,ea))
@@ -122,7 +119,7 @@ class ETDbgHook(DBG_Hooks):
         eip = GetRegValue("EIP")
         #threaId = GetCurrentThreadId()
         #self.logger.debug("StepInto: 0x%x, ThreadId: %d" % (eip,threaId))
-        #print "StepInto: 0x%x ThreadId: %d" % (eip,threaId)
+
         """
         #There is a bug somewhere in IDA when we are stepping into code but IDA may not interpert the current instruction as code.
         #This ususally cause inslen to return 0, so we will force the current eip to point to code to avoid this problem.
@@ -145,8 +142,8 @@ class ETDbgHook(DBG_Hooks):
         
         if cmd.size > 0:
             bytes = get_many_bytes(cmd.ea,cmd.size)
-            #print ("E 0x%x %x %s " % (cmd.ea,cmd.size,bytes) )
-            self.memoryWriter.writeToFile("E 0x%x %x %s " % (cmd.ea,cmd.size,Util.toHex(bytes)))
+
+            self.memoryWriter.writeToFile("E 0x%x %x %s " % (cmd.ea,cmd.size,toHex(bytes)))
     
             instcode = c_byte*inslen
             instBytes = instcode()
@@ -163,10 +160,8 @@ class ETDbgHook(DBG_Hooks):
             if inslen > 0:
                 self.xDecoder32.decode_inst(inslen, pointer(instBytes),ctypes.byref((instInfo)))
             else:
-                self.logger.error( "Cannot decode instruction at 0x%x %x %s" % (cmd.ea,cmd.size,Util.toHex(bytes)) )
+                self.logger.error( "Cannot decode instruction at 0x%x %x %s" % (cmd.ea,cmd.size,toHex(bytes)) )
                 
-            #instInfo.printInfo();
-            
             if self.bDbg:
                 self.logger.debug("source_operands_number=%d" % (instInfo.n_src_operand))
     
@@ -340,9 +335,8 @@ class ETDbgHook(DBG_Hooks):
     def callbackProcessing(self,addr,data_size,data):
         self.logger.info( "Taking a memory snapshot then saving to the current idb file.")
 
-        #self.memoryWriter.writeToFile("I %x %d %s (%s)\n" % (addr,data_size,Util.toHex(data), data))
-        self.logger.info("CallbackProcessing called.  Logging input... I %x %d %s" % (addr,data_size,Util.toHex(data)) )
-        self.memoryWriter.writeToFile("I %x %d %s\n" % (addr,data_size,Util.toHex(data)))
+        self.logger.info("CallbackProcessing called.  Logging input... I %x %d %s" % (addr,data_size,toHex(data)) )
+        self.memoryWriter.writeToFile("I %x %d %s\n" % (addr,data_size,toHex(data)))
         eip = GetRegValue("EIP")
         DelBpt(eip)
         

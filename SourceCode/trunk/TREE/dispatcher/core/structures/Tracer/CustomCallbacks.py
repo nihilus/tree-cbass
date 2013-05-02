@@ -5,6 +5,8 @@ import logging
 import os.path
 import idaapi
 
+from dispatcher.core.DebugPrint import dbgPrint, Print
+
 class CustomApiFunctions(object):
     def __init__(self):
         import logging
@@ -58,7 +60,7 @@ class CustomApiFunctions(object):
         hWnd = Util.GetData(0x4)        
         uMsg = Util.GetData(0x8)
 
-        print "MyNtUserMessageCall from Win32k.sys: hWnd=0x%x uMsg=%d" % (hWnd,uMsg)
+        Print( "MyNtUserMessageCall from Win32k.sys: hWnd=0x%x uMsg=%d" % (hWnd,uMsg) )
         
         self.logger.info("MyNtUserMessageCall from Win32k.sys: hWnd=0x%x uMsg=%d" % (hWnd,uMsg) )
         

@@ -1,8 +1,28 @@
 #!/usr/bin/env python
-import idc
-import idaapi
-import struct
+import ConfigParser
+from dispatcher.core.DebugPrint import DebugPrint
+
+class ConfigReader:
+    def __init__(self,path):
+        self.path = path
+        self.version =""
     
+    def Read(self):
+        config = ConfigParser.ConfigParser()
+        config.read(self.path)
+        _dbgPrint = DebugPrint()
+        print config.get('DEFAULT','DebugMessageOn')
+        print config.get('DEFAULT','Version')
+        
+        if config.get('DEFAULT','DebugMessageOn')=="True":
+            _dbgPrint.dbgFlag = True
+            print "dbgFlag set to True"
+        else:
+            _dbgPrint.dbgFlag = False
+            print "dbgFlag set to False"
+            
+        self.version = config.get('DEFAULT','Version')
+
 def toHex(s):
     
     if s is None:
@@ -18,7 +38,8 @@ def toHex(s):
     return reduce(lambda x,y:x+y, lst)
 
 def Read(addr,size):
-
+    import idaapi
+    import struct
     
     byteArray = []
     count = 0
@@ -40,7 +61,11 @@ def Read(addr,size):
     return byteArray
 
 def GetData(index):
-
+    import idc
     
     esp = idc.GetRegValue("ESP")
     return idc.DbgDword(esp+index)
+
+if __name__ == '__main__':
+    configReader = ConfigReader("C:\\TREE\\settings.ini")
+    configReader.Read()

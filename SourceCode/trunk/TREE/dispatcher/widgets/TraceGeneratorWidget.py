@@ -1,19 +1,20 @@
-from PySide import QtGui, QtCore
-from PySide.QtGui import QIcon
+from PySide.QtGui import QMainWindow 
 
-class TraceGeneratorWidget(QtGui.QMainWindow):
+class TraceGeneratorWidget(QMainWindow):
     """
     This widget is the front-end for the trace generations.
     """
     def __init__(self,parent,funcCallbacks):
         from PySide import QtGui, QtCore
         from PySide.QtGui import QIcon
+        
+        from dispatcher.core.DebugPrint import dbgPrint, Print
 
         import dispatcher.core.structures.Tracer.IDATrace as IDATrace
         from dispatcher.core.structures.Tracer.Config.config import ProcessConfig as ProcessConfig
         
         QtGui.QMainWindow.__init__(self)
-        print "[|] loading TraceGenerationWidget"
+        Print( "[|] loading TraceGenerationWidget" )
         # Access to shared modules
        
         self.idaTracer = IDATrace(funcCallbacks)
@@ -230,7 +231,8 @@ class TraceGeneratorWidget(QtGui.QMainWindow):
         """
         Action for saving config
         """
-        
+        from dispatcher.core.DebugPrint import dbgPrint, Print
+         
         #Get all the process config data from the GUI
         self.processConfig.application = str(self.application_edit.text())
         self.processConfig.path = str(self.path_edit.text())
@@ -248,7 +250,7 @@ class TraceGeneratorWidget(QtGui.QMainWindow):
         tempFileFilter = []
         for row in range(self.filters_filename_table.rowCount()):
             data = self.filters_filename_table.item(row, 0).text()
-            print "Adding file %s" % data
+            Print( "Adding file %s" % data )
             tempFileFilter.append(data)
             
         if len(tempFileFilter) > 0:
@@ -260,7 +262,7 @@ class TraceGeneratorWidget(QtGui.QMainWindow):
         
         for row in range(self.filters_network_port_table.rowCount()):
             data = self.filters_network_port_table.item(row, 0).text()
-            print "Adding port %s" % data
+            Print( "Adding port %s" % data )
             tempNetworkFilter.append(data)
 
         if len(tempNetworkFilter) > 0:
@@ -279,10 +281,12 @@ class TraceGeneratorWidget(QtGui.QMainWindow):
         self.idaTracer.setProcessConfig(self.processConfig)
         
     def populateConfig(self):
+        from dispatcher.core.DebugPrint import dbgPrint, Print
+        
         self.processConfig = self.idaTracer.getProcessConfig()
         if self.processConfig is None:
-            print "Error, we need to add a new config"
-            print "Should not get here!!!"
+            Print( "Error, we need to add a new config" )
+            Print( "Should not get here!!!" )
         else:
             self.application_edit.setText(self.processConfig.getApplication())
             self.path_edit.setText(self.processConfig.getPath())
@@ -312,18 +316,18 @@ class TraceGeneratorWidget(QtGui.QMainWindow):
             fileFilter = self.processConfig.getFileFilter()
             if fileFilter is not None:
                 #self.filters['file'] = fileFilter
-                print "Found %d file filters" % len(fileFilter)
+                Print( "Found %d file filters" % len(fileFilter) )
                 self.populateFiltersTable(fileFilter, self.filters_filename_table)
             else:
-                print "No file filters found"
+                Print( "No file filters found" )
                 
             networkFilter = self.processConfig.getNetworkFilter()
             if networkFilter is not None:
                 #self.filters['network'] = networkFilter
-                print "Found %d network filters" % len(networkFilter)
+                Print( "Found %d network filters" % len(networkFilter) )
                 self.populateFiltersTable(networkFilter, self.filters_network_port_table)
             else:
-                print "No network filters found"
+                Print( "No network filters found" )
 
     def populateFiltersTable(self, _filter, filter_table):
         table_header_labels = ["Value"]
@@ -370,7 +374,6 @@ class TraceGeneratorWidget(QtGui.QMainWindow):
         menu.exec_(self.QtGui.QCursor.pos())
         
     def addFileFilter(self):
-        #print self.filters_filename_table.currentItem().row()
         self.filters_filename_table.insertRow(self.filters_filename_table.rowCount())
         self.filters_filename_table.setItem(self.filters_filename_table.rowCount()-1, 0, self.QtGui.QTableWidgetItem(" "))
         

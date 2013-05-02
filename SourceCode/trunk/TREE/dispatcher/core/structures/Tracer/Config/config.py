@@ -1,6 +1,8 @@
 import xml.etree.ElementTree as ET
 from xml.etree.ElementTree import Element,SubElement
-                
+
+from dispatcher.core.DebugPrint import dbgPrint, Print
+
 class ProcessConfig:
     def __init__(self):
         self.name = ""
@@ -84,7 +86,7 @@ class ConfigFile:
         self.Debug = self.root.find('Debug').text
         self.Logging = self.root.find('Logging').text
         self.configFile = configFile
-        print "Creating a new config object"
+        Print( "Creating a new config object" )
     
     def write(self,processConfig):
         config = self.root
@@ -94,10 +96,10 @@ class ConfigFile:
         self.getProcessData(self.root)
         
         if self.processTable.has_key(str(processConfig.getName())+str(processConfig.getOsType())+str(processConfig.getOsArch())):
-            print "updating an existing configuration"
+            Print( "updating an existing configuration" )
             self.update(processConfig)
         else:
-            print "Adding a new configuration"
+            Print( "Adding a new configuration" )
             #adding a new process config
             newProcess.attrib["name"] = processConfig.getName()
             newProcess.attrib["OS"] = processConfig.getOsType()

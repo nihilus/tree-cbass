@@ -5,6 +5,7 @@
 # Author: Nathan Li, Xing Li
 # Date: 1/10/2013
 #---------------------------------------------------------------------
+from dispatcher.core.DebugPrint import dbgPrint, Print
 
 class IDATrace():
     
@@ -39,44 +40,44 @@ class IDATrace():
 
         #Get the name of the input file we want to trace
         app_name = idc.GetInputFile()
-        print "The input file is %s" % app_name
+        Print ("The input file is %s" % app_name )
                 
         #Check to see what type of file we're tracing
         #And set up the proper debugger and input monitor
         if idainfo.filetype == idaapi.f_PE:
-            print "Windows PE file"
+            Print ("Windows PE file" )
             os_type = "windows"
         
         elif idainfo.filetype == idaapi.f_MACHO:
-            print "Mac OSX Macho file"
+            Print ("Mac OSX Macho file")
             os_type = "macosx"
             #debugger = "macosx"
             #checkInput = InputMonitor.checkMacLibs
         
         elif idainfo.filetype == idaapi.f_ELF:
-            print "Linux ELF file"
+            Print ("Linux ELF file")
             os_type = "linux"
             #debugger = "linux"
             #checkInput = InputMonitor.checkLinuxLibs
         
         else:
-            print "Unknown binary, unable to debug"
+            Print ("Unknown binary, unable to debug")
             return None
             
         #Check the debugged executable if its 32 or 64bit
         if idainfo.is_64bit():
-            print "This binary is 64 bit"
+            Print("This binary is 64 bit")
             os_arch = "64"
         elif idainfo.is_32bit():
-            print "This binary is 32 bit"
+            Print( "This binary is 32 bit" )
             os_arch = "32"
         else:
-            print "Bad binary."
+            Print( "Bad binary." )
             return None
             
         #Get the file type for the executable being debugger
         fileType = idaapi.get_file_type_name()
-        print fileType
+        Print( fileType )
         
         return (app_name,os_type,os_arch)
     
@@ -94,7 +95,7 @@ class IDATrace():
         #Get the root IDA directory in order to locate the config.xml file
         root_dir = idc.GetIdaDirectory() + "\\plugins\\"
         configFile = root_dir + "\dispatcher\core\structures\Tracer\Config\config.xml"
-        print configFile
+        Print( configFile )
         
         #Call ConfigFile to grab all configuration information from the config.xml file
         self.config = ConfigFile(configFile)
@@ -118,7 +119,7 @@ class IDATrace():
                 processConfig.debugger = "linux"
             
             self.config.write(processConfig)
-            print "Saving new process configuration"
+            Print( "Saving new process configuration" )
             
         return processConfig
         
@@ -197,19 +198,19 @@ class IDATrace():
         
         self.logger.info( "The application is %s" % app_name )
         
-        print logfile
+        Print( logfile )
         
-        print "Using debugger %s" % debugger
+        Print( "Using debugger %s" % debugger )
         
         if bDbg:
             self.logger.setLevel(logging.DEBUG)
-            print "Logging at debug level"
+            Print ("Logging at debug level" )
         
         if bLog:
-            print "Logging turned on."
+            Print( "Logging turned on." )
             self.logger.disabled = False
         else:
-            print "Logging turned off."
+            Print( "Logging turned off." )
             self.logger.disabled = True
 
         targetProcess = TargetProcess.TargetProcess(app_name,os_arch,os_type,bDbg,self.tracefile)
@@ -251,7 +252,7 @@ class IDATrace():
         EThook.steps = 0
         
         if os_type == "macosx":
-            print "Setting MacOsxApiCallbacks"
+            Print( "Setting MacOsxApiCallbacks" )
             checkInput = InputMonitor.checkMacLibs
             """
             TODO: XZL
@@ -259,12 +260,12 @@ class IDATrace():
             MacOSXApiCallbacks.macFileIO.SetFilters(filters)
             """
         elif os_type == "windows":
-            print "Setting WindowsApiCallbacks"
+            Print( "Setting WindowsApiCallbacks" )
             
             EThook.checkInput =  InputMonitor.checkWindowsLibs
             
             if fileFilter is not None:
-                print "Setting file filters for windows"
+                Print( "Setting file filters for windows" )
                 filters['file'] = fileFilter
                 EThook.bCheckFileIO = True
                 self.windowsFileIO.SetDebuggerInstance(EThook)
@@ -272,7 +273,7 @@ class IDATrace():
                 self.windowsFileIO.SetLoggerInstance(self.logger)
             
             if networkFilter is not None:
-                print "Setting network filters for windows"
+                Print( "Setting network filters for windows" )
                 filters['network'] = networkFilter
                 EThook.bCheckNetworkIO = True
                 self.windowsNetworkIO.SetDebuggerInstance(EThook)
@@ -280,7 +281,7 @@ class IDATrace():
                 self.windowsNetworkIO.SetLoggerInstance(self.logger)
 
         elif os_type == "linux":
-            print "Setting LinuxsApiCallbacks"
+            Print( "Setting LinuxsApiCallbacks" )
             EThook.checkInput =  InputMonitor.checkLinuxLibs
             
             if fileFilter is not None:
@@ -307,7 +308,7 @@ class IDATrace():
                 idc.AddBpt(breakPoint)
                 idc.SetBptCnd(breakPoint,callBack)
         else:
-            print "No custom breakpoints."
+            Print( "No custom breakpoints." )
             
         self.logger.info("Starting to trace..please wait...")
         idaapi.run_to(idaapi.cvar.inf.maxEA)

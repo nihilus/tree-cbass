@@ -10,7 +10,11 @@ from PySide.QtGui import QIcon
 
 from dispatcher.widgets.TraceGeneratorWidget import TraceGeneratorWidget
 
-NAME = "TREE Tracer v0.2"
+from dispatcher.core.DebugPrint import dbgPrint, Print
+
+from dispatcher.core.Util import ConfigReader
+
+NAME = "TREE Tracer"
 
 from dispatcher.core.structures.Tracer.Arch.x86.Windows import WindowsApiCallbacks as WindowsApiCallbacks
 from dispatcher.core.structures.Tracer.CustomCallbacks import CustomApiFunctions as CustomApiFunctions
@@ -27,19 +31,21 @@ class TreeTracerPluginFormClass(PluginForm):
     
     def __init__(self):
         super(TreeTracerPluginFormClass, self).__init__()
-        #print "TreeTracerPluginFormClass init called."
         self.idaPluginDir = GetIdaDirectory() + "\\plugins\\"
         self.iconPath = self.idaPluginDir + "\\dispatcher\\icons\\"
-        #self.dispatcher_widgets = []
-        
+
         self.icon = QIcon(self.iconPath + "dispatcher.png")
+        configReader = ConfigReader(self.idaPluginDir+"\\settings.ini")
+        configReader.Read()
+        self.version= configReader.version
         
     def setupWidgets(self):
         """
         Setup dispatcher widgets.
         """
         time_before = time.time()
-        print ("[/] setting up widgets...")
+        
+        Print ("[/] setting up widgets...")
         global windowsFileIO,windowsNetworkIO,linuxFileIO,customCallback
         
         windowsFileIO = WindowsApiCallbacks.FileIO()
@@ -54,14 +60,13 @@ class TreeTracerPluginFormClass(PluginForm):
         layout.addWidget(TraceGeneratorWidget(self,functionCallbacks))
         self.parent.setLayout(layout)
 
-        print("[\\] this took %3.2f seconds.\n" % (time.time() - time_before))
+        Print("[\\] this took %3.2f seconds.\n" % (time.time() - time_before))
         
     def OnCreate(self, form):
         """
         When creating the form, setup the modules and widgets
         """
         self.printBanner()
-        #print "TreeTracerPluginFormClass OnCreate called."
         self.parent = self.FormToPySideWidget(form)
         self.parent.setWindowIcon(self.icon)
         self.setupWidgets()
@@ -70,7 +75,7 @@ class TreeTracerPluginFormClass(PluginForm):
         """
         Called when the plugin form is closed
         """
-        idaapi.msg("Plugin from closing.")
+        Print("Plugin from closing.")
 
     def printBanner(self):
         banner = "#############################################\n" \
@@ -85,7 +90,7 @@ class TreeTracerPluginFormClass(PluginForm):
                + " by Battelle BIT Team                       \n" \
                + "#############################################\n"
         print banner
-        print ("[+] Loading TREE Tracer...")
+        print ("[+] Loading TREE Tracer version %s" % self.version)
 
     def Show(self):
         if idc.GetInputMD5() == None:
@@ -103,7 +108,7 @@ class tracer_plugin_t(idaapi.plugin_t):
     wanted_hotkey = "Ctrl-F7"
 
     def init(self):
-        print("tracer_plugin_t installed")
+        Print("tracer_plugin_t installed")
         return idaapi.PLUGIN_OK
 
     def run(self, arg):
@@ -111,7 +116,7 @@ class tracer_plugin_t(idaapi.plugin_t):
         plg.Show()
 
     def term(self):
-        print("tracer_plugin_t uninstalled!")
+        Print("tracer_plugin_t uninstalled!")
 
 
 def PLUGIN_ENTRY():

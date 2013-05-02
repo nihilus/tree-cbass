@@ -1,11 +1,11 @@
 #---------------------------------------------------------------------
-# IDA debug based Execution Trace(ET) callback routines
+# Input Monitor
 #
 # Version: 1 
 # Author: Nathan Li, Xing Li
 # Date: 1/10/2013
 #---------------------------------------------------------------------
-
+from dispatcher.core.DebugPrint import dbgPrint, Print
         
 def checkWindowsLibs(name,ea,bCheckFileIO,bCheckNetworkIO):
     import idc
@@ -150,13 +150,13 @@ def checkWindowsLibs(name,ea,bCheckFileIO,bCheckNetworkIO):
 def checkLinuxLibs(name,ea):
     
     library_name = name.upper()
-    print "Checking Linux for library " + library_name
+    Print( "Checking Linux for library " + library_name )
     
     if "LIBC" in library_name:
         import idc
         import logging
         
-        print "Found Libc at 0x%x" % ea
+        # "Found Libc at 0x%x" % ea
         logger = logging.getLogger('IDATrace')
         
         logger.info( "Found Libc at 0x%x" % ea )
@@ -166,10 +166,10 @@ def checkLinuxLibs(name,ea):
         
         if fopen_func == idc.BADADDR:
             logger.info( "Cannot find _IO_file_fopen" )
-            print "Cannot find _IO_file_fopen."
+            # "Cannot find _IO_file_fopen."
         else:
             logger.info( "We found _IO_file_fopen at 0x%x." % fopen_func )
-            print "We found _IO_file_fopen at 0x%x." % fopen_func 
+            Print( "We found _IO_file_fopen at 0x%x." % fopen_func )
             idc.AddBpt(fopen_func)
             idc.SetBptAttr(fopen_func, idc.BPT_BRK, 0)
             idc.SetBptCnd(fopen_func, "linuxFileIO.My_fopen()")
@@ -178,10 +178,10 @@ def checkLinuxLibs(name,ea):
         
         if fread_func == idc.BADADDR:
             logger.info( "Cannot find _IO_fread" )
-            print "Cannot find _IO_fread."
+            Print( "Cannot find _IO_fread." )
         else:
             logger.info( "We found _IO_fread at 0x%x." % fread_func )
-            print "We found _IO_fread at 0x%x." % fread_func  
+            Print( "We found _IO_fread at 0x%x." % fread_func  )
             idc.AddBpt(fread_func)
             idc.SetBptAttr(fread_func, idc.BPT_BRK, 0)
             idc.SetBptCnd(fread_func, "linuxFileIO.My_fread()")
@@ -190,14 +190,14 @@ def checkLinuxLibs(name,ea):
         
         if fclose_func == idc.BADADDR:
             logger.info( "Cannot find _IO_fclose" )
-            print "Cannot find _IO_fclose."
+            Print( "Cannot find _IO_fclose." )
         else:
             logger.info( "We found _IO_fclose at 0x%x." % fclose_func )
-            print "We found _IO_fclose at 0x%x." % fclose_func  
+            Print( "We found _IO_fclose at 0x%x." % fclose_func  )
             idc.AddBpt(fclose_func)
             idc.SetBptAttr(fclose_func, idc.BPT_BRK, 0)
             idc.SetBptCnd(fclose_func, "linuxFileIO.My_fclose()")
         
 def checkMacOSXLibs(name,ea):
-    print "Checking Mac OSX"
+    Print( "Checking Mac OSX" )
     

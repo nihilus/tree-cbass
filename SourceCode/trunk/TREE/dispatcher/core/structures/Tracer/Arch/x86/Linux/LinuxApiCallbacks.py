@@ -7,6 +7,7 @@
 #---------------------------------------------------------------------
 
 import dispatcher.core.Util as Util
+from dispatcher.core.DebugPrint import dbgPrint, Print
 
 import idc
 import logging

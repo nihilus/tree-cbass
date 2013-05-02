@@ -7,6 +7,7 @@
 #---------------------------------------------------------------------
 
 import dispatcher.core.Util as Util
+from dispatcher.core.DebugPrint import dbgPrint, Print
 
 import idc
 import logging
@@ -88,7 +89,7 @@ class FileIO(IO):
         return 0
     
     def MyCreateFileWEnd(self):
-        #print "Returning from CreateFileW..."
+        Print( "Returning from CreateFileW..." )
         handle = idc.GetRegValue("EAX")
 
         self.handleSet.add(handle)
@@ -142,11 +143,11 @@ class FileIO(IO):
             idc.SetBptAttr(retAddr, idc.BPT_BRK, 0)
             idc.SetBptCnd(retAddr,"windowsFileIO.MyCreateFileWEnd()")
             self.logger.info( "Filter matched. Add handle to the handle's dictionary to start logging.")
-            #print "Filter matched. Add handle to the handle's dictionary to start logging."
+            Print( "Filter matched. Add handle to the handle's dictionary to start logging." )
 
         else:
             if idc.CheckBpt(retAddr) >= 0:
-                #print "Removing un-needed breakpoint."
+                Print( "Removing un-needed breakpoint." )
                 self.logger.info("Removing un-needed breakpoint.")
                 idc.DelBpt(retAddr)
                 
@@ -188,7 +189,7 @@ class FileIO(IO):
         self.logger.debug( _buffer ) 
         
         if retVal:
-           # print  "ReadFile succeeded."
+            Print(  "ReadFile succeeded." )
             self.logger.info( "ReadFile succeeded.")
             self.debuggerInstance.callbackProcessing(self.lpBuffer,NumberOfBytesRead,_buffer)
             
@@ -228,13 +229,13 @@ class FileIO(IO):
         
         if hFile in self.handleSet:
             self.logger.info("Ready to read from handle 0x%x" % hFile )
-            #print "Ready to read from handle 0x%x" % hFile
+            Print( "Ready to read from handle 0x%x" % hFile )
             idc.AddBpt(retAddr)
             idc.SetBptCnd(retAddr,"windowsFileIO.MyReadFileEnd()")
         else:
             if idc.CheckBpt(retAddr) >= 0:
                 self.logger.info("Removing un-needed ReadFile breakpoint.")
-              #  print "Removing un-needed ReadFile breakpoint."
+                Print( "Removing un-needed ReadFile breakpoint." )
                 idc.DelBpt(retAddr)
             
         return 0
@@ -291,7 +292,7 @@ class NetworkIO(IO):
         self.logger.info ("WSOCK32Bind: namelen value is %d" % (namelen))
 
         retAddr = Util.GetData(0x0)
-        print self.filter['network']
+        Print( self.filter['network'] )
         if portName in self.filter['network']:
             self.tempStack = []
             self.tempStack.append(s)
@@ -300,11 +301,11 @@ class NetworkIO(IO):
             idc.SetBptAttr(retAddr, idc.BPT_BRK, 0)
             idc.SetBptCnd(retAddr,"windowsNetworkIO.checkBindEnd()")
             self.logger.info( "WSOCK32Bind: Netork Filter matched. Adding port to the Handle's dictionary to start logging.")
-            #print "Filter matched. Add handle to the handle's dictionary to start logging."
+            Print( "Filter matched. Add handle to the handle's dictionary to start logging." )
 
         else:
             if idc.CheckBpt(retAddr) >= 0:
-                #print "Removing un-needed breakpoint."
+                Print( "Removing un-needed breakpoint." )
                 self.logger.info("WSOCK32Bind: Removing un-needed breakpoint.")
                 idc.DelBpt(retAddr)
                 
@@ -493,7 +494,7 @@ class NetworkIO(IO):
         self.logger.info ("checkBind: namelen value is %d" % (namelen))
 
         retAddr = Util.GetData(0x0)
-        print self.filter['network']
+        Print( self.filter['network'] )
         if portName in self.filter['network']:
             self.tempStack = []
             self.tempStack.append(s)
@@ -502,11 +503,11 @@ class NetworkIO(IO):
             idc.SetBptAttr(retAddr, idc.BPT_BRK, 0)
             idc.SetBptCnd(retAddr,"windowsNetworkIO.checkBindEnd()")
             self.logger.info( "checkBind: Netork Filter matched. Adding port to the Handle's dictionary to start logging.")
-            #print "Filter matched. Add handle to the handle's dictionary to start logging."
+            Print( "Filter matched. Add handle to the handle's dictionary to start logging.")
 
         else:
             if idc.CheckBpt(retAddr) >= 0:
-                #print "Removing un-needed breakpoint."
+                Print( "Removing un-needed breakpoint." )
                 self.logger.info("checkBind: Removing un-needed breakpoint.")
                 idc.DelBpt(retAddr)
                 
