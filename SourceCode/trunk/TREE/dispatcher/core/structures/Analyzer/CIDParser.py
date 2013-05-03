@@ -65,6 +65,12 @@ class InputTraceRecord(TraceRecord):
         self.recordType = Input
         self.currentInputAddr = None
         self.currentInputSize = None
+        self.inputBytes = None
+        self.inputFunction = None
+        self.functionCaller = None
+        self.callingThread = None
+        self.sequence = None
+        self.inputHandle = None
 
 class LoadImageTraceRecord(TraceRecord):    
     def __init__(self):
@@ -176,6 +182,16 @@ class CIDATextTraceReader(CIDATraceReader):
         iRecord.currentInputAddr = int(split[1], 16)
         iRecord.currentInputSize = int(split[2], 10)
         sDbg= "Text Trace Input received at 0x%x for %d bytes" %(iRecord.currentInputAddr,iRecord.currentInputSize)
+        #I 103e138 12 414141414141414141414141 0x63c4 0x0 wsock32_recv 0x11d110e 0x78
+        # or I 103e138 12 414141414141414141414141 "old format"
+        if len(split)> 3:
+            iRecord.inputBytes = split[3]
+            iRecord.callingThread = int(split[4],16)            
+            iRecord.sequence = int(split[5],16)            
+            iRecord.inputFunction = split[6]
+            iRecord.functionCaller = int(split[7],16)
+            iRecord.inputHandle = int(split[8],16)
+        
         log.debug(sDbg)
         
         return iRecord
@@ -187,7 +203,8 @@ class CIDATextTraceReader(CIDATraceReader):
         iRecord = LoadImageTraceRecord()
         
         split = line[2:] #remoe the L identifier, then split with comma
-        csplit = split.split()
+        #csplit = split.split(",") # default is space, which may have problem with Windows Path
+        csplit = split.split() # default is space, which may have problem with Windows Path
         # Image load, extrac the name from the fullpath
         if len(csplit)>2:               
             sImageName = csplit[0].rsplit("\\",1)

@@ -537,7 +537,7 @@ class AnalyzerWidget(QtGui.QMainWindow):
                         out_str = "ImageName=%s, LoadAddr = %x, Size=%x" %(tRecord.ImageName, tRecord.LoadAddress, tRecord.ImageSize)
                         self.trace_table2.append(out_str)                     
                 elif (recordType == Input):
-                    TP.SetInputTaint(tRecord.currentInputAddr, tRecord.currentInputSize)
+                    TP.SetInputTaint(tRecord)
                     if(self.verbose_trace_cb.isChecked()):
                         print("InputAddr = %x, InputSize =%x" %(tRecord.currentInputAddr, tRecord.currentInputSize))
                         out_str = "InputAddr = %x, InputSize =%x" %(tRecord.currentInputAddr, tRecord.currentInputSize)

@@ -11,6 +11,7 @@ import struct
     
 log = logging.getLogger('CIDATA')
 
+INPUT_TAINT=-1
 REGISTER_TAINT = 0
 MEMORY_TAINT = 1
 BRANCH_TAINT = 2
@@ -21,20 +22,21 @@ class Taint(object):
     uid2Taint = {}        
     visited = set()
        
-    def __init__(self, taintType, taintAddress,creatorInstructionLine, creatorThread, creatorInstAmenic, directInput=False):
+    def __init__(self, taintType, taintAddress,creatorSequence,creatorThread, creatorInstAmenic, directInput=False):
         global tuid
         self.tuid = tuid
         tuid = tuid+1
         self.bDirectInput = directInput
         self.taintType= taintType
         self.taintAddress = taintAddress
-        self.creatorInstruction = creatorInstructionLine
+        self.creatorSequence = creatorSequence
         self.creatorInstAmenic = creatorInstAmenic
         self.creatorThread = creatorThread
         self.cSources =[]
         self.dSources =[]
         self.terminatorInstruction = None
         self.terminatorThread = None
+        self.InputFunctionCallerAddress = None
 
     def __eq__(self, other):
         if other==None:
@@ -57,6 +59,14 @@ class Taint(object):
         self.terminatorInstruction = terminatorInstructionLine
         self.terminatorThread = terminatorThread
 
+    def setCreatorSequence(self, creatorSequence):
+        self.creatorSequence = creatorSequence
+
+    def setInputFunctionCaller(self, InputCallerAddress):
+        if self.bDirectInput:
+            self.InputFunctionCallerAddress = InputCallerAddress
+
+        
     def __str__(self):
         taintStr ="[%s]" %(self.tuid)
         
@@ -64,18 +74,21 @@ class Taint(object):
             taintStr =taintStr+"reg_"
         elif(self.taintType == MEMORY_TAINT):
             taintStr =taintStr+"mem_"
+        elif(self.taintType == INPUT_TAINT):
+            taintStr =taintStr+"in_"            
         else:
             taintStr =taintStr+"bc_"
         
         if isinstance(self.taintAddress, int):
-            taintStr = taintStr+hex(self.taintAddress)+"["+hex(self.creatorInstruction)+":"+str(self.creatorThread)+"]"
+            taintStr = taintStr+hex(self.taintAddress)+"["+hex(self.creatorSequence)+":"+hex(self.creatorThread)+"]"
         else:
-            taintStr = taintStr+str(self.taintAddress)+"["+hex(self.creatorInstruction)+":"+str(self.creatorThread)+"]"
+            taintStr = taintStr+str(self.taintAddress)+"["+hex(self.creatorSequence)+":"+hex(self.creatorThread)+"]"
             
         if(self.terminatorInstruction!=None and self.terminatorThread !=None):
-            taintStr = taintStr+"["+hex(self.terminatorInstruction)+":"+str(self.terminatorThread)+"]"
+            taintStr = taintStr+"["+hex(self.terminatorInstruction)+":"+hex(self.terminatorThread)+"]"
         
         if(self.bDirectInput==True):
+            taintStr = taintStr + "<-"+hex(self.InputFunctionCallerAddress)+":"+hex(self.creatorInstAmenic)
             return taintStr
         
         return taintStr
@@ -91,18 +104,21 @@ class Taint(object):
             taintStr =taintStr+"reg_"
         elif(self.taintType == MEMORY_TAINT):
             taintStr =taintStr+"mem_"
+        elif(self.taintType == INPUT_TAINT):
+            taintStr =taintStr+"in_"                 
         else:
             taintStr =taintStr+"bc_"
             
         if isinstance(self.taintAddress, int):
-            taintStr = taintStr+hex(self.taintAddress)+"["+hex(self.creatorInstruction)+":"+str(self.creatorThread)+"]"
+            taintStr = taintStr+hex(self.taintAddress)+"["+hex(self.creatorSequence)+":"+hex(self.creatorThread)+"]"
         else:
-            taintStr = taintStr+str(self.taintAddress)+"["+hex(self.creatorInstruction)+":"+str(self.creatorThread)+"]"
+            taintStr = taintStr+str(self.taintAddress)+"["+hex(self.creatorSequence)+":"+hex(self.creatorThread)+"]"
             
         if(self.terminatorInstruction!=None and self.terminatorThread !=None):
-            taintStr = taintStr+"["+hex(self.terminatorInstruction)+":"+str(self.terminatorThread)+"]"
+            taintStr = taintStr+"["+hex(self.terminatorInstruction)+":"+hex(self.terminatorThread)+"]"
         
         if(self.bDirectInput==True):
+            taintStr = taintStr + "<-"+hex(self.InputFunctionCallerAddress)+":"+hex(self.creatorInstAmenic)
             return taintStr
         
         taint_dtree = None
@@ -127,18 +143,21 @@ class Taint(object):
             taintStr =taintStr+"reg_"
         elif(self.taintType == MEMORY_TAINT):
             taintStr =taintStr+"mem_"
+        elif(self.taintType == INPUT_TAINT):
+            taintStr =taintStr+"in_"                             
         else:
             taintStr =taintStr+"bc_"
             
         if isinstance(self.taintAddress, int):
-            taintStr = taintStr+hex(self.taintAddress)+"["+hex(self.creatorInstruction)+":"+str(self.creatorThread)+"]"
+            taintStr = taintStr+hex(self.taintAddress)+"["+hex(self.creatorSequence)+":"+hex(self.creatorThread)+"]"
         else:
-            taintStr = taintStr+str(self.taintAddress)+"["+hex(self.creatorInstruction)+":"+str(self.creatorThread)+"]"
+            taintStr = taintStr+str(self.taintAddress)+"["+hex(self.creatorSequence)+":"+hex(self.creatorThread)+"]"
             
         if(self.terminatorInstruction!=None and self.terminatorThread !=None):
-            taintStr = taintStr+"["+hex(self.terminatorInstruction)+":"+str(self.terminatorThread)+"]"
+            taintStr = taintStr+"["+hex(self.terminatorInstruction)+":"+hex(self.terminatorThread)+"]"
         
         if(self.bDirectInput==True):
+            taintStr = taintStr + "<-"+hex(self.InputFunctionCallerAddress)+":"+str(self.creatorInstAmenic)
             return taintStr
         
         taintStr = "%s<-%s" % (taintStr,self.creatorInstAmenic)

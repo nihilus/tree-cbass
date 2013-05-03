@@ -55,7 +55,8 @@ def main(args):
     else:
         logging.basicConfig(filename="warning.log",level=logging.INFO)
 
-    print ("Host System=%s" %sys.platform)
+    if options.verbose:
+	print ("Host System=%s" %sys.platform)
 
     hostOS = None	
     if(sys.platform == 'win32'):
@@ -104,7 +105,7 @@ def main(args):
                 print("ImageName=%s, LoadAddr = %x, Size=%x" %(tRecord.ImageName, tRecord.LoadAddress, tRecord.ImageSize))
                 out_str = "ImageName=%s, LoadAddr = %x, Size=%x" %(tRecord.ImageName, tRecord.LoadAddress, tRecord.ImageSize)
         elif (recordType == Input):
-            TP.SetInputTaint(tRecord.currentInputAddr, tRecord.currentInputSize)
+            TP.SetInputTaint(tRecord)
             if options.verbose:
                 print("InputAddr = %x, InputSize =%x" %(tRecord.currentInputAddr, tRecord.currentInputSize))
                 out_str = "InputAddr = %x, InputSize =%x" %(tRecord.currentInputAddr, tRecord.currentInputSize)

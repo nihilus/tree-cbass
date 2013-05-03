@@ -15,7 +15,7 @@ from ctypes import *
 import ctypes
 
 from x86Decoder import x86Decoder, instDecode, IMMEDIATE, REGISTER,INDIRECT, WINDOWS, LINUX
-from CIDTaint import Taint, REGISTER_TAINT, MEMORY_TAINT, BRANCH_TAINT
+from CIDTaint import Taint, INPUT_TAINT, REGISTER_TAINT, MEMORY_TAINT, BRANCH_TAINT
 import operator
 
 log = logging.getLogger('CIDATA')
@@ -1175,17 +1175,14 @@ class TaintPropagator(object):
             self.dynamic_taint[t].terminateTaint(-1,-1)
         for t in self.dynamic_taint: 
             self.output_fd.write("%s \n" %(self.dynamic_taint[t].taint_tree()))
-        
-    def SetInputTaint(self, address, size):
-        for i in range(size):
-            taint = Taint(MEMORY_TAINT,address+i, -1, -1, "INPUT",True)
+
+    def SetInputTaint(self, INRecord):
+        address = INRecord.currentInputAddr
+        for i in range(INRecord.currentInputSize):
+            if(address+i in self.dynamic_taint):
+                self.dynamic_taint[address+i].terminateTaint(INRecord.sequence,INRecord.callingThread)
+            taint = Taint(INPUT_TAINT,address+i,INRecord.sequence,INRecord.callingThread, INRecord.inputFunction,True)
+            taint.setInputFunctionCaller(INRecord.functionCaller)
             Taint.uid2Taint[taint.tuid]= taint
-            '''
-            if(address+i in self.dynamic_taint): 
-                self.output_fd.write("%s\n" %(self.dynamic_taint[address]))
-            else:
-                self.output_fd.write("INPUT: %s\n" %(taint))
-            '''
-            self.dynamic_taint[address+i] = taint
-            
+            self.dynamic_taint[address+i] = taint            
                     
