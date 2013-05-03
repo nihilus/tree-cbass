@@ -1,17 +1,17 @@
 from PySide.QtGui import QMainWindow 
-
+from PySide import QtGui, QtCore
+#from PySide.QtGui import QIcon
 class TraceGeneratorWidget(QMainWindow):
     """
     This widget is the front-end for the trace generations.
     """
     def __init__(self,parent,funcCallbacks):
-        from PySide import QtGui, QtCore
-        from PySide.QtGui import QIcon
+        #from PySide import QtGui, QtCore
         
-        from dispatcher.core.DebugPrint import dbgPrint, Print
+        from ..core.DebugPrint import dbgPrint, Print
 
-        import dispatcher.core.structures.Tracer.IDATrace as IDATrace
-        from dispatcher.core.structures.Tracer.Config.config import ProcessConfig as ProcessConfig
+        from ..core.structures.Tracer import IDATrace
+        from ..core.structures.Tracer.Config.config import ProcessConfig as ProcessConfig
         
         QtGui.QMainWindow.__init__(self)
         Print( "[|] loading TraceGenerationWidget" )
@@ -22,7 +22,7 @@ class TraceGeneratorWidget(QMainWindow):
         self.parent = parent
         self.name = "Trace Generation"
         tracer_icon_path = self.parent.iconPath+ "trace.png"
-        self.icon = QIcon(tracer_icon_path)
+        self.icon = QtGui.QIcon(tracer_icon_path)
         
         #References to qt-specific modules
         self.QtGui = QtGui
@@ -37,7 +37,7 @@ class TraceGeneratorWidget(QMainWindow):
         Create the main GUI with its components
         """
         # Create buttons
-        from PySide import QtGui, QtCore
+        #from PySide import QtGui, QtCore
         #self.setWindowTitle("Hello")
         self._createToolbar()
         trace_layout = QtGui.QVBoxLayout()
@@ -203,10 +203,8 @@ class TraceGeneratorWidget(QMainWindow):
         """
         Create that action that performs the trace
         """
-        from PySide import QtGui
-        from PySide.QtGui import QIcon
-        
-        self.generateTraceAction = QtGui.QAction(QIcon(self.parent.iconPath + "trace.png"), "Generate the trace.", self)
+        #from PySide.QtGui import QIcon
+        self.generateTraceAction = QtGui.QAction(QtGui.QIcon(self.parent.iconPath + "trace.png"), "Generate the trace.", self)
         self.generateTraceAction.triggered.connect(self.onGenerateTraceButtonClicked)
         
     def onGenerateTraceButtonClicked(self):
@@ -222,16 +220,15 @@ class TraceGeneratorWidget(QMainWindow):
         """
         Save config
         """
-        from PySide import QtGui
-        from PySide.QtGui import QIcon
-        self.saveConfigAction = QtGui.QAction(QIcon(self.parent.iconPath + "save.png"), "Save config", self)
+        #from PySide.QtGui import QIcon
+        self.saveConfigAction = QtGui.QAction(QtGui.QIcon(self.parent.iconPath + "save.png"), "Save config", self)
         self.saveConfigAction.triggered.connect(self.onSaveConfigButtonClicked)
   
     def getConfigFromGUI(self):
         """
         Action for saving config
         """
-        from dispatcher.core.DebugPrint import dbgPrint, Print
+        from ..core.DebugPrint import dbgPrint, Print
          
         #Get all the process config data from the GUI
         self.processConfig.application = str(self.application_edit.text())
@@ -281,7 +278,7 @@ class TraceGeneratorWidget(QMainWindow):
         self.idaTracer.setProcessConfig(self.processConfig)
         
     def populateConfig(self):
-        from dispatcher.core.DebugPrint import dbgPrint, Print
+        from ..core.DebugPrint import dbgPrint, Print
         
         self.processConfig = self.idaTracer.getProcessConfig()
         if self.processConfig is None:
