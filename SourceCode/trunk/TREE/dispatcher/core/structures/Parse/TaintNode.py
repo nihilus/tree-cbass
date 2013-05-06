@@ -28,7 +28,7 @@ class TaintNode(object):
         import re
         pattern = re.compile(r"""
                               \[(?P<uuid>\d+)\]
-                              (?P<type>(reg|mem|bc))
+                              (?P<type>(reg|mem|bc|in))
                               _(?P<name>[\d\w_]+)
                               \[(?P<startind>[\d\w:-]+)\]
                               (\[(?P<endind>[\d\w:-]+)\])?

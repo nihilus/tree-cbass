@@ -361,7 +361,7 @@ class AnalyzerWidget(QtGui.QMainWindow):
             self.taints_table.setSortingEnabled(True)
             
     def insert_node_br(self, s, depth):
-        from dispatcher.core.structures.Parse.TaintNode import TaintNode
+        from ..core.structures.Parse.TaintNode import TaintNode
         try:
             uuid = self.extract_uuid(s)
         except AttributeError:
@@ -404,10 +404,8 @@ class AnalyzerWidget(QtGui.QMainWindow):
             self.cur_depth = depth
         self.cur_taint_node = tempNode
             
-        
-            
     def insert_node(self, s):
-        from dispatcher.core.structures.Parse.TaintNode import TaintNode
+        from ..core.structures.Parse.TaintNode import TaintNode
         tempNode = None
         try:
             uuid = self.extract_uuid(s)
@@ -424,7 +422,7 @@ class AnalyzerWidget(QtGui.QMainWindow):
         self.child_edges(tempNode)
 
     def child_edges(self, node):
-        from dispatcher.core.structures.Parse.TaintNode import TaintNode
+        from ..core.structures.Parse.TaintNode import TaintNode
         for attr, value in node.__dict__.iteritems():
             if(attr.startswith('child')):
                 x = getattr(node, attr)
@@ -453,16 +451,15 @@ class AnalyzerWidget(QtGui.QMainWindow):
         """
         import sys
         import os
-        #from optparse import OptionParser
         import logging
         import struct
-        from dispatcher.core.structures.Analyzer import CIDTaintProp
-        from dispatcher.core.structures.Analyzer.CIDParser import CIDATraceReader, CIDATextTraceReader, CIDAPinTraceReader
+        from ..core.structures.Analyzer import CIDTaintProp
+        from ..core.structures.Analyzer.CIDParser import CIDATraceReader, CIDATextTraceReader, CIDAPinTraceReader
         
-        from dispatcher.core.structures.Analyzer.CIDParser import Invalid, LoadImage, UnloadImage, Input, ReadMemory, WriteMemory, Execution, Snapshot, eXception
-        from dispatcher.core.structures.Analyzer.CIDTaintProp import TaintPropagator
-        from dispatcher.core.structures.Analyzer.CIDTaintProp import TAINT_NOPE,TAINT_ADDRESS,TAINT_BRANCH,TAINT_COUNTER,TAINT_DATA
-        from dispatcher.core.structures.Analyzer.x86Decoder import WINDOWS, LINUX
+        from ..core.structures.Analyzer.CIDParser import Invalid, LoadImage, UnloadImage, Input, ReadMemory, WriteMemory, Execution, Snapshot, eXception
+        from ..core.structures.Analyzer.CIDTaintProp import TaintPropagator
+        from ..core.structures.Analyzer.CIDTaintProp import TAINT_NOPE,TAINT_ADDRESS,TAINT_BRANCH,TAINT_COUNTER,TAINT_DATA
+        from ..core.structures.Analyzer.x86Decoder import WINDOWS, LINUX
         #if hasattr(self, trace_fname):
         #parser = OptionParser()
 		
@@ -629,7 +626,7 @@ class AnalyzerWidget(QtGui.QMainWindow):
         """ 
         Action for importing an XML file containing VM information
         """
-        from dispatcher.core.structures.Parse import TrNode
+        #from dispatcher.core.structures.Parse import TrNode
         fname, _ = self.QtGui.QFileDialog.getOpenFileName(self, 'Import Trace')
         self.trace_fname = fname
         #self.populateTraceTable()
