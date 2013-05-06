@@ -9,7 +9,7 @@ from PySide.QtGui import QIcon
 from idaapi import *
 from idautils import *
 from idc import *
-from dispatcher.core.structures.Graph.PySideGraph import *
+from ..core.structures.Graph.PySideGraph import *
 
 class VisualizerWidget(QtGui.QMainWindow):
     """
@@ -237,7 +237,7 @@ class VisualizerWidget(QtGui.QMainWindow):
             self.taints_table.setSortingEnabled(True)
             
     def insert_node(self, s):
-        from dispatcher.core.structures.Parse.TaintNode import TaintNode
+        from ..core.structures.Parse.TaintNode import TaintNode
         tempNode = None
         uuid = self.extract_uuid(s)
         if self.t_graph.has_node(uuid):
@@ -277,7 +277,7 @@ class VisualizerWidget(QtGui.QMainWindow):
         """ 
         Action for importing an XML file containing VM information
         """
-        from dispatcher.core.structures.Parse import TrNode
+        from ..core.structures.Parse import TrNode
         fname, _ = self.QtGui.QFileDialog.getOpenFileName(self, 'Import Trace')
         self.trace_fname = fname
         #self.populateTraceTable()
@@ -287,8 +287,8 @@ class VisualizerWidget(QtGui.QMainWindow):
         Action for generating the IDA Graph
         """
         #self.populateTraceTable()
-        from dispatcher.core.structures.Graph.TaintGraph import TaintGraph
-        from dispatcher.core.structures.Graph.BCTaintGraph import BCTaintGraph
+        from ..core.structures.Graph.TaintGraph import TaintGraph
+        from ..core.structures.Graph.BCTaintGraph import BCTaintGraph
         if self.policy == "TAINT_BRANCH":
             tv = BCTaintGraph(self.t_graph, self.node_ea)
         else:
@@ -339,7 +339,7 @@ class VisualizerWidget(QtGui.QMainWindow):
         self._createGraphView() 
         
     def _createGraphView(self):
-        from dispatcher.core.structures.Graph.PySideGraph import *
+        from ..core.structures.Graph.PySideGraph import *
         import networkx as nx
         self.graphScene = self.QtGui.QGraphicsScene()
         self.graphScene.setSceneRect(0,0,800,600)
@@ -373,7 +373,7 @@ class VisualizerWidget(QtGui.QMainWindow):
         self.graphView.repaint()
         
     def _createGraphView2(self, A):
-        from dispatcher.core.structures.Graph.PySideGraph import *
+        from ..core.structures.Graph.PySideGraph import *
         self.graphScene = self.QtGui.QGraphicsScene()
         self.graphScene.setSceneRect(0,0,800,600)
 
