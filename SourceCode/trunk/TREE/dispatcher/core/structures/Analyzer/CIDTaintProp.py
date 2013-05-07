@@ -154,6 +154,7 @@ class TaintPropagator(object):
         self.output_fd = out_fd
         self.bDebug = False 
         self.taint_policy = taint_policy # TAINT_DATA is  DEFAULT
+        self.pcs =[]
         
         self.category_name={}
         self.category_name[X86_INVALID]="Invalid"
@@ -301,6 +302,7 @@ class TaintPropagator(object):
             srcTaint = self.dynamic_taint[eFlagName]
             taint.addTaintDSources(srcTaint)
             self.dynamic_taint[strBranch] = taint
+            self.pcs.append(taint)
 
     def TaintPropogatePathCondition(self, instInfo, instRec):
         tid = instRec.currentThreadId
@@ -1175,6 +1177,13 @@ class TaintPropagator(object):
             self.dynamic_taint[t].terminateTaint(-1,-1)
         for t in self.dynamic_taint: 
             self.output_fd.write("%s \n" %(self.dynamic_taint[t].taint_tree()))
+            #self.output_fd.write("%s \n" %(self.dynamic_taint[t].taint_simple()))
+
+    def DisplayPCs(self):
+        self.output_fd.write("Path Conditions:\n")
+                
+        for t in self.pcs:
+            self.output_fd.write("%s \n" %(t.taint_tree()))
 
     def SetInputTaint(self, INRecord):
         address = INRecord.currentInputAddr

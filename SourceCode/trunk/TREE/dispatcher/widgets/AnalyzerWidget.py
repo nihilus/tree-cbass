@@ -542,7 +542,11 @@ class AnalyzerWidget(QtGui.QMainWindow):
                 elif(recordType == Execution):
                     if(tNextRecord.getRecordType() == eXception):
                         if(tNextRecord.currentExceptionCode ==0): # termination
-                            TP.DumpLiveTaints()	
+                            if (taintPolicy == TAINT_BRANCH):
+                              print("Path Condition\n")
+                              TP.DisplayPCs()
+                            else:
+                              TP.DumpLiveTaints()	
                         else:
                             TP.DumpFaultCause(tNextRecord, tRecord, self.verbose_trace_cb.isChecked())
                             if self.verbose_trace_cb.isChecked():

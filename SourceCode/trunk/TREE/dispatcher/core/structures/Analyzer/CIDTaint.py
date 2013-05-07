@@ -32,6 +32,8 @@ class Taint(object):
         self.creatorSequence = creatorSequence
         self.creatorInstAmenic = creatorInstAmenic
         self.creatorThread = creatorThread
+        self.aSources =[]
+        self.bSources =[]        
         self.cSources =[]
         self.dSources =[]
         self.terminatorInstruction = None
@@ -46,6 +48,14 @@ class Taint(object):
 
     def __lt__(self, other):
         return self.tuid < other.tuid
+
+    def addTaintASources(self, taintSource):
+        if(self.aSources.__contains__(taintSource)== False):
+            self.aSources.append(taintSource)
+
+    def addTaintBSources(self, taintSource):
+        if(self.bSources.__contains__(taintSource)== False):
+            self.bSources.append(taintSource)
 
     def addTaintCSources(self, taintSource):
         if(self.cSources.__contains__(taintSource)== False):
@@ -88,7 +98,7 @@ class Taint(object):
             taintStr = taintStr+"["+hex(self.terminatorInstruction)+":"+hex(self.terminatorThread)+"]"
         
         if(self.bDirectInput==True):
-            taintStr = taintStr + "<-"+hex(self.InputFunctionCallerAddress)+":"+hex(self.creatorInstAmenic)
+            taintStr = taintStr + "<-"+hex(self.InputFunctionCallerAddress)+":"+str(self.creatorInstAmenic)
             return taintStr
         
         return taintStr
@@ -118,7 +128,7 @@ class Taint(object):
             taintStr = taintStr+"["+hex(self.terminatorInstruction)+":"+hex(self.terminatorThread)+"]"
         
         if(self.bDirectInput==True):
-            taintStr = taintStr + "<-"+hex(self.InputFunctionCallerAddress)+":"+hex(self.creatorInstAmenic)
+            taintStr = taintStr + "<-"+hex(self.InputFunctionCallerAddress)+":"+str(self.creatorInstAmenic)
             return taintStr
         
         taint_dtree = None
@@ -128,14 +138,25 @@ class Taint(object):
         taint_ctree = None
         if(len(self.cSources)>0):        
             taint_ctree = "\n{C}".join([("\t" * level + t.taint_tree(level+1)) for t in self.cSources])
+
+        taint_btree = None
+        if(len(self.bSources)>0):        
+            taint_btree = "\n{B}".join([("\t" * level + t.taint_tree(level+1)) for t in self.bSources])
         
         if(taint_dtree is None):
             return taintStr
-        elif(taint_ctree is None):
-            return "".join(["%s<-%s" % (taintStr,self.creatorInstAmenic), "\n", taint_dtree])
-        elif(taint_dtree!=None and taint_ctree!=None):
-            return "".join(["%s<-%s" % (taintStr,self.creatorInstAmenic), "\n", taint_dtree,"\n",taint_ctree])
+        
+        if(taint_dtree !=None):
+            taintStr = "".join(["%s<-%s" % (taintStr,self.creatorInstAmenic), "\n", taint_dtree])
+        
+        if(taint_ctree!=None):
+            taintStr = "".join(["%s<-%s" % (taintStr,self.creatorInstAmenic), "\n", taint_dtree,"\n",taint_ctree])
+        
+        if (taint_btree!=None):
+            taintStr = "".join(["%s<-%s" % (taintStr,self.creatorInstAmenic), "\n", taint_dtree,"\n",taint_btree])
 
+        return taintStr
+    
     def taint_simple(self):
         taintStr ="[%s]" %(self.tuid)
         
@@ -173,6 +194,12 @@ class Taint(object):
             for cSrc in self.cSources:
                 sCSrc = sCSrc + str(cSrc.tuid) +" "               
             taintStr = taintStr +"{C}" + sCSrc
+
+        if(len(self.bSources)>0):                
+            sBSrc = ""
+            for bSrc in self.bSources:
+                sBSrc = sBSrc + str(bSrc.tuid) +" "               
+            taintStr = taintStr +"{B}" + sBSrc
                 
         return taintStr
     
@@ -187,6 +214,8 @@ class Taint(object):
                 taintids.add(dSrc.tuid)
             for cSrc in taint.cSources:
                 taintids.add(cSrc.tuid)
+            for bSrc in taint.bSources:
+                taintids.add(bSrc.tuid)                
             if(tid not in Taint.visited):
                 output_fd.write("%s\n" %taint.taint_simple())
                 Taint.visited.add(tid)
