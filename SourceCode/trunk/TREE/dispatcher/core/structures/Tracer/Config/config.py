@@ -20,6 +20,8 @@ class ProcessConfig:
         self.port = ""
         self.customBreakpoints= dict()
         self.debugger = ""
+        self.pin = ""
+        self.pinRemote = ""
         
     def getName(self):
         return self.name
@@ -53,6 +55,12 @@ class ProcessConfig:
     
     def getPort(self):
         return self.port
+        
+    def getPin(self):
+        return self.pin
+    
+    def getPinRemote(self):
+        return self.pinRemote
     
     def getCustomBreakpoints(self):
         return self.customBreakpoints
@@ -127,6 +135,14 @@ class ConfigFile:
             remote.text = "False"
             newProcess_input.append(remote)
             
+            pin = Element("pin")
+            pin.text = "False"
+            newProcess_input.append(pin)
+            
+            pinRemote = Element("pinremote")
+            pinRemote.text = "False"
+            newProcess_input.append(pinRemote)
+            
             host = Element("host")
             host.text = ""
             newProcess_input.append(host)
@@ -188,6 +204,16 @@ class ConfigFile:
             processConfig.sdir = _input.find('sdir').text
             #print _input.find('sdir').text
             processConfig.remote = _input.find('remote').text
+            
+            #
+            # For backwards compatability with older configs
+            #
+            try:
+                processConfig.pin = _input.find('pin').text
+                processConfig.pinRemote = _input.find('pinremote').text
+            except AttributeError:
+                processConfig.pin = "False"
+                processConfig.pinRemote = "False"
             
             processConfig.host = _input.find('host').text
             #print _input.find('host').text
@@ -256,6 +282,8 @@ class ConfigFile:
                 _input.find('args').text = processConfig.getArgs()
                 _input.find('sdir').text = processConfig.getSdir()
                 _input.find('remote').text = processConfig.getRemote()
+                _input.find('pin').text = processConfig.getPin()
+                _input.find('pinremote').text = processConfig.getPinRemote()
                 _input.find('host').text = processConfig.getHost()
                 _input.find('pass').text = processConfig.getPass()
                 _input.find('port').text = processConfig.getPort()
