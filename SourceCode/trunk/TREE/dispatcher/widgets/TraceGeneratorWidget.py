@@ -129,13 +129,12 @@ class TraceGeneratorWidget(QMainWindow):
         self.pin_cb.setObjectName("pin_cb")
         self.pin_cb.stateChanged.connect(self.pin_cbStateChanged)
         
-        self.pin_attach_cb = QtGui.QCheckBox(self.gridLayoutWidget_3)
-        self.pin_attach_cb.setObjectName("pin_attach_cb")
-        self.pin_attach_cb.stateChanged.connect(self.pin_attach_cbStateChanged)
-        
+        #
+        # Checkboxes for Remote, Pin, Pin-Remote
+        #
         self.gridLayout_3.addWidget(self.remote_cb, 1, 0, 1, 1)
         self.gridLayout_3.addWidget(self.pin_cb, 1, 1, 1, 1)
-        self.gridLayout_3.addWidget(self.pin_attach_cb, 1, 2, 1, 1)
+        
         self.horizontalLayout_7 = QtGui.QHBoxLayout()
         self.horizontalLayout_7.setObjectName("horizontalLayout_7")
         self.verticalLayout_5 = QtGui.QVBoxLayout()
@@ -196,7 +195,6 @@ class TraceGeneratorWidget(QMainWindow):
         self.port_label.setText("Port     ")
         self.remote_cb.setText("Remote")
         self.pin_cb.setText("PIN")
-        self.pin_attach_cb.setText("PIN-Remote")
         self.path_label.setText("Path:")
         self.arguments_label.setText("Arguments:    ")
 
@@ -407,7 +405,4 @@ class TraceGeneratorWidget(QMainWindow):
             self.port_label_edit.setDisabled(1)
             
     def pin_cbStateChanged(self,state):
-        print "test"
-            
-    def pin_attach_cbStateChanged(self,state):
         print "test"
