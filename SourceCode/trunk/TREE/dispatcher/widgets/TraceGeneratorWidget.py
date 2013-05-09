@@ -228,7 +228,7 @@ class TraceGeneratorWidget(QMainWindow):
             self.idaTracer.run(self.processConfig)
         else:
             if self.remote_cb.isChecked():
-                self.pinCommunication()
+                self.pinCommunication(self.processConfig.host)
             else:
                 self.pinCommunication()
   
@@ -423,7 +423,7 @@ class TraceGeneratorWidget(QMainWindow):
             HOST = s
         else:
             HOST = 'localhost'
-        PORT = 1111
+        PORT = 23966
         ff = ";".join(self.processConfig.getFileFilter())
         nf = ";".join(self.processConfig.getNetworkFilter())
         packet = self.processConfig.getApplication() + "!" + self.processConfig.getArgs() + "!" + ff + "!" + nf
