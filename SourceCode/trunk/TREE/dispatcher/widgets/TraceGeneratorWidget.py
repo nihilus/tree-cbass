@@ -224,7 +224,13 @@ class TraceGeneratorWidget(QMainWindow):
         
         #start debugging
         self.getConfigFromGUI()
-        self.idaTracer.run(self.processConfig)
+        if not self.pin_cb.isChecked():
+            self.idaTracer.run(self.processConfig)
+        else:
+            if self.remote_cb.isChecked():
+                self.pinCommunication()
+            else:
+                self.pinCommunication()
   
     def _createSaveConfigAction(self):
         """
@@ -406,3 +412,35 @@ class TraceGeneratorWidget(QMainWindow):
             
     def pin_cbStateChanged(self,state):
         print "test"
+        
+    def pinCommunication(self, s):
+        #
+        # Most of this is stub code, waiting on the pin agent implementation
+        #
+        import socket
+        HOST = ''
+        if s:
+            HOST = s
+        else:
+            HOST = 'localhost'
+        PORT = 1111
+        ff = ";".join(self.processConfig.getFileFilter())
+        nf = ";".join(self.processConfig.getNetworkFilter())
+        packet = self.processConfig.getApplication() + "!" + self.processConfig.getArgs() + "!" + ff + "!" + nf
+        #File filter
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.connect((HOST, PORT))
+        s.send(packet)
+        data = s.recv(1024)
+        if data == "Trace is ready!":
+            data = s.recv(1024)
+        s.close()
+        #
+        #while len(msg) < MSGLEN:
+        #   chunk = s.recv(MSGLEN-len(msg))
+        #   if chunk = '';
+        #       raise RuneTimeError("socket connect broken")
+        #   msg = msg + chunk
+        #
+        with open('trace.txt', 'w') as f:
+            f.write(data)
