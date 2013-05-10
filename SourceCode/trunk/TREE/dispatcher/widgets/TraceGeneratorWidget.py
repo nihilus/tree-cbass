@@ -424,16 +424,29 @@ class TraceGeneratorWidget(QMainWindow):
         else:
             HOST = 'localhost'
         PORT = 23966
-        ff = ";".join(self.processConfig.getFileFilter())
-        nf = ";".join(self.processConfig.getNetworkFilter())
-        packet = self.processConfig.getApplication() + "!" + self.processConfig.getArgs() + "!" + ff + "!" + nf
+        ff = None
+        nf = None
+        if self.processConfig.getFileFilter()!=None:
+            ff = ";".join(self.processConfig.getFileFilter())
+        if self.processConfig.getNetworkFilter()!=None:
+            nf = ";".join(self.processConfig.getNetworkFilter())
+        if(ff!=None and nf!=None):
+            packet = self.processConfig.getApplication() + " " + self.processConfig.getArgs() + "!FF=" + ff + "!NF=" + nf
+        elif(ff!=None):
+            packet = self.processConfig.getApplication() + " " + self.processConfig.getArgs() + "!FF=" + ff
+        elif(nf!=None):
+            packet = self.processConfig.getApplication() + " " + self.processConfig.getArgs() + "!NF=" + nf
+        else:
+            packet = self.processConfig.getApplication() + " " + self.processConfig.getArgs()
+            
         #File filter
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.connect((HOST, PORT))
         s.send(packet)
         data = s.recv(1024)
-        if data == "Trace is ready!":
-            data = s.recv(1024)
+        print data
+        #if data == "Trace is ready!":
+        #    data = s.recv(1024)
         s.close()
         #
         #while len(msg) < MSGLEN:
