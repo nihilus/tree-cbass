@@ -65,8 +65,6 @@ class VisualizerWidget(QtGui.QMainWindow):
         
         self.central_widget.setLayout(visualizer_layout)
         self.populateTaintTable()
-        #self.populateVMTable()
-        #self.updateVMLabel()
         
     def _createToolbar(self):
         """
@@ -135,49 +133,13 @@ class VisualizerWidget(QtGui.QMainWindow):
         """
         #If no config then connect to virtualbox in config
         self.taint_table.setSortingEnabled(False)
-        self.trace_header_labels = ["UUID", "Type", "Name", "StartInd", "EndInd", "Edge Anno", "Child C", "Child D"]
-        self.taint_table.clear()
-        self.taint_table.setColumnCount(len(self.trace_header_labels))
-        self.taint_table.setHorizontalHeaderLabels(self.trace_header_labels)
-        if hasattr(self, 'f_taint'):
-            processes = self.t_config.root.findall('process')
-            self.taint_table.setRowCount(len(processes))
-            for row, node in enumerate(processes):
-                for column, column_name in enumerate(self.process_header_labels):
-                    ##@todo Determine if VM and if online
-                    if column == 0:
-                        tmp_item = self.QtGui.QTableWidgetItem(node.find('input').find('remote').text)
-                    elif column == 1:
-                        tmp_item = self.QtGui.QTableWidgetItem(node.attrib['name'])
-                    elif column == 2:
-                        osarch = node.find('platform').find('OS').text + ' ' + node.find('platform').find('Arch').text
-                        tmp_item = self.QtGui.QTableWidgetItem(osarch)
-                    tmp_item.setFlags(tmp_item.flags() & ~self.QtCore.Qt.ItemIsEditable)
-                    self.taint_table.setItem(row, column, tmp_item)
-                self.taint_table.resizeRowToContents(row)
-            self.taint_table.setSelectionMode(self.QtGui.QAbstractItemView.SingleSelection)
-            self.taint_table.resizeColumnsToContents()
-            self.taint_table.setSortingEnabled(True)
-        else:
-            self.taint_table.setSelectionMode(self.QtGui.QAbstractItemView.SingleSelection)
-            self.taint_table.resizeColumnsToContents()
-            self.taint_table.setSortingEnabled(True)
-            
-    def populateTaintsTable(self):
-        """
-        Populate the details table based on the selected process in the process table.
-        For no uneditable
-        @Todo:
-            Make editable and have changes pushed out to file
-        """
-        self.taints_table.setSortingEnabled(False)
         self.taints_header_labels = ["UUID", "Type", "Name", "StartInd", "EndInd", "Edge Anno", "Child C", "Child D"]
-        self.taints_table.clear()
-        self.taints_table.setColumnCount(len(self.taints_header_labels))
-        self.taints_table.setHorizontalHeaderLabels(self.taints_header_labels)
-        self.taints_table.setSelectionMode(self.QtGui.QAbstractItemView.SingleSelection)
-        self.taints_table.resizeColumnsToContents()
-        self.taints_table.setSortingEnabled(True)
+        self.taint_table.clear()
+        self.taint_table.setColumnCount(len(self.taints_header_labels))
+        self.taint_table.setHorizontalHeaderLabels(self.taints_header_labels)
+        self.taint_table.setSelectionMode(self.QtGui.QAbstractItemView.SingleSelection)
+        self.taint_table.resizeColumnsToContents()
+        self.taint_table.setSortingEnabled(True)
         
     def _onRefreshButtonClicked(self):
         """
@@ -190,51 +152,6 @@ class VisualizerWidget(QtGui.QMainWindow):
         """
         self.taint_nodes_label.setText("Taint Nodes(%d/%d)" %
             (n1, n2))
-            
-    def populateTaintsOnGen(self):
-        """
-        Action for refreshing the window data by checking each process
-        """
-        if hasattr(self, 'f_taint'):
-            #import taint file
-            taint_in = open(self.f_taint, 'r')
-            for line in taint_in:
-                self.insert_node(line.rstrip('\n'))
-            self.t_graph.reverse(copy=False)
-            
-            self.taints_table.setRowCount(len(self.t_graph))
-            self.updateTaintsLabel(len(self.t_graph), len(self.t_graph))
-            for row, ynode in enumerate(self.t_graph.nodes(data=True)):
-                for column, column_name in enumerate(self.taints_header_labels):
-                    ##@self.process_header_labels = ["UUID", "Type", "Name", "StartInd", "EndInd", "Edge Anno", "Child C", "Child D"]
-                    if column == 0:
-                        tmp_item = self.QtGui.QTableWidgetItem(ynode[1]['inode'].uuid)
-                    elif column == 1:
-                        tmp_item = self.QtGui.QTableWidgetItem(ynode[1]['inode'].typ)
-                    elif column == 2:
-                        tmp_item = self.QtGui.QTableWidgetItem(ynode[1]['inode'].name)
-                    elif column == 3:
-                        tmp_item = self.QtGui.QTableWidgetItem(ynode[1]['inode'].startind)
-                    elif column == 4:
-                        tmp_item = self.QtGui.QTableWidgetItem(ynode[1]['inode'].endind)
-                    elif column == 5:
-                        tmp_item = self.QtGui.QTableWidgetItem(ynode[1]['inode'].edgeann)
-                    elif column == 6:
-                        if hasattr(ynode[1]['inode'], 'child_c'):
-                            tmp_item = self.QtGui.QTableWidgetItem(ynode[1]['inode'].child_c)
-                        else:
-                            tmp_item = self.QtGui.QTableWidgetItem(" ")
-                    elif column == 7:
-                        if hasattr(ynode[1]['inode'], 'child_d'):
-                            tmp_item = self.QtGui.QTableWidgetItem(ynode[1]['inode'].child_d)
-                        else:
-                            tmp_item = self.QtGui.QTableWidgetItem(" ")
-                    tmp_item.setFlags(tmp_item.flags() & ~self.QtCore.Qt.ItemIsEditable)
-                    self.taints_table.setItem(row, column, tmp_item)
-                self.taints_table.resizeRowToContents(row)
-            self.taints_table.setSelectionMode(self.QtGui.QAbstractItemView.SingleSelection)
-            self.taints_table.resizeColumnsToContents()
-            self.taints_table.setSortingEnabled(True)
             
     def insert_node(self, s):
         from ..core.structures.Parse.TaintNode import TaintNode
@@ -336,6 +253,7 @@ class VisualizerWidget(QtGui.QMainWindow):
         """
         self.t_graph = t
         self.policy = p
+        self.populateTaintsTableImported()
         self._createGraphView() 
         
     def _createGraphView(self):
@@ -343,8 +261,8 @@ class VisualizerWidget(QtGui.QMainWindow):
         import networkx as nx
         self.graphScene = self.QtGui.QGraphicsScene()
         self.graphScene.setSceneRect(0,0,800,600)
-        pos = nx.spring_layout(self.t_graph, scale=800)
-
+        #pos = nx.shell_layout(self.t_graph, scale=800)
+        pos = nx.circular_layout(self.t_graph, scale=800)
         #Select node connection and its decorator types
         nc = CenterCalc()
         cd = LineArrowOnStart()      
@@ -352,11 +270,16 @@ class VisualizerWidget(QtGui.QMainWindow):
         for x,y in self.t_graph.nodes(data=True):
             node = None
             node_p = None
+            #Current Logic:
+            #Create a node 
+            #Create the children of the node
+            #there will be conflicts
+            #Must check if the child already exists and link it to parent
             if not str(x) in node_dict:
                 cur_x = int(float(pos[str(x)][0]))
                 cur_y = int(float(pos[str(x)][1]))
                 node_p = TextNode(nc, cd, None, str(x), y['inode'].label(), cur_x, cur_y, 200, 30)
-                self.graphScene.addItem(node_p)
+                #self.graphScene.addItem(node_p)
                 node_dict[str(x)] = node_p
             for attr, value in y['inode'].__dict__.iteritems():
                 if(attr.startswith('child')):
@@ -366,8 +289,10 @@ class VisualizerWidget(QtGui.QMainWindow):
                             child_x = int(float(pos[str(x)][0]))
                             child_y = int(float(pos[str(x)][1]))
                             node = TextNode(nc, cd, node_dict[str(x)], child, self.t_graph.node[child]['inode'].label(), child_x, child_y, 200, 30)
-                            self.graphScene.addItem(node)
+                            #self.graphScene.addItem(node)
                             node_dict[child] = node
+        for x,y in node_dict.iteritems():
+            self.graphScene.addItem(y)
         self.graphView.setScene(self.graphScene)
         self.graphView.update()
         self.graphView.repaint()
@@ -421,3 +346,75 @@ class VisualizerWidget(QtGui.QMainWindow):
                 self.node_lib[splitted[1]] = (str(splitted[2]) + " " + str(splitted[3]))
         print "[debug] trace imported from file into dictionary"
         f.close()
+        
+    def populateTaintsTableImported(self):
+        """
+        Method for populating the taints table
+        """
+        self.taint_table.setRowCount(len(self.t_graph))
+        self.taint_table.setContextMenuPolicy(self.QtCore.Qt.CustomContextMenu)
+        self.taint_table.customContextMenuRequested.connect(self.handleTaintMenu)
+        if self.policy == "TAINT_BRANCH":
+            for row, ynode in enumerate(self.t_graph.nodes(data=True)):
+                for column, column_name in enumerate(self.taints_header_labels):
+                    tmp_item = None
+                    if column == 0:
+                        tmp_item = self.QtGui.QTableWidgetItem(ynode[1]['inode'].uuid)
+                    elif column == 1:
+                        tmp_item = self.QtGui.QTableWidgetItem(ynode[1]['inode'].typ)
+                    elif column == 2:
+                        tmp_item = self.QtGui.QTableWidgetItem(ynode[1]['inode'].name)
+                    elif column == 3:
+                        tmp_item = self.QtGui.QTableWidgetItem(ynode[1]['inode'].startind)
+                    elif column == 4:
+                        tmp_item = self.QtGui.QTableWidgetItem(ynode[1]['inode'].endind)
+                    elif column == 5:
+                        tmp_item = self.QtGui.QTableWidgetItem(ynode[1]['inode'].edgeann)
+                    tmp_item.setFlags(tmp_item.flags() & ~self.QtCore.Qt.ItemIsEditable)
+                    self.taint_table.setItem(row, column, tmp_item)
+                self.taint_table.resizeRowToContents(row)
+        else:
+            for row, ynode in enumerate(self.t_graph.nodes(data=True)):
+                for column, column_name in enumerate(self.taints_header_labels):
+                    ##@self.process_header_labels = ["UUID", "Type", "Name", "StartInd", "EndInd", "Edge Anno", "Child C", "Child D"]
+                    if column == 0:
+                        tmp_item = self.QtGui.QTableWidgetItem(ynode[1]['inode'].uuid)
+                    elif column == 1:
+                        tmp_item = self.QtGui.QTableWidgetItem(ynode[1]['inode'].typ)
+                    elif column == 2:
+                        tmp_item = self.QtGui.QTableWidgetItem(ynode[1]['inode'].name)
+                    elif column == 3:
+                        tmp_item = self.QtGui.QTableWidgetItem(ynode[1]['inode'].startind)
+                    elif column == 4:
+                        tmp_item = self.QtGui.QTableWidgetItem(ynode[1]['inode'].endind)
+                    elif column == 5:
+                        tmp_item = self.QtGui.QTableWidgetItem(ynode[1]['inode'].edgeann)
+                    elif column == 6:
+                        if hasattr(ynode[1]['inode'], 'child_c'):
+                            tmp_item = self.QtGui.QTableWidgetItem(ynode[1]['inode'].child_c)
+                        else:
+                            tmp_item = self.QtGui.QTableWidgetItem(" ")
+                    elif column == 7:
+                        if hasattr(ynode[1]['inode'], 'child_d'):
+                            tmp_item = self.QtGui.QTableWidgetItem(ynode[1]['inode'].child_d)
+                        else:
+                            tmp_item = self.QtGui.QTableWidgetItem(" ")
+                    tmp_item.setFlags(tmp_item.flags() & ~self.QtCore.Qt.ItemIsEditable)
+                    self.taint_table.setItem(row, column, tmp_item)
+                self.taint_table.resizeRowToContents(row)
+            self.taint_table.setSelectionMode(self.QtGui.QAbstractItemView.SingleSelection)
+            self.taint_table.resizeColumnsToContents()
+            self.taint_table.setSortingEnabled(True)
+            
+    def handleTaintMenu(self, pos):
+        menu = self.QtGui.QMenu()
+        addr = self.QtGui.QAction("Go to address", menu)
+        addr.setStatusTip("Go to address within IDA")
+        self.connect(addr, self.QtCore.SIGNAL('triggered()'), self.addrGo)
+        menu.addAction(addr)
+        menu.exec_(self.QtGui.QCursor.pos())
+        
+    def addrGo(self):
+        print "test"
+        #self.filters_filename_table.insertRow(self.filters_filename_table.rowCount())
+        #self.filters_filename_table.setItem(self.filters_filename_table.rowCount()-1, 0, self.QtGui.QTableWidgetItem(" "))
