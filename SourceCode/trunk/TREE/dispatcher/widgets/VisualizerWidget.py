@@ -415,6 +415,13 @@ class VisualizerWidget(QtGui.QMainWindow):
         menu.exec_(self.QtGui.QCursor.pos())
         
     def addrGo(self):
-        print "test"
+        from idc import *
+        uuid = self.taint_table.item(self.taint_table.currentItem().row(), 0).text()
+        int_addr = self.t_graph.node[uuid]['inode'].ea
+        bLoaded = isLoaded(int_addr)
+        if bLoaded:
+          print "Found addr: 0x%x" % int_addr
+          idc.MakeCode(int_addr)
+          idc.Jump(int_addr)
         #self.filters_filename_table.insertRow(self.filters_filename_table.rowCount())
         #self.filters_filename_table.setItem(self.filters_filename_table.rowCount()-1, 0, self.QtGui.QTableWidgetItem(" "))
