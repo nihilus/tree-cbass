@@ -173,6 +173,7 @@ class VisualizerWidget(QtGui.QMainWindow):
         """
         Action for refreshing the window data by checking each process
         """
+        self._createGraphView()
         
     def updateTaintsLabel(self,n1, n2):
         """
@@ -291,6 +292,17 @@ class VisualizerWidget(QtGui.QMainWindow):
         self.graphScene.setSceneRect(0,0,800,600)
         #pos = nx.shell_layout(self.t_graph, scale=800)
         pos = nx.circular_layout(self.t_graph, scale=800)
+        if (self.radioGroup2.checkedButton().text() == "Spring"):
+            pos = nx.spring_layout(self.t_graph, scale=800)
+        elif (self.radioGroup2.checkedButton().text() == "Circle"):
+            pos = nx.circular_layout(self.t_graph, scale=800)
+        elif (self.radioGroup2.checkedButton().text() == "Shell"):
+            pos = nx.circular_layout(self.t_graph, scale=800)
+        elif (self.radioGroup2.checkedButton().text() == "Concentric"):
+            pos = nx.circular_layout(self.t_graph, scale=800)
+        else:
+            #standard
+            pos = nx.circular_layout(self.t_graph, scale=800)
         #Select node connection and its decorator types
         nc = CenterCalc()
         cd = LineArrowOnStart()      
