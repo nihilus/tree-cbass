@@ -286,8 +286,8 @@ class VisualizerWidget(QtGui.QMainWindow):
                     a = getattr(y['inode'], attr)
                     if a is not None:
                         for child in a.split():
-                            child_x = int(float(pos[str(x)][0]))
-                            child_y = int(float(pos[str(x)][1]))
+                            child_x = int(float(pos[child][0]))
+                            child_y = int(float(pos[child][1]))
                             node = TextNode(nc, cd, node_dict[str(x)], child, self.t_graph.node[child]['inode'].label(), child_x, child_y, 200, 30)
                             #self.graphScene.addItem(node)
                             node_dict[child] = node
