@@ -28,6 +28,7 @@ class VisualizerWidget(QtGui.QMainWindow):
         self.QtCore = QtCore
         self.central_widget = self.QtGui.QWidget()
         self.setCentralWidget(self.central_widget)
+        self._definePropEnum()
         self._createGui()
         self.t_graph = nx.MultiDiGraph()
         
@@ -45,8 +46,24 @@ class VisualizerWidget(QtGui.QMainWindow):
         self.graphView = QtGui.QGraphicsView()
         visualizer_layout = QtGui.QVBoxLayout()
         upper_table_widget = QtGui.QWidget()
-        upper_table_layout = QtGui.QVBoxLayout()
+        upper_table_layout = QtGui.QHBoxLayout()
+        
+        self.layoutPolicy = QtGui.QGroupBox("Graph Layout Policy")
+        vbox2 = QtGui.QVBoxLayout()
+        self.radioGroup2 = QtGui.QButtonGroup()
+        self.radioGroup2.setExclusive(True)
+        bIsFirst = True
+        for i,row in enumerate(self.layout_prop):
+            radio = QtGui.QRadioButton(row)
+            self.radioGroup2.addButton(radio, i)
+            if bIsFirst:
+                radio.setChecked(True)
+                bIsFirst = False
+            vbox2.addWidget(radio)
+        
+        self.layoutPolicy.setLayout(vbox2)
         upper_table_layout.addWidget(self.taint_table)
+        upper_table_layout.addWidget(self.layoutPolicy)
         upper_table_widget.setLayout(upper_table_layout)
         
         lower_tables_widget = QtGui.QWidget()
@@ -79,6 +96,17 @@ class VisualizerWidget(QtGui.QMainWindow):
         self.toolbar.addAction(self.refreshAction)
         #self.toolbar.addAction(self.importTraceAction)
         self.toolbar.addAction(self.importIDAGraphAction)
+        
+    def _definePropEnum(self):
+        """
+        Generate the taint propagation policies
+        """
+        self.layout_prop = []
+        self.layout_prop.append("Spring")
+        self.layout_prop.append("Circle")
+        self.layout_prop.append("Shell")
+        self.layout_prop.append("Concentric")
+        self.layout_prop.append("Standard")
         
     def _createRefreshAction(self):
         """
