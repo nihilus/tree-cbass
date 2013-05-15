@@ -65,7 +65,7 @@ class AnalyzerWidget(QtGui.QMainWindow):
         
         vbox2 = QtGui.QVBoxLayout()
         self.radioGroup2 = QtGui.QButtonGroup()
-        self.radioGroup.setExclusive(True)
+        self.radioGroup2.setExclusive(True)
         bIsFirst = True
         for i,row in enumerate(self.taint_prop):
             radio = QtGui.QRadioButton(row)
@@ -75,7 +75,6 @@ class AnalyzerWidget(QtGui.QMainWindow):
                 bIsFirst = False
             vbox2.addWidget(radio)
             
-        
         self.analyzeTypeGroup.setLayout(vbox)
         self.propPolicy.setLayout(vbox2)
         #self.sink_taint_only_cb.stateChanged.connect(self.populateVMTable)
@@ -277,7 +276,6 @@ class AnalyzerWidget(QtGui.QMainWindow):
     def populateTaintsOnGen(self):
         """
         Action for refreshing the window data by checking each process
-        @TODO redo this entire method 3/27/13
         """
         import re
         if hasattr(self, 'f_taint'):
