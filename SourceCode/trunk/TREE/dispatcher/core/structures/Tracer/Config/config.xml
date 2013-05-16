@@ -12,6 +12,7 @@
 	  <pass />
 	  <port>23946</port>
 	  <debugger>windbg</debugger>
+	  <pin>False</pin>
       </input>
       <customBreakpoints>
 	<customBreakpoint breakpoint="0x00010D89" callback="CustomCallbacks.customCallbacksFunc.MySioctlDeviceControlCrashMonitor()" />
@@ -28,6 +29,7 @@
 	  <pass />
 	  <port>23946</port>
 	  <debugger>windbg</debugger>
+	  <pin>False</pin>
       </input>
       <customBreakpoints>
 	<customBreakpoint breakpoint="0xBF80EE99" callback="CustomCallbacks.customCallbacksFunc.MyNtUserMessageCall()" />
@@ -44,6 +46,7 @@
 	     <pass />
 	     <port>23946</port>
 	     <debugger>win32</debugger>
+	     <pin>False</pin>
 	 </input>
 	 <filter type="fileIO">
 		   <fileName>good.fon</fileName>
@@ -60,6 +63,7 @@
 	  <pass />
 	  <port>23946</port>
 	  <debugger>linux</debugger>
+	  <pin>False</pin>
       </input>
       <filter type="fileIO">
 		<fileName>mytaint.txt</fileName>
@@ -76,6 +80,7 @@
 	  <pass />
 	  <port>23946</port>
 	  <debugger>linux</debugger>
+	  <pin>False</pin>
       </input>
       <filter type="fileIO">
 		<fileName>BadWav.wav</fileName>
@@ -93,6 +98,7 @@
 	  <pass />
 	  <port>23946</port>
 	  <debugger>win32</debugger>
+	  <pin>False</pin>
       </input>
       <filter type="fileIO">
 		<fileName>escape.wmf</fileName>
@@ -110,6 +116,7 @@
 	  <pass />
 	  <port>0</port>
 	  <debugger>win32</debugger>
+	  <pin>False</pin>
       </input>
       <filter type="fileIO">
 		<fileName>basicov.exe</fileName>
@@ -126,6 +133,7 @@
 	  <pass />
 	  <port>0</port>
 	  <debugger>win32</debugger>
+	  <pin>False</pin>
       </input>
       <filter type="fileIO">
 		<fileName>basicov.exe</fileName>
@@ -142,6 +150,7 @@
 	  <pass />
 	  <port>0</port>
 	  <debugger>win32</debugger>
+	  <pin>False</pin>
       </input>
       <filter type="fileIO">
 	 <fileName>mytaint.txt</fileName>
@@ -158,6 +167,7 @@
 	  <pass />
 	  <port>0</port>
 	  <debugger>macosx</debugger>
+	  <pin>False</pin>
       </input>
       <filter type="fileIO">
 	 <fileName>mytaint.txt</fileName>
@@ -174,6 +184,7 @@
 	  <pass />
 	  <port>0</port>
 	  <debugger>win32</debugger>
+	  <pin>False</pin>
       </input>
       <filter type="fileIO">
 	 <fileName>mytaint.txt</fileName>
@@ -182,14 +193,15 @@
    <process Arch="32" OS="windows" name="condov.exe">
       <input>
 	  <application>condov.exe</application>
-	  <path>condov.exe</path>
+	  <path>c:\Test\condov\condov.exe</path>
 	  <args />
 	  <sdir>.</sdir>
-	  <remote>False</remote>
-	  <host>...</host>
+	  <remote>True</remote>
+	  <host>172.016.073.176</host>
 	  <pass />
-	  <port>0</port>
+	  <port>23966</port>
 	  <debugger>win32</debugger>
+	  <pin>False</pin>
       </input>
       <filter type="fileIO"><fileName>mytaint.txt</fileName></filter></process>
       <process Arch="32" OS="windows" name="basicov1.exe">
@@ -203,6 +215,7 @@
 	  <pass />
 	  <port>0</port>
 	  <debugger>win32</debugger>
+	  <pin>False</pin>
       </input>
       <filter type="fileIO">
 	 <fileName>mytaint.txt</fileName>
@@ -211,19 +224,17 @@
       <process Arch="32" OS="windows" name="basicovPlus.exe">
       <input>
 	  <application>basicovPlus.exe</application>
-	  <path>basicovPlus.exe</path>
+	  <path>c:\Test\basicovPlus\basicovPlus.exe</path>
 	  <args />
 	  <sdir>.</sdir>
 	  <remote>False</remote>
-	  <host />
+	  <host>...</host>
 	  <pass />
 	  <port>0</port>
 	  <debugger>win32</debugger>
+	  <pin>False</pin>
       </input>
-      <filter type="fileIO">
-	 <fileName>mytaint.txt</fileName>
-      </filter>
-   </process>
+      <filter type="fileIO"><fileName>mytaint.txt</fileName></filter></process>
    <process Arch="32" OS="windows" name="notepad.exe">
       <input>
 	  <application>notepad.exe</application>
@@ -235,6 +246,7 @@
 	  <pass />
 	  <port>0</port>
 	  <debugger>win32</debugger>
+	  <pin>False</pin>
       </input>
       <filter type="fileIO">
 	 <fileName>mytaint.txt</fileName>
@@ -253,12 +265,28 @@
 	  <pass>password</pass>
 	  <port>0</port>
 	  <debugger>win32</debugger>
+	  <pin>False</pin>
       </input>
       <filter type="networkIO"><port>6500</port></filter>
+   </process>
+   <process Arch="32" OS="windows" name="winVS.exe">
+      <input>
+	 <application>winVS.exe</application>
+	 <path>winVS.exe</path>
+	 <args />
+	 <sdir />
+	 <remote>False</remote>
+	 <host>...</host>
+	 <pass />
+	 <port>0</port>
+	 <debugger>win32</debugger>
+	 <pin>False</pin>
+      </input>
+      <filter type="networkIO"><port>50007</port></filter>
    </process>
    <output>
       <path>.//trace.txt</path>
    </output>
    <Debug>False</Debug>
    <Logging>True</Logging>
-<process Arch="32" OS="windows" name="winVS.exe"><input><application>winVS.exe</application><path>winVS.exe</path><args /><sdir /><remote>False</remote><host>...</host><pass /><port>0</port><debugger>win32</debugger></input><filter type="networkIO"><port>50007</port></filter></process></config>
+</config>

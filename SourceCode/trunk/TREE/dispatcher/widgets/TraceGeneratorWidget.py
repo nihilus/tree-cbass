@@ -1,5 +1,7 @@
 from PySide.QtGui import QMainWindow 
 from PySide import QtGui, QtCore
+from dispatcher.core.DebugPrint import dbgPrint, Print
+
 #from PySide.QtGui import QIcon
 class TraceGeneratorWidget(QMainWindow):
     """
@@ -228,7 +230,12 @@ class TraceGeneratorWidget(QMainWindow):
             self.idaTracer.run(self.processConfig)
         else:
             if self.remote_cb.isChecked():
-                self.pinCommunication(self.processConfig.host)
+                if len(self.processConfig.host) > 0 :
+                    port = int(self.processConfig.port,10)
+                    self.pinCommunication(self.processConfig.host,port,True)
+                else:
+                    #IDA alert box
+                    Print("Please enter a host address to debug" )
             else:
                 self.pinCommunication()
   
@@ -411,34 +418,51 @@ class TraceGeneratorWidget(QMainWindow):
             self.port_label_edit.setDisabled(1)
             
     def pin_cbStateChanged(self,state):
-        print "test"
+
+        if state == self.QtCore.Qt.Checked:
+            self.path_edit.selectAll()
         
-    def pinCommunication(self, s):
+            
+        
+    def pinCommunication(self, host="127.0.0.1",port=23966,bRemote=False):
         #
         # Most of this is stub code, waiting on the pin agent implementation
         #
         import socket
-        HOST = ''
-        if s:
-            HOST = s
-        else:
-            HOST = 'localhost'
-        PORT = 23966
+        import os
+        import time
+        
+        HOST = host
+        PORT = port
         ff = None
         nf = None
+        
+        Print("Connecting to %s:%d" % (HOST,PORT))
+        
         if self.processConfig.getFileFilter()!=None:
             ff = ";".join(self.processConfig.getFileFilter())
         if self.processConfig.getNetworkFilter()!=None:
             nf = ";".join(self.processConfig.getNetworkFilter())
         if(ff!=None and nf!=None):
-            packet = self.processConfig.getApplication() + " " + self.processConfig.getArgs() + "!FF=" + ff + "!NF=" + nf
+            packet = self.processConfig.getPath() + " " + self.processConfig.getArgs() + "!FF=" + ff + "!NF=" + nf
         elif(ff!=None):
-            packet = self.processConfig.getApplication() + " " + self.processConfig.getArgs() + "!FF=" + ff
+            packet = self.processConfig.getPath() + " " + self.processConfig.getArgs() + "!FF=" + ff
         elif(nf!=None):
-            packet = self.processConfig.getApplication() + " " + self.processConfig.getArgs() + "!NF=" + nf
+            packet = self.processConfig.getPath() + " " + self.processConfig.getArgs() + "!NF=" + nf
         else:
-            packet = self.processConfig.getApplication() + " " + self.processConfig.getArgs()
+            packet = self.processConfig.getPath() + " " + self.processConfig.getArgs()
+        """
+        Todo: Integrate this in the future, requires a patch in idaapi.py
+        if bRemote==False:    
+            PID = self.idaTracer.getRunningProcesses("PinAgent.exe")
             
+            if PID == -1:
+                Print("Starting PinAgent ...")
+                os.startfile('"C:/Program Files/IDA 6.4/plugins/dispatcher/core/structures/PinAgent/PinAgent.exe"')
+                #idc.Exec('"C:/Program Files/IDA 6.4/plugins/dispatcher/core/structures/PinAgent/PinAgent.exe"')
+            
+            time.sleep(5)
+        """
         #File filter
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.connect((HOST, PORT))

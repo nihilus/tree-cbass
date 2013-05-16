@@ -22,6 +22,20 @@ class IDATrace():
         (processName, osType, osArch) = self.getProcessInfo()
         self.processConfig = self.createProcessConfig(processName, osType, osArch)
 
+    def getRunningProcesses(self,process_name):
+        import idc
+    
+        numOfProcessesRunning = idc.GetProcessQty()
+        Print ("Found %d running processes" % (numOfProcessesRunning))
+               
+        for i in range(numOfProcessesRunning):
+            if process_name in idc.GetProcessName(i):
+                return idc.GetProcessPid(i)
+
+            Print("Process ID=[%d], %s" % (idc.GetProcessPid(i),idc.GetProcessName(i) ))
+
+        return -1
+
     def removeBreakpoints(self):
         import idc
         
@@ -40,8 +54,9 @@ class IDATrace():
 
         #Get the name of the input file we want to trace
         app_name = idc.GetInputFile()
+
         Print ("The input file is %s" % app_name )
-                
+
         #Check to see what type of file we're tracing
         #And set up the proper debugger and input monitor
         if idainfo.filetype == idaapi.f_PE:

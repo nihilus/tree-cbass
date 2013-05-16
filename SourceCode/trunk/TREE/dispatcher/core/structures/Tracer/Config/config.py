@@ -195,15 +195,9 @@ class ConfigFile:
             #print _input.find('args').text
             processConfig.sdir = _input.find('sdir').text
             #print _input.find('sdir').text
-            processConfig.remote = _input.find('remote').text
-            
-            #
-            # For backwards compatability with older configs
-            #
-            try:
-                processConfig.pin = _input.find('pin').text
-            except AttributeError:
-                processConfig.pin = "False"
+            processConfig.remote = _input.find('remote').text 
+
+            processConfig.pin = _input.find('pin').text
             
             processConfig.host = _input.find('host').text
             #print _input.find('host').text
