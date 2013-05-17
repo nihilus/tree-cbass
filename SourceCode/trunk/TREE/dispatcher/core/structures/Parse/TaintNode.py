@@ -4,6 +4,7 @@ class TaintNode(object):
         self.nodeattr = None
         self.ea = None
         self.lib = None
+        self.depth = 0
 
     def __str__(self):
         return self.uuid
