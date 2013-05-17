@@ -369,6 +369,7 @@ class AnalyzerWidget(QtGui.QMainWindow):
         if self.t_graph.has_node(uuid):
             return
         tempNode = TaintNode()
+        tempNode.depth = depth
         tempNode.ExtractData(s)
         self.t_graph.add_node(uuid, inode = tempNode)
         if depth == 0:

@@ -81,7 +81,7 @@ class VisualizerWidget(QtGui.QMainWindow):
         visualizer_layout.addWidget(splitter)
         
         self.central_widget.setLayout(visualizer_layout)
-        self.populateTaintTable()
+        #self.populateTaintTable()
         
     def _createToolbar(self):
         """
@@ -103,9 +103,9 @@ class VisualizerWidget(QtGui.QMainWindow):
         """
         self.layout_prop = []
         self.layout_prop.append("Spring")
-        self.layout_prop.append("Circle")
+        self.layout_prop.append("Circular")
         self.layout_prop.append("Shell")
-        self.layout_prop.append("Concentric")
+        self.layout_prop.append("Spectral")
         self.layout_prop.append("Standard")
         
     def _createRefreshAction(self):
@@ -161,7 +161,10 @@ class VisualizerWidget(QtGui.QMainWindow):
         """
         #If no config then connect to virtualbox in config
         self.taint_table.setSortingEnabled(False)
-        self.taints_header_labels = ["UUID", "Type", "Name", "StartInd", "EndInd", "Edge Anno", "Child C", "Child D"]
+        if self.policy == "TAINT_BRANCH":
+            self.taints_header_labels = ["UUID", "Type", "Name", "StartInd", "EndInd", "Edge Anno"]
+        else:
+            self.taints_header_labels = ["UUID", "Type", "Name", "StartInd", "EndInd", "Edge Anno", "Child C", "Child D"]
         self.taint_table.clear()
         self.taint_table.setColumnCount(len(self.taints_header_labels))
         self.taint_table.setHorizontalHeaderLabels(self.taints_header_labels)
@@ -282,6 +285,7 @@ class VisualizerWidget(QtGui.QMainWindow):
         """
         self.t_graph = t
         self.policy = p
+        self.populateTaintTable()
         self.populateTaintsTableImported()
         self._createGraphView() 
         
@@ -294,15 +298,16 @@ class VisualizerWidget(QtGui.QMainWindow):
         pos = nx.circular_layout(self.t_graph, scale=800)
         if (self.radioGroup2.checkedButton().text() == "Spring"):
             pos = nx.spring_layout(self.t_graph, scale=800)
-        elif (self.radioGroup2.checkedButton().text() == "Circle"):
+        elif (self.radioGroup2.checkedButton().text() == "Circular"):
             pos = nx.circular_layout(self.t_graph, scale=800)
         elif (self.radioGroup2.checkedButton().text() == "Shell"):
-            pos = nx.circular_layout(self.t_graph, scale=800)
-        elif (self.radioGroup2.checkedButton().text() == "Concentric"):
-            pos = nx.circular_layout(self.t_graph, scale=800)
+            pos = nx.shell_layout(self.t_graph, scale=800)
+        elif (self.radioGroup2.checkedButton().text() == "Spectral"):
+            pos = nx.spectral_layout(self.t_graph, scale=800)
         else:
             #standard
-            pos = nx.circular_layout(self.t_graph, scale=800)
+            #pos = nx.circular_layout(self.t_graph, scale=800)
+            self.genStandardLayout(self.t_graph, scale=800)
         #Select node connection and its decorator types
         nc = CenterCalc()
         cd = LineArrowOnStart()      
@@ -336,6 +341,23 @@ class VisualizerWidget(QtGui.QMainWindow):
         self.graphView.setScene(self.graphScene)
         self.graphView.update()
         self.graphView.repaint()
+        
+    def genStandardLayout(self, t_graph, scale):
+        numChains = 0
+        roots = [n for n,d in t_graph.in_degree().items() if d == 0]
+        print roots
+        for i in roots:
+            print i
+            #children = [n for n,d in 
+            
+    def genStandardLayoutBranch(self, t_graph, scale):
+        #
+        # Branch depth-based layout, columns are chain sequences
+        # Rows are depth levels
+        #
+        numRoots = 0
+        #for i in t_graph:
+
         
     def _createGraphView2(self, A):
         from ..core.structures.Graph.PySideGraph import *
