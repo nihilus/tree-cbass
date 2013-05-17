@@ -443,14 +443,18 @@ class TraceGeneratorWidget(QMainWindow):
             ff = ";".join(self.processConfig.getFileFilter())
         if self.processConfig.getNetworkFilter()!=None:
             nf = ";".join(self.processConfig.getNetworkFilter())
+        #PIN needs a full path executable name(with .exe extension for Windows)to run the target program
+        # if Path box on trace GUI is used to specify the full path to the module(shimgvw.dll), not always the same as the program executable(rundll32.exe)
+        # can we be consistent and use Application for the full path executable name?
+        # If this is ok, we need to send the getApplication() to PinAgent
         if(ff!=None and nf!=None):
-            packet = self.processConfig.getPath() + " " + self.processConfig.getArgs() + "!FF=" + ff + "!NF=" + nf
+            packet = self.processConfig.getApplication() + " " + self.processConfig.getArgs() + "!FF=" + ff + "!NF=" + nf
         elif(ff!=None):
-            packet = self.processConfig.getPath() + " " + self.processConfig.getArgs() + "!FF=" + ff
+            packet = self.processConfig.getApplication() + " " + self.processConfig.getArgs() + "!FF=" + ff
         elif(nf!=None):
-            packet = self.processConfig.getPath() + " " + self.processConfig.getArgs() + "!NF=" + nf
+            packet = self.processConfig.getApplication() + " " + self.processConfig.getArgs() + "!NF=" + nf
         else:
-            packet = self.processConfig.getPath() + " " + self.processConfig.getArgs()
+            packet = self.processConfig.getApplication() + " " + self.processConfig.getArgs()
         """
         Todo: Integrate this in the future, requires a patch in idaapi.py
         if bRemote==False:    
