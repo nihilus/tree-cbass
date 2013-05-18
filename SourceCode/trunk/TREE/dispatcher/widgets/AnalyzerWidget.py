@@ -457,7 +457,7 @@ class AnalyzerWidget(QtGui.QMainWindow):
         
         from ..core.structures.Analyzer.CIDParser import Invalid, LoadImage, UnloadImage, Input, ReadMemory, WriteMemory, Execution, Snapshot, eXception
         from ..core.structures.Analyzer.CIDTaintProp import TaintPropagator
-        from ..core.structures.Analyzer.CIDTaintProp import TAINT_NOPE,TAINT_ADDRESS,TAINT_BRANCH,TAINT_COUNTER,TAINT_DATA
+        from ..core.structures.Analyzer.CIDTaintProp import TAINT_NOPE,TAINT_ADDRESS,TAINT_BRANCH,TAINT_COUNTER,TAINT_DATA,IDA, PIN
         from ..core.structures.Analyzer.x86Decoder import WINDOWS, LINUX
         #if hasattr(self, trace_fname):
         #parser = OptionParser()
@@ -494,11 +494,9 @@ class AnalyzerWidget(QtGui.QMainWindow):
             elif(self.radioGroup.checkedButton().text() == "X64"):
                 targetBits=64
             if(self.pin_trace_cb.isChecked()):
-                tr = CIDAPinTraceReader(self.trace_fname, self.index_fname)
-                CIDTaintProp.traceType = CIDTaintProp.PIN
+                tr = CIDAPinTraceReader(self.trace_fname)
             else:
               tr = CIDATextTraceReader(self.trace_fname)
-            CIDTaintProp.traceType = CIDTaintProp.IDA
             if tr is None:
                 log.error("Failed to open trace file. Exit")
                 self.trace_table2.append("Failed to open trace file.")
@@ -519,8 +517,25 @@ class AnalyzerWidget(QtGui.QMainWindow):
             elif (taintPolicy == TAINT_ADDRESS):
                 fTaint = "ATaintGraph_"+os.path.basename(self.trace_fname)				
             out_fd = open(fTaint, 'w')
-            TP = TaintPropagator(hostOS, processBits, targetBits, out_fd,taintPolicy)
-			
+            
+            TP=None
+            if(self.pin_trace_cb.isChecked()):
+                tr = CIDAPinTraceReader(self.trace_fname)
+                TP = TaintPropagator(hostOS, processBits, targetBits, out_fd,taintPolicy,PIN)
+            else:
+                tr = CIDATextTraceReader(self.trace_fname)
+                TP = TaintPropagator(hostOS, processBits, targetBits, out_fd,taintPolicy,IDA)
+            if tr is None:
+                log.error("Failed to open trace file. Exit")
+                self.trace_table2.append("Failed to open trace file.")
+                return
+            out_str = "Processing trace file %s..." %(self.trace_fname)
+            self.trace_table2.append(out_str)
+            
+            if TP is None:
+                log.error("Failed to create Taint Propogator. Exit")
+                return
+              
             tRecord = tr.getNext()
             bEnd = False
             tNextRecord = None
@@ -547,7 +562,10 @@ class AnalyzerWidget(QtGui.QMainWindow):
                             else:
                               TP.DumpLiveTaints()	
                         else:
-                            TP.DumpFaultCause(tNextRecord, tRecord, self.verbose_trace_cb.isChecked())
+                            if(self.pin_trace_cb.isChecked()):
+                              TP.DumpExceptionAnalysis(tNextRecord, tRecord, self.verbose_trace_cb.isChecked())
+                            else:
+                              TP.DumpFaultCause(tNextRecord, tRecord, self.verbose_trace_cb.isChecked())
                             if self.verbose_trace_cb.isChecked():
                               print "Exception! Get out of the loop!"
                             bEnd = True
