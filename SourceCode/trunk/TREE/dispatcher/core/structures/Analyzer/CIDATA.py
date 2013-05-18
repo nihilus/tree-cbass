@@ -23,7 +23,7 @@ import CIDTaintProp
 from CIDParser import CIDATraceReader, CIDATextTraceReader, CIDAPinTraceReader
 
 from CIDParser import Invalid, LoadImage,UnloadImage,Input,ReadMemory,WriteMemory,Execution, Snapshot, eXception
-from CIDTaintProp import TaintPropagator, TAINT_ADDRESS, TAINT_BRANCH,TAINT_COUNTER,TAINT_DATA 
+from CIDTaintProp import TaintPropagator, TAINT_ADDRESS, TAINT_BRANCH,TAINT_COUNTER,TAINT_DATA, IDA, PIN 
 from x86Decoder import WINDOWS, LINUX
 
 X86 = 1
@@ -76,24 +76,30 @@ def main(args):
         targetBits = 32
     elif(options.arch == "X64"):
         targetBits = 64
+
+    fTaint = "TaintGraph_"+options.trace_file
+    out_fd = open(fTaint, 'w')
 	
+    TP = None
     if (options.pin_trace):
-        tr = CIDAPinTraceReader(options.trace_file,options.index_file)
-        CIDTaintProp.traceType = CIDTaintProp.PIN
+	print("PIN TRACE")
+        tr = CIDAPinTraceReader(options.trace_file)
+	TP = TaintPropagator(hostOS, processBits, targetBits, out_fd,TAINT_DATA, PIN)	
     else:
         tr = CIDATextTraceReader(options.trace_file)
         CIDTaintProp.traceType = CIDTaintProp.IDA
+	TP = TaintPropagator(hostOS, processBits, targetBits, out_fd,TAINT_DATA, IDA)	
 
     if tr is None:
         log.error("Failed to open trace file. Exit")
         sys.exit(-1)
-		
-    print ("Processing trace file %s..." %(options.trace_file))
-    fTaint = "TaintGraph_"+options.trace_file
-    out_fd = open(fTaint, 'w')
-    
-    TP = TaintPropagator(hostOS, processBits, targetBits, out_fd,TAINT_COUNTER)	
 
+    if TP is None:
+        log.error("Failed to create taint propogator. Exit")
+        sys.exit(-1)
+	
+    print ("Processing trace file %s..." %(options.trace_file))
+    
     tRecord = tr.getNext()
     bEnd = False
     tNextRecord = None
@@ -115,14 +121,15 @@ def main(args):
                     TP.DumpLiveTaints()	
                 else:
                     TP.DumpFaultCause(tNextRecord, tRecord, options.verbose)
+		    #TP.DumpExceptionAnalysis(tNextRecord, tRecord, options.verbose)
                     print "Exception! Get out of the loop!"
                     bEnd = True
                     break        					
             elif(TP.Propagator(tRecord)==1):
-                #bEnd = True
+                bEnd = True
                 if options.verbose:
                     print "Tainted Security Warning!"
-                #break
+                break
         else:
             print "Type %d not supported:%d" %recordType
 

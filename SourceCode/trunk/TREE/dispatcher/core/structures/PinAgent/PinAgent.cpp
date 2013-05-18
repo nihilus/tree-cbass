@@ -25,11 +25,12 @@ DWORD  gdwListenThread;
 #define PINTOOL "C:\\pin\\ia32\\bin\\exetrace.dll"
 #define TRACE_SHARE "Z:\\TREE-TRACE\\"
 
-bool bDebug = FALSE;
+//#define bDebug
+#undef bDebug
 
 DWORD WINAPI process_pintrace(LPVOID lpParam);
-void SpawnPin(char *AppName, char *CmdLine, char *CurrentDir);
-void StartPinTracer(char * Message);
+int SpawnPin(char *AppName, char *CmdLine, char *CurrentDir);
+int StartPinTracer(char * Message);
 
 int GetLocalAddress(LPSTR lpStr, LPDWORD lpdwStrLen)
 {
@@ -198,25 +199,28 @@ int GetWindowsOSPinNumber()
 	return os_pin;
 }
 
-void StartPinTracer(char * trace_msg)
+int StartPinTracer(char * trace_msg)
 {
 	char cmdLine[256] ={0};
 	char fileFilter[128] = {0};
 	char networkFilter[128]={0};
 	char pin_line[1024]={0};
 	char exename[64]={0};
+	char pathToExe[64] = {0};
+	char parameters[128]={0};
 	char currentdir[128]={0};
+	char * pos_exe =NULL;
 
 	// Parse the message into tokens
 	char * pch;
-	if(bDebug)
-		printf ("Splitting string \"%s\" into tokens:\n",trace_msg);
+	#ifdef bDebug
+	printf ("Splitting string \"%s\" into tokens:\n",trace_msg);
+	#endif
+
 	pch = strtok (trace_msg,"!");
 	int count =0;
 	while (pch != NULL)
 	{
-		if(bDebug)
-			printf ("%s\n",pch);
 		if (count ==0)
 		{
 			strcpy(cmdLine,pch);
@@ -228,24 +232,37 @@ void StartPinTracer(char * trace_msg)
 				strcpy(fileFilter,pch+3);
 			if(strstr(pch,"NF="))
 				strcpy(networkFilter,pch+3);
-
 		}
 		pch = strtok (NULL, "!");
 	}
 
 	if (strlen(cmdLine)>0){
-		char fullpath[128]={0};
-		strcpy(fullpath, cmdLine);
-		if(bDebug)
-			printf("fullpath:%s\n",fullpath);
+		char fullLine[128]={0};
+		char path2Exe[128]={0};
+		strcpy(fullLine, cmdLine);
+		pos_exe = strstr(fullLine, ".exe");
+		int len = strlen(fullLine);
+		int lenToExe = ((int)(char *)pos_exe-(int)(char *)fullLine);
+		if(pos_exe!=NULL && len>=lenToExe){
+			strncpy(pathToExe, fullLine,lenToExe+4);
+			strncpy(parameters, pos_exe+4,(len-lenToExe));
+		}
+		else
+			return -1;
+
+		#ifdef bDebug
+			printf("fullLine:%s, pathToExe= %s, parameters=%s\n",fullLine, pathToExe, parameters);
+		#endif
 		// extract executable name
 		char * pch;
-		pch = strtok (fullpath," \\");
+		strcpy(path2Exe, pathToExe);
+		pch = strtok (path2Exe,"\\");
 		int count =0;
 		while (pch != NULL)
 		{
-			if(bDebug)
+			#ifdef bDebug
 				printf ("%s\n",pch);
+			#endif
 			if (strstr(pch, ".exe"))
 			{
 				strncpy(exename,pch,16);
@@ -255,35 +272,36 @@ void StartPinTracer(char * trace_msg)
 				strcat(currentdir,pch);
 				strcat(currentdir,"\\");
 			}
-			pch = strtok (NULL, " \\");
+			pch = strtok (NULL, "\\");
 		}
 	}
 
-	if(bDebug)
+	#ifdef bDebug
 		if (strlen(fileFilter)>0)
 			printf("FileFilter:%s\n",fileFilter);
-	
-	if(bDebug)
 		if (strlen(networkFilter)>0)
 			printf("networkFilter:%s\n",networkFilter);
+	#endif
 
 	int ospin= GetWindowsOSPinNumber();
-	if(bDebug)
+	#ifdef bDebug
 		printf("ospin= %d ",ospin);
+	#endif
 
 	if (strlen(cmdLine)>0){
 		if ((strlen(fileFilter)>0) && (strlen(networkFilter)>0))
 			sprintf(pin_line," -t %s -taint_file %s -taint_winsock 1 -windows_os %d -binary_trace 1 -silent 1  -outpath %s -o %s -- %s",PINTOOL,ospin,fileFilter,TRACE_SHARE,exename,cmdLine);
 		else
 		if ((strlen(fileFilter)>0))
-			sprintf(pin_line," -t %s -taint_file %s -windows_os %d -binary_trace 1 -silent 1 -outpath %s -o %s -- %s",PINTOOL,fileFilter,ospin,TRACE_SHARE,exename,cmdLine);
+			sprintf(pin_line," -t %s -taint_file %s -windows_os %d -binary_trace 1 -silent 1 -outpath %s -o %s -- \"%s\" %s",PINTOOL,fileFilter,ospin,TRACE_SHARE,exename,pathToExe,parameters);
 		else
 		if ((strlen(networkFilter)>0))
 			sprintf(pin_line," -t %s -taint_winsock 1 -windows_os %d -binary_trace 1 -silent 1  -outpath %s -o %s -- %s",PINTOOL,ospin,TRACE_SHARE,exename,cmdLine);
 		else
 			sprintf(pin_line," -t %s -windows_os %d -binary_trace 1 -silent 1  -outpath %s -o %s -- %s",PINTOOL,ospin,TRACE_SHARE,exename,cmdLine);
-		if(bDebug)
+		#ifdef bDebug
 			printf("exefile is %s, dir is %s, and pin_line is %s",exename,currentdir,pin_line);
+		#endif
 		SpawnPin(PINEXEC, pin_line,currentdir);
 	}
 	else
@@ -299,8 +317,10 @@ DWORD WINAPI process_pintrace(LPVOID lpParam)
 	SOCKET clientSocket = (SOCKET)lpParam;
 
 	int rVal;
+	int pinProcess = 0;
 	char Message[MESSAGE_LEN];
 	char Reply[64]="Trace is Ready at Shared Folder TREE-TRACE";
+	char ErrReply[64]="Failed to Generate Trace Because of Error";
 	memset(Message,0,MESSAGE_LEN);
 
 	rVal = recv(clientSocket, Message, MESSAGE_LEN, 0);
@@ -312,7 +332,7 @@ DWORD WINAPI process_pintrace(LPVOID lpParam)
 		// Figure out guest Windows version(or host if running locally)
 		// Generate trace and relevent(index) files in a shared folder
 		
-		StartPinTracer(Message);
+		pinProcess = StartPinTracer(Message);
 
 		//TEST
 		//SpawnPin(L"C:\\pin\\ia32\\bin\\pin.exe", L" -t C:\\pin\\ia32\\bin\\exetrace.dll -windows_os 12 -taint_file mytaint -binary_trace 1 -silent 1 -o Z:\\Test\\pin_basicov\\exetrace.trace -- C:\\basicOV\\basicov.exe");
@@ -326,7 +346,14 @@ DWORD WINAPI process_pintrace(LPVOID lpParam)
 	// Spawn PIN procss to get the trace, wait for it to finish 
 
 	//send back the notification of process end and trace file
-	rVal = send( clientSocket, Reply, (int)strlen(Reply), 0 );
+	if(pinProcess ==0)
+		rVal = send( clientSocket, Reply, (int)strlen(Reply), 0 );
+	else
+	{
+		char errMessage[64]={0};
+		sprintf(errMessage," %s 0x%x",ErrReply,pinProcess);
+		send( clientSocket, errMessage, (int)strlen(errMessage), 0 );
+	}
 
 	return 0;
 }
@@ -411,13 +438,13 @@ int _tmain(int argc, _TCHAR* argv[])
 	return S_OK;
 }
 
-void SpawnPin(char *AppName, char *CmdLine, char *CurrentDir)
+int SpawnPin(char *AppName, char *CmdLine, char *CurrentDir)
 {
     printf("\n Spawn A PINed Process...\n");
-	if(bDebug){
+	#ifdef bDebug
 	    printf(" AppName: %s\n", AppName);
 		printf(" CmdLine: %s\n", CmdLine);
-	}
+	#endif
 
     PROCESS_INFORMATION processInformation;
     STARTUPINFOA startupInfo;
@@ -440,13 +467,17 @@ void SpawnPin(char *AppName, char *CmdLine, char *CurrentDir)
     if (result == 0)
     {
         printf("ERROR: CreateProcess failed!Error=0x%x",GetLastError());
+		return GetLastError();
     }
     else
     {
 		printf("\n PINed Process running...\n");
         WaitForSingleObject( processInformation.hProcess, INFINITE );
+		DWORD dwExitCode = 0;
+	    GetExitCodeProcess(processInformation.hProcess, &dwExitCode);
         CloseHandle( processInformation.hProcess );
         CloseHandle( processInformation.hThread );
 		printf("\n PINed Process exit...\n");
+		return dwExitCode;
     }
 }

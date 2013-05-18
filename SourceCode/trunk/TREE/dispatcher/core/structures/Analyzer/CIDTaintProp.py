@@ -23,10 +23,7 @@ log = logging.getLogger('CIDATA')
 IDA = 0
 PIN = 1
 
-traceType = IDA
-
 #X86 instruction category enumeration. Each category has same/similar semantics or some other common characteristics
-
 X86_INVALID=0
 X86_ThreeDNOW=1
 X86_AES=2
@@ -146,14 +143,15 @@ def getNormalizedX86RegisterNames(regname, width_bytes, tid):
 
 class TaintPropagator(object):
     
-    def __init__(self, hostOS, processBits, targetBits, out_fd, taint_policy):
+    def __init__(self, hostOS, processBits, targetBits, out_fd, taint_policy,trace_type):
         self.xDecoder = x86Decoder(processBits, targetBits, hostOS)
         self.targetBits = targetBits
         self.static_taint = {} #keyed by instruction encoding, and mapping to a static taint template
         self.dynamic_taint={} #keyed by memory or register/thread address, and mapping to its taint object(defined in CIDTaint) 
         self.output_fd = out_fd
-        self.bDebug = False 
+        self.bDebug = False
         self.taint_policy = taint_policy # TAINT_DATA is  DEFAULT
+        self.trace_type = trace_type
         self.pcs =[]
         
         self.category_name={}
@@ -210,45 +208,52 @@ class TaintPropagator(object):
         self.taint_category_sink = {X86_CALL,X86_RET}
         self.taint_category_branch = {X86_COND_BR}        
         self.taint_category_logic = {X86_LOGICAL}        
-        
+        if self.bDebug:
+            print("Construct Taint Propogater")
+            
         # A few more not defined, should be very rare 
     def Propagator(self, instRec):
         bTaint =0
-        if(not(instRec.sEncoding in self.static_taint)):                
+        if(not(instRec.currentInstruction in self.static_taint)):                
             instlen = instRec.currentInstSize
             instcode = c_byte*instlen
             instBytes = instcode()
-            for i in range(instlen):
-                sBytes = instRec.sEncoding[2*i:(2*i+2)]
-                instBytes[i]= int(sBytes,16)
-
+            if(self.trace_type ==IDA):
+                for i in range(instlen):
+                    sBytes = instRec.sEncoding[2*i:(2*i+2)]
+                    instBytes[i]= int(sBytes,16)
+            elif (self.trace_type ==PIN):
+                i=0 #PIN
+                for byte in instRec.sEncoding:
+                    instBytes[i]= byte
+                    i=i+1
+            
             instInfo = instDecode()            
             result = self.xDecoder.decode_inst(instlen, pointer(instBytes),ctypes.byref((instInfo)))
             if result !=0:
                 if self.bDebug:
-                    print("Get static_taint template for instruction %s first time:" %(instRec.sEncoding))
+                    print("Get static_taint template for instruction %s first time:" %(instRec.currentInstruction))
                     sDbg = instInfo.printInfo();
                     log.debug(sDbg)
                     sDbg = "Category: %s" %(self.category_name[instInfo.inst_category])
                     log.debug(sDbg)
-                self.static_taint[instRec.sEncoding] = instInfo
+                self.static_taint[instRec.currentInstruction] = instInfo
             else:
-                sDbg = "instruction %s not supported" %(instRec.sEncoding)
+                sDbg = "instruction %s not supported" %(str(instRec.sEncoding))
                 log.debug(sDbg)
         else:
-            #print("static_taint template for %s has been cached:" %(instRec.sEncoding))
-            instInfo = self.static_taint[instRec.sEncoding]
+            instInfo = self.static_taint[instRec.currentInstruction]
 
             if self.bDebug:
                 instInfo.printInfo()
                 sDbg ="Category: %s" %(self.category_name[instInfo.inst_category])
                 log.debug(sDbg)
-            
+        
         #Propagate according to selected policies
         sDbg = "Taint Propagating Sequence(%x) for %s:" %(instRec.currentInstSeq, instInfo.attDisa)
         log.debug(sDbg)
 
-        if traceType == IDA:
+        if self.trace_type == IDA:
             if(str(instInfo.attDisa).find("fs:")!=-1):
                 sDbg = "IDA Trace doesn't handle FS segment register"
                 log.debug(sDbg)
@@ -281,7 +286,7 @@ class TaintPropagator(object):
 
         #Refining
         #if(instInfo.inst_category in self.taint_category_sink):
-        #return self.TaintCheckSink(instInfo, instRec)
+        #    return self.TaintCheckSink(instInfo, instRec)
         #else:
         return 0
 
@@ -450,7 +455,9 @@ class TaintPropagator(object):
         instStr = str(instInfo.attDisa).strip("b'")
         sDbg = "Taint propagating String %s:\n" %(instStr)
         log.debug(sDbg)
-        
+        if self.bDebug:
+            print("%s" %sDbg)
+            
         for i in range(instInfo.n_dest_operand):
             if(instInfo.dest_operands[i]._type == REGISTER):
                 sErr ="\nStringOP suppose to have memory operand, not register:\n"
@@ -1107,32 +1114,36 @@ class TaintPropagator(object):
     def DumpFaultCause(self, tRecord, tLastERecord,verBose):
 
         faultAddress = tRecord.currentExceptionAddress
-        
         self.output_fd.write("EXCEPTION:\n")
-        if(not(tLastERecord.sEncoding in self.static_taint)):                
+        
+        if(not(tLastERecord.currentInstruction in self.static_taint)):                
             instlen = tLastERecord.currentInstSize
             instcode = c_byte*instlen
             instBytes = instcode()
-            for i in range(instlen):
-                sBytes = tLastERecord.sEncoding[2*i:(2*i+2)]
-                instBytes[i]= int(sBytes,16)
-
+            if(self.trace_type ==IDA):
+                for i in range(instlen):
+                    sBytes = tLastERecord.sEncoding[2*i:(2*i+2)]
+                    instBytes[i]= int(sBytes,16)
+            elif(self.trace_type ==PIN):
+                for i in range(instlen):
+                    instBytes[i]= tLastERecord.sEncoding[i]
+                        
             instInfo = instDecode()            
             result = self.xDecoder.decode_inst(instlen, pointer(instBytes),ctypes.byref((instInfo)))
             if result !=0:
-                self.static_taint[tLastERecord.sEncoding] = instInfo
+                self.static_taint[tLastERecord.currentInstruction] = instInfo
             else:
-                sDbg = "instruction %s not supported" %(tLastERecord.sEncoding)
+                sDbg = "instruction %s not supported" %(tLastERecord.currentInstruction)
                 log.debug(sDbg)
         else:
-            #print("static_taint template for %s has been cached:" %(instRec.sEncoding))
-            instInfo = self.static_taint[tLastERecord.sEncoding]
+            instInfo = self.static_taint[tLastERecord.currentInstruction]
 
         sException= "Instruction=0x%x, %s, Thread=%x, Seq=0x%x\n" %(tLastERecord.currentInstruction,instInfo.attDisa,tLastERecord.currentThreadId,tLastERecord.currentInstSeq)
         if (self.bDebug==True):
+            print ("%s" %sException)
             instInfo.printInfo()		
         self.output_fd.write("%s" %(sException))
-
+        
         #DEBUG
         #self.DumpLiveTaints()
         
@@ -1148,8 +1159,8 @@ class TaintPropagator(object):
                     if (self.bDebug==True):
                         print ("tainted = %s" %self.dynamic_taint[normalizedRegName].taint_simple())
                     self.dynamic_taint[normalizedRegName].dumpTaintTree(self.output_fd)
-
-			#Check if the memory pointed by the reg is tainted
+                    
+	    #Check if the memory pointed by the reg is tainted
             memBase = tLastERecord.reg_value[reg]
             if (tLastERecord.reg_value[reg]==faultAddress):
                 for i in range(4):
@@ -1157,7 +1168,94 @@ class TaintPropagator(object):
                         self.dynamic_taint[faultAddress+i].dumpTaintTree(self.output_fd)
                         if (self.bDebug==True):
                             print ("tainted = %s" %self.dynamic_taint[faultAddress+i].taint_simple())
-						
+                            
+    def DumpExceptionAnalysis(self, tRecord, tLastERecord,verBose):
+        faultAddress = tRecord.currentExceptionAddress
+        
+        self.Propagator(tLastERecord)
+        
+        if(not(tLastERecord.currentInstruction in self.static_taint)):                
+            instlen = tLastERecord.currentInstSize
+            instcode = c_byte*instlen
+            instBytes = instcode()
+            if(self.trace_type ==IDA):
+                for i in range(instlen):
+                    sBytes = tLastERecord.sEncoding[2*i:(2*i+2)]
+                    instBytes[i]= int(sBytes,16)
+            elif(self.trace_type ==PIN):
+                for i in range(instlen):
+                    instBytes[i]= tLastERecord.sEncoding[i]
+                        
+            instInfo = instDecode()            
+            result = self.xDecoder.decode_inst(instlen, pointer(instBytes),ctypes.byref((instInfo)))
+            if result !=0:
+                self.static_taint[tLastERecord.currentInstruction] = instInfo
+            else:
+                sDbg = "instruction %s not supported" %(tLastERecord.currentInstruction)
+                log.debug(sDbg)
+        else:
+            instInfo = self.static_taint[tLastERecord.currentInstruction]
+
+        self.output_fd.write("EXCEPTION:\n")
+        sException= "Exception Instruction=0x%x, %s, Thread=%x, Seq=0x%x\n" %(tLastERecord.currentInstruction,instInfo.attDisa,tLastERecord.currentThreadId,tLastERecord.currentInstSeq)
+        if (self.bDebug==True):
+            print ("%s" %sException)
+            instInfo.printInfo()		
+        self.output_fd.write("%s" %(sException))
+        
+        for i in range(instInfo.n_src_operand):
+            if(instInfo.src_operands[i]._type == REGISTER):
+                reg = instInfo.src_operands[i]._ea
+                print ("src reg= %s" %(reg))
+                if(reg.find("stackpop")!=-1):
+                    reg = "ebp"
+                normalizedRegNames = getNormalizedX86RegisterNames(reg, 4,tLastERecord.currentThreadId)
+                for normalizedRegName in normalizedRegNames:
+                    if (self.bDebug==True):
+                        print ("Fault instruction: regName= %s" %normalizedRegName)
+                    if(normalizedRegName in self.dynamic_taint):
+                        if (self.bDebug==True):
+                            print ("tainted = %s" %self.dynamic_taint[normalizedRegName].taint_simple())
+                        self.dynamic_taint[normalizedRegName].dumpTaintTree(self.output_fd)
+
+        for i in range(instInfo.n_dest_operand):
+            if(instInfo.dest_operands[i]._type == REGISTER):
+                reg = instInfo.dest_operands[i]._ea
+                print ("dest reg= %s" %(reg))
+                normalizedRegNames = getNormalizedX86RegisterNames(reg, 4,tLastERecord.currentThreadId)
+                for normalizedRegName in normalizedRegNames:
+                    if (self.bDebug==True):
+                        print ("Fault instruction: regName= %s" %normalizedRegName)
+                    if(normalizedRegName in self.dynamic_taint):
+                        if (self.bDebug==True):
+                            print ("tainted = %s" %self.dynamic_taint[normalizedRegName].taint_simple())
+                        self.dynamic_taint[normalizedRegName].dumpTaintTree(self.output_fd)
+            
+        for reg in tLastERecord.reg_value:
+            if (self.bDebug==True):
+                print ("reg= %s, value=%s" %(reg,tLastERecord.reg_value[reg]))
+            #if(faultAddress == tLastERecord.reg_value[reg]):
+            normalizedRegNames = getNormalizedX86RegisterNames(reg, 4,tLastERecord.currentThreadId)
+            for normalizedRegName in normalizedRegNames:
+                if (self.bDebug==True):
+                    print ("Fault instruction: regName= %s" %normalizedRegName)
+                if(normalizedRegName in self.dynamic_taint):
+                    if (self.bDebug==True):
+                        print ("tainted = %s" %self.dynamic_taint[normalizedRegName].taint_simple())
+                    self.dynamic_taint[normalizedRegName].dumpTaintTree(self.output_fd)
+                    
+	    #Check if the memory pointed by the reg is tainted
+            memBase = tLastERecord.reg_value[reg]
+            if (tLastERecord.reg_value[reg]==faultAddress):
+                for i in range(4):
+                    if(memBase+i in self.dynamic_taint):
+                        self.dynamic_taint[faultAddress+i].dumpTaintTree(self.output_fd)
+                        if (self.bDebug==True):
+                            print ("tainted = %s" %self.dynamic_taint[faultAddress+i].taint_simple())
+
+        #DEBUG
+        #self.DumpLiveTaints()
+
     def DumpLiveTaintsInOrder(self):
         self.output_fd.write("Live Taints in the order of creation:\n")
         
@@ -1193,5 +1291,6 @@ class TaintPropagator(object):
             taint = Taint(INPUT_TAINT,address+i,INRecord.sequence,INRecord.callingThread, INRecord.inputFunction,True)
             taint.setInputFunctionCaller(INRecord.functionCaller)
             Taint.uid2Taint[taint.tuid]= taint
-            self.dynamic_taint[address+i] = taint            
+            self.dynamic_taint[address+i] = taint
+            print("Input Taint: %s" %(taint.taint_simple()))
                     
