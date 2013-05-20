@@ -189,14 +189,19 @@ class CIDATextTraceReader(CIDATraceReader):
         sDbg= "Text Trace Input received at 0x%x for %d bytes" %(iRecord.currentInputAddr,iRecord.currentInputSize)
         #I 103e138 12 414141414141414141414141 0x63c4 0x0 wsock32_recv 0x11d110e 0x78
         # or I 103e138 12 414141414141414141414141 "old format"
-        if len(split)> 3:
-            iRecord.inputBytes = split[3]
+        iRecord.inputBytes = split[3]
+        if len(split)> 4:
             iRecord.callingThread = int(split[4],16)            
             iRecord.sequence = int(split[5],16)            
             iRecord.inputFunction = split[6]
             iRecord.functionCaller = int(split[7],16)
             iRecord.inputHandle = int(split[8],16)
-        
+        else:
+            iRecord.callingThread = 0            
+            iRecord.sequence = 0
+            iRecord.inputFunction = "Unknown"
+            iRecord.functionCaller = 0
+            iRecord.inputHandle = 0
         log.debug(sDbg)
         
         return iRecord
