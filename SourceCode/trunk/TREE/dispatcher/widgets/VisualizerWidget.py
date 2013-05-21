@@ -307,7 +307,10 @@ class VisualizerWidget(QtGui.QMainWindow):
         else:
             #standard
             #pos = nx.circular_layout(self.t_graph, scale=800)
-            self.genStandardLayout(self.t_graph, scale=800)
+            if self.policy == "TAINT_BRANCH":
+                self.genStandardLayoutBranch(self.t_graph, scale=800)
+            else:
+                pos = self.genStandardLayout(self.t_graph, scale=800)
         #Select node connection and its decorator types
         nc = CenterCalc()
         cd = LineArrowOnStart()      
@@ -343,19 +346,83 @@ class VisualizerWidget(QtGui.QMainWindow):
         self.graphView.repaint()
         
     def genStandardLayout(self, t_graph, scale):
-        numChains = 0
+        import networkx as nx
         roots = [n for n,d in t_graph.in_degree().items() if d == 0]
-        print roots
+        topo = nx.topological_sort(t_graph)
+        std_layout = dict()
+        x_counter = 0
+        y_counter = 0
+        y_chain_length = 20
+        for i in topo:
+            if i in roots:
+                x_counter = x_counter + 1
+                y_counter = 0
+            cur_x = x_counter*(800/len(roots))
+            cur_y = (600/y_chain_length)*y_counter
+            y_counter = y_counter + 1
+            A = []
+            A.append(cur_x)
+            A.append(cur_y)
+            std_layout[i] = A
+            #print std_layout[i][0]
+            #print std_layout[i][1]
+        return std_layout
+            
+    def genStandardLayout2(self, t_graph, scale):
+        from networkx.algorithms.traversal.depth_first_search import dfs_tree
+        numChains = 0
+        roots = [n for n,d in t_graph.out_degree().items() if d == 0]
+        #print roots
         for i in roots:
-            print i
+            #print t_graph.node[i]['inode'].child_d
+            #print type(t_graph.node[i])
+            print self.getTreeDepth(dfs_tree(t_graph,i), 1)
             #children = [n for n,d in 
+            
+    def crawlTreeStd(self, t_graph, num):
+        from networkx.algorithms.traversal.depth_first_search import dfs_tree
+        root = t_graph.root()
+        print type(root)
+        #self.std_layout[
+        if root.hasNoChildren(): return
+        #for child in root.children():
+        if not t_graph.size() <= 1:
+            for attr, value in t_graph.node[i]['inode']:
+                if(attr.startswith('child')):
+                    a = getattr(t_graph.node[i]['inode'], attr)
+        else:
+            print "else"
+            
+            
+    def getTreeDepth(self, t_graph, num):
+        from networkx.algorithms.traversal.depth_first_search import dfs_tree
+        if not t_graph.size() <= 1:
+            for attr, value in t_graph.node[i]['inode']:
+                if(attr.startswith('child')):
+                    a = getattr(t_graph.node[i]['inode'], attr)
+                    if a is not None:
+                        curChildMax = 0
+                        for child in a.split():
+                            a = self.getTreeDepth(dfs_tree(t_graph,child), num+1)
+                            if a > curChildMax:
+                                curChildMax = a
+                        return curChildMax + num
+                    else:
+                        return num
+        else:
+            return num
             
     def genStandardLayoutBranch(self, t_graph, scale):
         #
         # Branch depth-based layout, columns are chain sequences
         # Rows are depth levels
         #
-        numRoots = 0
+        numChains = 0
+        roots = [n for n,d in t_graph.in_degree().items() if d == 0]
+        print roots
+        for i in roots:
+            print i
+            print t_graph.node[i]['inode'].depth
         #for i in t_graph:
 
         
