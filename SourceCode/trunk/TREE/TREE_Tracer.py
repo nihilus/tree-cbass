@@ -19,10 +19,12 @@ NAME = "TREE Tracer"
 from dispatcher.core.structures.Tracer.Arch.x86.Windows import WindowsApiCallbacks as WindowsApiCallbacks
 from dispatcher.core.structures.Tracer.CustomCallbacks import CustomApiFunctions as CustomApiFunctions
 from dispatcher.core.structures.Tracer.Arch.x86.Linux import LinuxApiCallbacks as LinuxApiCallbacks
+from dispatcher.core.structures.Tracer.AttachmodeCallbacks import AttachmodeFunctions as AttachmodeFunctions
 
 windowsFileIO = None
 linuxFileIO = None
 customCallback = None
+attachmodeCallback = None
 
 #Need to have this first, evaluate everything with Python not IDC
 idaapi.enable_extlang_python(True)
@@ -52,9 +54,10 @@ class TreeTracerPluginFormClass(PluginForm):
         windowsNetworkIO = WindowsApiCallbacks.NetworkIO()
         linuxFileIO = LinuxApiCallbacks.FileIO()
         customCallback = CustomApiFunctions()
+        attachmodeCallback = AttachmodeFunctions()
         
         functionCallbacks = dict()
-        functionCallbacks = {'windowsFileIO':windowsFileIO ,'linuxFileIO':linuxFileIO ,'customCallback':customCallback,'windowsNetworkIO':windowsNetworkIO }
+        functionCallbacks = {'windowsFileIO':windowsFileIO ,'linuxFileIO':linuxFileIO ,'customCallback':customCallback,'windowsNetworkIO':windowsNetworkIO,'attachmodeCallback':attachmodeCallback }
         
         layout = QtGui.QVBoxLayout()
         layout.addWidget(TraceGeneratorWidget(self,functionCallbacks))

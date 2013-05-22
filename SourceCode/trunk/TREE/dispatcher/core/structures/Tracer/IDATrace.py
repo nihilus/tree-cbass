@@ -18,7 +18,8 @@ class IDATrace():
         self.windowsFileIO       = funcCallbacks['windowsFileIO']
         self.windowsNetworkIO    = funcCallbacks['windowsNetworkIO']
         self.linuxFileIO         = funcCallbacks['linuxFileIO'] 
-        self.customCallback      = funcCallbacks['customCallback']   
+        self.customCallback      = funcCallbacks['customCallback']
+        self.attachmodeCallback  = funcCallbacks['attachmodeCallback']
         
         self.config = None
         (processName, osType, osArch) = self.getProcessInfo()
@@ -76,19 +77,25 @@ class IDATrace():
 
     def taintStart(self):
         import idc
-        print("Taint Start pressed!")
-        ea = idc.ScreenEA()
+        Print("Taint Start pressed!")
+        taintStart = idc.ScreenEA()
         #Set the start taint to green
-        idc.SetColor(ea,idc.CIC_ITEM,0x208020)
-        print idc.GetDisasm(ea)
-    
+        idc.SetColor(taintStart,idc.CIC_ITEM,0x208020)
+        Print( idc.GetDisasm(taintStart) )
+        idc.AddBpt(taintStart)
+        idc.SetBptAttr(taintStart, idc.BPT_BRK, 0)
+        idc.SetBptCnd(taintStart, "attachmodeCallback.startTrace()")
+                
     def taintStop(self):
         import idc
-        print("Taint Stop pressed!")
-        ea = idc.ScreenEA()
+        Print("Taint Stop pressed!")
+        taintStop = idc.ScreenEA()
         #Set the stop taint to red
-        idc.SetColor(ea,idc.CIC_ITEM,0x2020c0)
-        print idc.GetDisasm(ea)
+        idc.SetColor(taintStop,idc.CIC_ITEM,0x2020c0)
+        Print( idc.GetDisasm(taintStop) )
+        idc.AddBpt(taintStop)
+        idc.SetBptAttr(taintStop, idc.BPT_BRK, 0)
+        idc.SetBptCnd(taintStop, "attachmodeCallback.stopTrace()")
         
     def attach(self,processConfig):
         import idaapi
@@ -99,9 +106,8 @@ class IDATrace():
         
         from dispatcher.core.structures.Tracer import InputMonitor as InputMonitor
         from dispatcher.core.structures.Tracer import TargetProcess as TargetProcess
-        from dispatcher.core.structures.Tracer.Arch.x86.Windows import WindowsApiCallbacks as WindowsApiCallbacks
-        from dispatcher.core.structures.Tracer.Arch.x86.Linux import LinuxApiCallbacks as LinuxApiCallbacks
-        from dispatcher.core.structures.Tracer import CustomCallbacks as CustomCallbacks
+
+        from dispatcher.core.structures.Tracer import AttachmodeCallbacks as AttachmodeCallbacks
         from dispatcher.core.structures.Tracer.ETDbgHook import ETDbgHook as ETDbgHook
             
         filters = dict()
