@@ -196,7 +196,7 @@
 	  <path>c:\Test\condov\condov.exe</path>
 	  <args />
 	  <sdir>.</sdir>
-	  <remote>True</remote>
+	  <remote>False</remote>
 	  <host>172.016.073.176</host>
 	  <pass />
 	  <port>23966</port>
@@ -289,4 +289,4 @@
    </output>
    <Debug>False</Debug>
    <Logging>True</Logging>
-</config>
+<process Arch="32" OS="windows" name="basicov_gui.exe"><input><application>basicov_gui.exe</application><path>basicov_gui.exe</path><args /><sdir>.</sdir><remote>True</remote><pin>False</pin><host>172.16.73.200</host><pass /><port>23946</port><debugger>win32</debugger></input><filter type="fileIO"><fileName>mytaint.txt</fileName></filter></process><process Arch="32" OS="windows" name="calc.exe"><input><application>calc.exe</application><path>calc.exe</path><args /><sdir>.</sdir><remote>False</remote><pin>False</pin><host /><pass /><port>0</port><debugger>win32</debugger></input></process></config>

@@ -205,11 +205,13 @@ class TraceGeneratorWidget(QMainWindow):
         Create the toolbar
         """
 
-        self._createGenerateTraceAction() 
+        self._createGenerateTraceAction()
+        self._createProcessAttachAction()
         self._createSaveConfigAction() 
         self.toolbar = self.addToolBar('Trace Generation Toolbar')
         self.toolbar.addAction(self.saveConfigAction)
         self.toolbar.addAction(self.generateTraceAction)
+        self.toolbar.addAction(self.processAttachAction)
         
     def _createGenerateTraceAction(self):
         """
@@ -219,6 +221,34 @@ class TraceGeneratorWidget(QMainWindow):
         self.generateTraceAction = QtGui.QAction(QtGui.QIcon(self.parent.iconPath + "trace.png"), "Generate the trace.", self)
         self.generateTraceAction.triggered.connect(self.onGenerateTraceButtonClicked)
         
+    def _createProcessAttachAction(self):
+        """
+        Create that action to attach to a process
+        """
+        #from PySide.QtGui import QIcon
+        self.processAttachAction = QtGui.QAction(QtGui.QIcon(self.parent.iconPath + "attach.png"), "Attach to process.", self)
+        self.processAttachAction.triggered.connect(self.onAttachProcessButtonClicked)
+
+    def onAttachProcessButtonClicked(self):
+        """
+        Action for calling the trace functionality 
+        """
+        
+        #start debugging
+        self.getConfigFromGUI()
+        if not self.pin_cb.isChecked():
+            self.idaTracer.attach(self.processConfig)
+        else:
+            if self.remote_cb.isChecked():
+                if len(self.processConfig.host) > 0 :
+                    port = int(self.processConfig.port,10)
+                    self.pinCommunication(self.processConfig.host,port,True)
+                else:
+                    #IDA alert box
+                    Print("Please enter a host address to debug" )
+            else:
+                self.pinCommunication()
+                
     def onGenerateTraceButtonClicked(self):
         """
         Action for calling the trace functionality 
@@ -227,7 +257,7 @@ class TraceGeneratorWidget(QMainWindow):
         #start debugging
         self.getConfigFromGUI()
         if not self.pin_cb.isChecked():
-            self.idaTracer.run(self.processConfig)
+            self.idaTracer.run(self.processConfig.application)
         else:
             if self.remote_cb.isChecked():
                 if len(self.processConfig.host) > 0 :
@@ -443,18 +473,14 @@ class TraceGeneratorWidget(QMainWindow):
             ff = ";".join(self.processConfig.getFileFilter())
         if self.processConfig.getNetworkFilter()!=None:
             nf = ";".join(self.processConfig.getNetworkFilter())
-        #PIN needs a full path executable name(with .exe extension for Windows)to run the target program
-        # if Path box on trace GUI is used to specify the full path to the module(shimgvw.dll), not always the same as the program executable(rundll32.exe)
-        # can we be consistent and use Application for the full path executable name?
-        # If this is ok, we need to send the getApplication() to PinAgent
         if(ff!=None and nf!=None):
-            packet = self.processConfig.getApplication() + " " + self.processConfig.getArgs() + "!FF=" + ff + "!NF=" + nf
+            packet = self.processConfig.getPath() + " " + self.processConfig.getArgs() + "!FF=" + ff + "!NF=" + nf
         elif(ff!=None):
-            packet = self.processConfig.getApplication() + " " + self.processConfig.getArgs() + "!FF=" + ff
+            packet = self.processConfig.getPath() + " " + self.processConfig.getArgs() + "!FF=" + ff
         elif(nf!=None):
-            packet = self.processConfig.getApplication() + " " + self.processConfig.getArgs() + "!NF=" + nf
+            packet = self.processConfig.getPath() + " " + self.processConfig.getArgs() + "!NF=" + nf
         else:
-            packet = self.processConfig.getApplication() + " " + self.processConfig.getArgs()
+            packet = self.processConfig.getPath() + " " + self.processConfig.getArgs()
         """
         Todo: Integrate this in the future, requires a patch in idaapi.py
         if bRemote==False:    
