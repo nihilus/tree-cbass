@@ -21,9 +21,8 @@ from ctypes import *
 from ctypes.util import *
 import ctypes
 
-from x86Decoder import x86Decoder, instDecode, IMMEDIATE, REGISTER,INDIRECT, WINDOWS, LINUX
-
-from CIDx86thread import X86Thread
+from x86Decoder import x86Decoder, instDecode, IMMEDIATE, REGISTER,MEMORY, WINDOWS, LINUX
+from x86Thread import X86Thread
 
 Invalid, LoadImage,UnloadImage,Input,ReadMemory,WriteMemory,Execution, Snapshot, eXception = range(9)
 
@@ -84,7 +83,7 @@ class LoadImageTraceRecord(TraceRecord):
         self.LoadAddress = None
         
         
-class CIDATraceReader(object):
+class TraceReader(object):
     def __init__(self, trace_file):
         self.exe_trace = trace_file
         self.x86_thread = X86Thread()
@@ -115,10 +114,10 @@ class CIDATraceReader(object):
         pass
         
         
-class CIDATextTraceReader(CIDATraceReader):
+class IDATextTraceReader(TraceReader):
 
     def __init__(self, trace_file):
-        super(CIDATextTraceReader,self).__init__(trace_file)
+        super(IDATextTraceReader,self).__init__(trace_file)
         self.trace_fd = open(self.exe_trace, 'r') 
         
     def getNext(self):
@@ -315,9 +314,9 @@ class CIDATextTraceReader(CIDATraceReader):
 
         return iRecord
 
-class CIDAPinTraceReader(CIDATraceReader):
+class PinTraceReader(TraceReader):
     def __init__(self, trace_file):
-        super(CIDAPinTraceReader,self).__init__(trace_file)        
+        super(PinTraceReader,self).__init__(trace_file)        
         self.trace_fd = open(self.exe_trace, 'rb')
         self.xDecoder32 = x86Decoder(32,32, WINDOWS)
 

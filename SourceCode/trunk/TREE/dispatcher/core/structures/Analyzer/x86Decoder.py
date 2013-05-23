@@ -36,7 +36,7 @@ MAX_DIS_LEN = 128
 INVALID=0
 IMMEDIATE=1
 REGISTER=2
-INDIRECT=3
+MEMORY=3
 LAST=4
 
 #host OS
@@ -84,7 +84,6 @@ class x86Decoder(object):
         self.decode_fun = None
         if (process_bits==32):
             if (self.target_os == WINDOWS):
-                #self.decode_lib=windll.xdecoder_32
                 dll_name = "xdecoder_32.dll"
                 dllabspath = os.path.dirname(os.path.abspath(__file__)) + os.path.sep + dll_name
                 self.decode_lib=ctypes.windll.LoadLibrary(dllabspath)
@@ -96,20 +95,14 @@ class x86Decoder(object):
         elif process_bits==64:
             self.decode_lib=cdll.xdecoder_64
         if(self.decode_lib !=None):
-            #print(self.winlib)
             self.decode_fun = self.decode_lib.decode
-            #print(self.decode_fun)
         else:
             return None
         
     def decode_inst(self,instLen, pInstBytes, pInstDecode):
         nRes = 0
         if(self.decode_fun!=None):
-            #print("decode parameters:instLen=%d, pINstBytes=0x%x, pBuffer=0x%x" %(c_int(instLen), pInstBytes, addressof(pInstDecode)))
-            #print("decode parameters:target_bits= %d, instLen=%d, pINstBytes=, pBuffer=" %(self.target_bits, instLen))
             nRes = self.decode_fun(self.target_bits, instLen, pInstBytes, pInstDecode)
-            #pInfo = cast(pInstDecode, POINTER(instDecode))
-            #print("decode result=%d, n_src_operand = %d" %(nRes,pInfo.__getattribute__('n_src_operand')))
             return nRes
         else:
             print("NULL decode function!!!")

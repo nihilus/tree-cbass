@@ -452,13 +452,15 @@ class AnalyzerWidget(QtGui.QMainWindow):
         import os
         import logging
         import struct
-        from ..core.structures.Analyzer import CIDTaintProp
-        from ..core.structures.Analyzer.CIDParser import CIDATraceReader, CIDATextTraceReader, CIDAPinTraceReader
+        from ..core.structures.Analyzer import TaintTracker
+        from ..core.structures.Analyzer.TraceParser import TraceReader, IDATextTraceReader, PinTraceReader
         
-        from ..core.structures.Analyzer.CIDParser import Invalid, LoadImage, UnloadImage, Input, ReadMemory, WriteMemory, Execution, Snapshot, eXception
-        from ..core.structures.Analyzer.CIDTaintProp import TaintPropagator
-        from ..core.structures.Analyzer.CIDTaintProp import TAINT_NOPE,TAINT_ADDRESS,TAINT_BRANCH,TAINT_COUNTER,TAINT_DATA,IDA, PIN
+        from ..core.structures.Analyzer.TraceParser import Invalid, LoadImage, UnloadImage, Input, ReadMemory, WriteMemory, Execution, Snapshot, eXception
+        from ..core.structures.Analyzer.TaintTracker import TaintTracker,TAINT_NOPE,TAINT_ADDRESS,TAINT_BRANCH,TAINT_COUNTER,TAINT_DATA,IDA, PIN 
         from ..core.structures.Analyzer.x86Decoder import WINDOWS, LINUX
+        from ..core.structures.Analyzer.TaintMark import TaintMarker
+        from ..core.structures.Analyzer.TaintChecker import TaintChecker
+
         #if hasattr(self, trace_fname):
         #parser = OptionParser()
 		
@@ -493,19 +495,15 @@ class AnalyzerWidget(QtGui.QMainWindow):
                 targetBits=32
             elif(self.radioGroup.checkedButton().text() == "X64"):
                 targetBits=64
-            if(self.pin_trace_cb.isChecked()):
-                tr = CIDAPinTraceReader(self.trace_fname)
-            else:
-              tr = CIDATextTraceReader(self.trace_fname)
-            if tr is None:
-                log.error("Failed to open trace file. Exit")
-                self.trace_table2.append("Failed to open trace file.")
-            out_str = "Processing trace file %s..." %(self.trace_fname)
-            self.trace_table2.append(out_str)
+            
+            TP = None #Taint Propogator
+            TR = None # Trace Reader
+            TM = None # Taint Marker
+            TC = None #Taint Checker
 
             #Need to get the setting from GUI, default taint policy is TAINT_DATA:
             #taintPolicy = CIDTaintProp.TAINT_BRANCH # Used to test condOV;     
-            taintPolicy = getattr(CIDTaintProp, self.radioGroup2.checkedButton().text(), "TAINT_DATA")
+            taintPolicy = getattr(TaintTracker, self.radioGroup2.checkedButton().text(), "TAINT_DATA")
             #taint graph name begins with A(ddress), B(ranch), C(Counter) or D(ata) depending on policy
             fTaint = "TaintGraph_"+os.path.basename(self.trace_fname)
             if (taintPolicy == TAINT_BRANCH):
@@ -518,29 +516,38 @@ class AnalyzerWidget(QtGui.QMainWindow):
                 fTaint = "ATaintGraph_"+os.path.basename(self.trace_fname)				
             out_fd = open(fTaint, 'w')
             
-            TP=None
             if(self.pin_trace_cb.isChecked()):
-                tr = CIDAPinTraceReader(self.trace_fname)
-                TP = TaintPropagator(hostOS, processBits, targetBits, out_fd,taintPolicy,PIN)
+                TP = TaintTracker(hostOS, processBits, targetBits, out_fd,TAINT_DATA, PIN)		
+                TR = PinTraceReader(self.trace_fname)
             else:
-                tr = CIDATextTraceReader(self.trace_fname)
-                TP = TaintPropagator(hostOS, processBits, targetBits, out_fd,taintPolicy,IDA)
-            if tr is None:
+                TP = TaintTracker(hostOS, processBits, targetBits, out_fd,TAINT_DATA, IDA)	
+                TR = IDATextTraceReader(self.trace_fname)
+                
+            if TR is None:
                 log.error("Failed to open trace file. Exit")
                 self.trace_table2.append("Failed to open trace file.")
-                return
             out_str = "Processing trace file %s..." %(self.trace_fname)
             self.trace_table2.append(out_str)
-            
+
+            TM = TaintMarker(TP)
+            TC = TaintChecker(TP)
+                
             if TP is None:
                 log.error("Failed to create Taint Propogator. Exit")
                 return
+
+            if TM is None:
+                log.error("Failed to create Taint Marker. Exit")
+                return
+            if TC is None:
+                log.error("Failed to create Taint Checker. Exit")
+                return
               
-            tRecord = tr.getNext()
+            tRecord = TR.getNext()
             bEnd = False
             tNextRecord = None
             while tRecord!=None:
-                tNextRecord = tr.getNext()
+                tNextRecord = TR.getNext()
                 recordType = tRecord.getRecordType()
                 if (recordType == LoadImage):
                     if (self.verbose_trace_cb.isChecked()):
@@ -548,7 +555,7 @@ class AnalyzerWidget(QtGui.QMainWindow):
                         out_str = "ImageName=%s, LoadAddr = %x, Size=%x" %(tRecord.ImageName, tRecord.LoadAddress, tRecord.ImageSize)
                         self.trace_table2.append(out_str)                     
                 elif (recordType == Input):
-                    TP.SetInputTaint(tRecord)
+                    TM.SetInputTaint(tRecord)
                     if(self.verbose_trace_cb.isChecked()):
                         print("InputAddr = %x, InputSize =%x" %(tRecord.currentInputAddr, tRecord.currentInputSize))
                         out_str = "InputAddr = %x, InputSize =%x" %(tRecord.currentInputAddr, tRecord.currentInputSize)
@@ -558,14 +565,14 @@ class AnalyzerWidget(QtGui.QMainWindow):
                         if(tNextRecord.currentExceptionCode ==0): # termination
                             if (taintPolicy == TAINT_BRANCH):
                               print("Path Condition\n")
-                              TP.DisplayPCs()
+                              TC.DisplayPCs()
                             else:
-                              TP.DumpLiveTaints()	
+                              TC.DumpLiveTaints()	
                         else:
                             if(self.pin_trace_cb.isChecked()):
-                              TP.DumpExceptionAnalysis(tNextRecord, tRecord, self.verbose_trace_cb.isChecked())
+                              TC.DumpExceptionAnalysis(tNextRecord, tRecord, self.verbose_trace_cb.isChecked())
                             else:
-                              TP.DumpFaultCause(tNextRecord, tRecord, self.verbose_trace_cb.isChecked())
+                              TC.DumpFaultCause(tNextRecord, tRecord, self.verbose_trace_cb.isChecked())
                             if self.verbose_trace_cb.isChecked():
                               print "Exception! Get out of the loop!"
                             bEnd = True
