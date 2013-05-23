@@ -17,9 +17,9 @@ from dispatcher.core.Util import ConfigReader
 NAME = "TREE Tracer"
 
 from dispatcher.core.structures.Tracer.Arch.x86.Windows import WindowsApiCallbacks as WindowsApiCallbacks
-from dispatcher.core.structures.Tracer.CustomCallbacks import CustomApiFunctions as CustomApiFunctions
+from dispatcher.core.structures.Tracer import CustomCallbacks as CustomCallbacks
 from dispatcher.core.structures.Tracer.Arch.x86.Linux import LinuxApiCallbacks as LinuxApiCallbacks
-from dispatcher.core.structures.Tracer.AttachmodeCallbacks import AttachmodeFunctions as AttachmodeFunctions
+from dispatcher.core.structures.Tracer import AttachmodeCallbacks as AttachmodeCallbacks
 
 windowsFileIO = None
 linuxFileIO = None
@@ -48,16 +48,18 @@ class TreeTracerPluginFormClass(PluginForm):
         time_before = time.time()
         
         Print ("[/] setting up widgets...")
-        global windowsFileIO,windowsNetworkIO,linuxFileIO,customCallback
+        global windowsFileIO,windowsNetworkIO,linuxFileIO,customCallback,attachmodeCallback
         
         windowsFileIO = WindowsApiCallbacks.FileIO()
         windowsNetworkIO = WindowsApiCallbacks.NetworkIO()
         linuxFileIO = LinuxApiCallbacks.FileIO()
-        customCallback = CustomApiFunctions()
-        attachmodeCallback = AttachmodeFunctions()
+        customCallback = CustomCallbacks.CustomApiFunctions()
+        attachmodeCallback = AttachmodeCallbacks.AttachmodeFunctions()
         
         functionCallbacks = dict()
-        functionCallbacks = {'windowsFileIO':windowsFileIO ,'linuxFileIO':linuxFileIO ,'customCallback':customCallback,'windowsNetworkIO':windowsNetworkIO,'attachmodeCallback':attachmodeCallback }
+        functionCallbacks = {'windowsFileIO':windowsFileIO ,'linuxFileIO':linuxFileIO ,
+                             'customCallback':customCallback,'windowsNetworkIO':windowsNetworkIO ,
+                             'attachmodeCallback':attachmodeCallback}
         
         layout = QtGui.QVBoxLayout()
         layout.addWidget(TraceGeneratorWidget(self,functionCallbacks))

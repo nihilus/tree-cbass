@@ -56,31 +56,11 @@ class IDATrace():
                 del taintStop_ctx
             else:
                 Print ("Hotkey taint stop registered!")
-                
-        try:
-            ex_addmenu_item_ctx
-            idaapi.del_menu_item(ex_addmenu_item_ctx)
-            print("Menu removed")
-            del ex_addmenu_item_ctx
-        except:
-            ex_addmenu_item_ctx = idaapi.add_menu_item("Edit/", "X", "", 0, self.clearTaintSettings, tuple("Clear Taint"))
-            if ex_addmenu_item_ctx is None:
-                print("Failed to add menu!")
-                del ex_addmenu_item_ctx
-            else:
-                print("Menu added successfully. Run the script again to delete the menu")
         
-
-    def clearTaintSettings(self,*args):
-        print("Callback called!")
-        return 1
-
     def taintStart(self):
         import idc
         Print("Taint Start pressed!")
         taintStart = idc.ScreenEA()
-        #Set the start taint to green
-        idc.SetColor(taintStart,idc.CIC_ITEM,0x208020)
         Print( idc.GetDisasm(taintStart) )
         idc.AddBpt(taintStart)
         idc.SetBptAttr(taintStart, idc.BPT_BRK, 0)
@@ -90,150 +70,10 @@ class IDATrace():
         import idc
         Print("Taint Stop pressed!")
         taintStop = idc.ScreenEA()
-        #Set the stop taint to red
-        idc.SetColor(taintStop,idc.CIC_ITEM,0x2020c0)
         Print( idc.GetDisasm(taintStop) )
         idc.AddBpt(taintStop)
         idc.SetBptAttr(taintStop, idc.BPT_BRK, 0)
         idc.SetBptCnd(taintStop, "attachmodeCallback.stopTrace()")
-        
-    def attach(self,processConfig):
-        import idaapi
-        import idc
-        import logging
-        import os
-        import sys
-        
-        from dispatcher.core.structures.Tracer import InputMonitor as InputMonitor
-        from dispatcher.core.structures.Tracer import TargetProcess as TargetProcess
-
-        from dispatcher.core.structures.Tracer import AttachmodeCallbacks as AttachmodeCallbacks
-        from dispatcher.core.structures.Tracer.ETDbgHook import ETDbgHook as ETDbgHook
-            
-        filters = dict()
-        bDbg = False
-        if self.config.Debug == "True":
-            bDbg = True
-        else:
-            bDbg = False
-            
-        bLog = False
-
-        if self.config.Logging == "True":
-            bLog = True
-        else:
-            bLog = False
-            
-        logfile = ""
-
-        app_name = processConfig.getName()
-        os_type  = processConfig.getOsType()
-        os_arch  = processConfig.getOsArch()
-        
-        path  = processConfig.getPath()
-
-        application = processConfig.getApplication()
-        args  = processConfig.getArgs()
-        sdir  = processConfig.getSdir()
-
-        debugger = processConfig.getDebugger()
-        remote = processConfig.getRemote()=="True"
-        
-        if remote:
-            port  = int(processConfig.getPort())
-            host  = processConfig.getHost()
-            _pass = processConfig.getPass()
-        else:
-            port = 0
-            host = ""
-            _pass = ""
-            
-        fileFilter = processConfig.getFileFilter()
-        networkFilter = processConfig.getNetworkFilter()
-
-        filePath = os.path.splitext(self.config.getOutputPath())
-        app = os.path.splitext(app_name)
-        self.tracefile = filePath[0] + "_" + app[0] + filePath[1]
-
-        logfile = filePath[0] + "_log_" +app[0] + ".log"
-        
-        self.logger = logging.getLogger('IDATrace')
-        
-        logging.basicConfig(filename=logfile,
-                                    filemode='w',
-                                    format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
-                                    datefmt='%H:%M:%S',
-                                    level=logging.INFO)
-        
-        self.logger.info( "The application is %s" % app_name )
-        
-        Print( logfile )
-        
-        Print( "Using debugger %s" % debugger )
-        
-        if bDbg:
-            self.logger.setLevel(logging.DEBUG)
-            Print ("Logging at debug level" )
-        
-        if bLog:
-            Print( "Logging turned on." )
-            self.logger.disabled = False
-        else:
-            Print( "Logging turned off." )
-            self.logger.disabled = True
-
-        targetProcess = TargetProcess.TargetProcess(app_name,os_arch,os_type,bDbg,self.tracefile)
-   
-        if idaapi.dbg_is_loaded():
-            self.logger.info( "The debugger is loaded, lets try to stop it." )
-            bStop = idc.StopDebugger()
-            
-            if bStop:
-                self.logger.info( "Stopped debugger." )
-        
-                try:    
-                    if EThook:
-                        self.logger.info("Removing previous hook ...")
-                        EThook.unhook()
-                except:
-                    pass
-                    
-            else:
-                self.logger.info( "Cannot stop debugger." )
-                sys.exit(1)
-        
-        #Use the win32 debugger as our debugger of choice
-        #You can can between these debuggers: win32, linux, mac
-        idc.LoadDebugger(debugger,remote)
-        """
-        if debugger == "windbg":
-            idc.ChangeConfig("MODE=1")
-        """
-        #Set the process parameters, dont know if this actually worked (Should test it)
-        #idc.SetInputFilePath(path)
-        
-        idaapi.set_process_options(application,args,sdir,host,_pass,port)
-        
-        self.removeBreakpoints()
-        
-        EThook = ETDbgHook(targetProcess,self.logger)
-        EThook.hook()
-        EThook.steps = 0
-            
-        process_name = processConfig.getApplication()
-        PID = self.getRunningProcesses(process_name)
-
-        self.logger.info("Attaching to %s to generate a trace..please wait..." % process_name)
-                
-        if PID == -1:
-            idc.Warning("%s is not running.  Please start the process first." % process_name)
-        else:
-            ret = idc.AttachProcess(PID, -1)
-            """
-            if ret != -1:
-                idc.Warning("Error attaching to %s" % process_name)
-            """
-            
         
     def getRunningProcesses(self,process_name):
         import idc
@@ -430,6 +270,8 @@ class IDATrace():
         
         self.logger.info( "The application is %s" % app_name )
         
+        self.removeBreakpoints()
+                
         Print( logfile )
         
         Print( "Using debugger %s" % debugger )
@@ -476,9 +318,7 @@ class IDATrace():
         idc.SetInputFilePath(path)
         
         idaapi.set_process_options(application,args,sdir,host,_pass,port)
-        
-        self.removeBreakpoints()
-        
+
         EThook = ETDbgHook(targetProcess,self.logger)
         EThook.hook()
         EThook.steps = 0
@@ -544,4 +384,144 @@ class IDATrace():
             
         self.logger.info("Starting to trace..please wait...")
         idaapi.run_to(idaapi.cvar.inf.maxEA)
+        
+    def attach(self,processConfig):
+        import idaapi
+        import idc
+        import logging
+        import os
+        import sys
+        
+        from dispatcher.core.structures.Tracer import InputMonitor as InputMonitor
+        from dispatcher.core.structures.Tracer import TargetProcess as TargetProcess
+        from dispatcher.core.structures.Tracer import AttachmodeCallbacks as AttachmodeCallbacks
+        from dispatcher.core.structures.Tracer.ETDbgHook import ETDbgHook as ETDbgHook
+            
+        filters = dict()
+        bDbg = False
+        if self.config.Debug == "True":
+            bDbg = True
+        else:
+            bDbg = False
+            
+        bLog = False
+
+        if self.config.Logging == "True":
+            bLog = True
+        else:
+            bLog = False
+            
+        logfile = ""
+
+        app_name = processConfig.getName()
+        os_type  = processConfig.getOsType()
+        os_arch  = processConfig.getOsArch()
+        
+        path  = processConfig.getPath()
+
+        application = processConfig.getApplication()
+        args  = processConfig.getArgs()
+        sdir  = processConfig.getSdir()
+
+        debugger = processConfig.getDebugger()
+        remote = processConfig.getRemote()=="True"
+        
+        if remote:
+            port  = int(processConfig.getPort())
+            host  = processConfig.getHost()
+            _pass = processConfig.getPass()
+        else:
+            port = 0
+            host = ""
+            _pass = ""
+            
+        fileFilter = processConfig.getFileFilter()
+        networkFilter = processConfig.getNetworkFilter()
+
+        filePath = os.path.splitext(self.config.getOutputPath())
+        app = os.path.splitext(app_name)
+        self.tracefile = filePath[0] + "_" + app[0] + filePath[1]
+
+        logfile = filePath[0] + "_log_" +app[0] + ".log"
+        
+        self.logger = logging.getLogger('IDATrace')
+        
+        logging.basicConfig(filename=logfile,
+                                    filemode='w',
+                                    format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
+                                    datefmt='%H:%M:%S',
+                                    level=logging.INFO)
+        
+        self.logger.info( "The application is %s" % app_name )
+        
+        #self.removeBreakpoints()
+        
+        Print( logfile )
+        
+        Print( "Using debugger %s" % debugger )
+        
+        if bDbg:
+            self.logger.setLevel(logging.DEBUG)
+            Print ("Logging at debug level" )
+        
+        if bLog:
+            Print( "Logging turned on." )
+            self.logger.disabled = False
+        else:
+            Print( "Logging turned off." )
+            self.logger.disabled = True
+
+        targetProcess = TargetProcess.TargetProcess(app_name,os_arch,os_type,bDbg,self.tracefile)
+   
+        if idaapi.dbg_is_loaded():
+            self.logger.info( "The debugger is loaded, lets try to stop it." )
+            bStop = idc.StopDebugger()
+            
+            if bStop:
+                self.logger.info( "Stopped debugger." )
+        
+                try:    
+                    if EThook:
+                        self.logger.info("Removing previous hook ...")
+                        EThook.unhook()
+                except:
+                    pass
+                    
+            else:
+                self.logger.info( "Cannot stop debugger." )
+                sys.exit(1)
+        
+        #Use the win32 debugger as our debugger of choice
+        #You can can between these debuggers: win32, linux, mac
+        idc.LoadDebugger(debugger,remote)
+        """
+        if debugger == "windbg":
+            idc.ChangeConfig("MODE=1")
+        """
+        #Set the process parameters, dont know if this actually worked (Should test it)
+        #idc.SetInputFilePath(path)
+        
+        idaapi.set_process_options(application,args,sdir,host,_pass,port)
+        
+        EThook = ETDbgHook(targetProcess,self.logger)
+        EThook.hook()
+        EThook.steps = 0
+        
+        self.attachmodeCallback.SetDebuggerInstance(EThook)
+        self.attachmodeCallback.SetLoggerInstance(self.logger)
+        
+        process_name = processConfig.getApplication()
+        PID = self.getRunningProcesses(process_name)
+
+        self.logger.info("Attaching to %s to generate a trace..please wait..." % process_name)
+                
+        if PID == -1:
+            idc.Warning("%s is not running.  Please start the process first." % process_name)
+        else:
+            ret = idc.AttachProcess(PID, -1)
+            """
+            if ret != -1:
+                idc.Warning("Error attaching to %s" % process_name)
+            """
+            
         

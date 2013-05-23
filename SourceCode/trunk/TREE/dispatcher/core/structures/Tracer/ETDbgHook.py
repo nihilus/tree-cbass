@@ -51,9 +51,11 @@ class ETDbgHook(DBG_Hooks):
         self.bCheckFileIO = False
         self.bCheckNetworkIO = False
         self.memoryWriter.fileOpen(self.tracefileName)
-        self.startTrace=False
-        
+        self.startTracing = False
+        self.attachMode = False
+
     def dbg_process_start(self, pid, tid, ea, name, base, size):
+        self.attachMode=False
         self.logger.info("Process started, pid=%d tid=%d name=%s ea=0x%x" % (pid, tid, name,ea))
         self.memoryWriter.writeToFile("L %s %x %x\n" % (name, base, size))
 
@@ -67,9 +69,8 @@ class ETDbgHook(DBG_Hooks):
         self.memoryWriter.writeToFile("U 0x%x 0x%x\n" % (ea, tid))
         
     def dbg_process_attach(self, pid, tid, ea, name, base, size):
-        import idaapi
+        self.attachMode=True
         self.logger.info("Process attach pid=%d tid=%d ea=0x%x name=%s base=%x size=%x" % (pid, tid, ea, name, base, size))
-        idaapi.request_continue_process()
         
     def dbg_process_detach(self, pid, tid, ea):
         self.logger.info("Process detached, pid=%d tid=%d ea=0x%x" % (pid, tid, ea))
@@ -77,7 +78,8 @@ class ETDbgHook(DBG_Hooks):
     def dbg_library_load(self, pid, tid, ea, name, base, size):
         self.logger.info( "Library loaded: pid=%d tid=%d name=%s base=%x" % (pid, tid, name, base) )
         self.memoryWriter.writeToFile("L %s %x %x\n" % (name, base,size))
-        self.checkInput(name,base,self.bCheckFileIO,self.bCheckNetworkIO)
+        if self.attachMode==False:
+            self.checkInput(name,base,self.bCheckFileIO,self.bCheckNetworkIO)
                                   
     def dbg_trace(self, tid, ip):
         instruction = GetDisasm(ip)
@@ -96,7 +98,7 @@ class ETDbgHook(DBG_Hooks):
 
     def dbg_suspend_process(self):
         
-        if self.startTrace == True:
+        if self.startTracing:
             self.logger.info( "Process suspended" )
             idc.TakeMemorySnapshot(0)
             idbPath = idc.GetIdbPath()
@@ -349,7 +351,6 @@ class ETDbgHook(DBG_Hooks):
         
         global instSeq
 
-        self.startTrace = True
         self.logger.info( "Taking a memory snapshot then saving to the current idb file.")
 
         self.logger.info("CallbackProcessing called.  Logging input... I %x %d %s 0x%x 0x%x %s 0x%x 0x%x" % \
@@ -364,6 +365,15 @@ class ETDbgHook(DBG_Hooks):
         eip = GetRegValue("EIP")
         DelBpt(eip)
         """
+        self.startTracing = True
         PauseProcess()
         
+    def startTrace(self):
+        self.startTracing = True
+        PauseProcess()
 
+    def stopTrace(self):
+        #self.dbg_step_into()
+       # idaapi.request_step_into()
+        idaapi.request_detach_process()
+        idaapi.run_requests()

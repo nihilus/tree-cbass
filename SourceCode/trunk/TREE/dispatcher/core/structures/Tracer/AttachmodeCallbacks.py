@@ -8,16 +8,23 @@ class AttachmodeFunctions(object):
         self.debuggerInstance = None
         self.filter = None
     
+    def SetLoggerInstance(self,logger):
+        self.logger = logger
+        
+    def SetDebuggerInstance(self,dbgHook):
+        self.debuggerInstance = dbgHook
+
+    def SetFilters(self,_filter):
+        self.filter = _filter
+        
     def startTrace(self):
         import idaapi
         
         self.logger.info("startTrace called")
-        idaapi.request_step_into()
-        idaapi.run_requests()
+        self.debuggerInstance.startTrace()
     
     def stopTrace(self):
         import idaapi
         
         self.logger.info("stopTrace called")
-        idaapi.dbg_process_detach()
-        idaapi.run_requests()
+        self.debuggerInstance.stopTrace()
