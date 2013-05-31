@@ -26,6 +26,7 @@ linuxFileIO = None
 customCallback = None
 attachmodeCallback = None
 
+
 #Need to have this first, evaluate everything with Python not IDC
 idaapi.enable_extlang_python(True)
 
@@ -33,11 +34,16 @@ class TreeTracerPluginFormClass(PluginForm):
     
     def __init__(self):
         super(TreeTracerPluginFormClass, self).__init__()
-        self.idaPluginDir = GetIdaDirectory() + "\\plugins\\"
-        self.iconPath = self.idaPluginDir + "\\dispatcher\\icons\\"
+        self.idaPluginDir = os.path.join(GetIdaDirectory(),"plugins")
+        print self.idaPluginDir
+        self.iconPath = os.path.join(self.idaPluginDir, "dispatcher","icons")
 
-        self.icon = QIcon(self.iconPath + "dispatcher.png")
-        configReader = ConfigReader(self.idaPluginDir+"\\settings.ini")
+        icon_path = os.path.join(self.iconPath , "dispatcher.png")
+        print icon_path
+        self.icon = QIcon( icon_path )
+        ini_path = os.path.join(self.idaPluginDir,"settings.ini")
+        print ini_path
+        configReader = ConfigReader(ini_path)
         configReader.Read()
         self.version= configReader.version
         

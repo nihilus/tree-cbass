@@ -161,12 +161,13 @@ class IDATrace():
     
     def createProcessConfig(self,name,osType,osArch):
         import idc
+        import os
         from dispatcher.core.structures.Tracer.Config.config import ConfigFile as ConfigFile
         from dispatcher.core.structures.Tracer.Config.config import ProcessConfig as ProcessConfig
         
         #Get the root IDA directory in order to locate the config.xml file
-        root_dir = idc.GetIdaDirectory() + "\\plugins\\"
-        configFile = root_dir + "\dispatcher\core\structures\Tracer\Config\config.xml"
+        root_dir = os.path.join( idc.GetIdaDirectory() ,"plugins")
+        configFile = os.path.join(root_dir,"dispatcher","core","structures","Tracer","Config","config.xml")
         Print( configFile )
         
         #Call ConfigFile to grab all configuration information from the config.xml file

@@ -9,11 +9,13 @@ class TraceGeneratorWidget(QMainWindow):
     """
     def __init__(self,parent,funcCallbacks):
         #from PySide import QtGui, QtCore
-        
+
         from ..core.DebugPrint import dbgPrint, Print
 
         from ..core.structures.Tracer import IDATrace
         from ..core.structures.Tracer.Config.config import ProcessConfig as ProcessConfig
+        
+        import os
         
         QtGui.QMainWindow.__init__(self)
         Print( "[|] loading TraceGenerationWidget" )
@@ -23,7 +25,8 @@ class TraceGeneratorWidget(QMainWindow):
         self.processConfig = ProcessConfig()
         self.parent = parent
         self.name = "Trace Generation"
-        tracer_icon_path = self.parent.iconPath+ "trace.png"
+    
+        tracer_icon_path = os.path.join(self.parent.iconPath, "trace.png")
         self.icon = QtGui.QIcon(tracer_icon_path)
         
         #References to qt-specific modules
@@ -218,7 +221,9 @@ class TraceGeneratorWidget(QMainWindow):
         Create that action that performs the trace
         """
         #from PySide.QtGui import QIcon
-        self.generateTraceAction = QtGui.QAction(QtGui.QIcon(self.parent.iconPath + "trace.png"), "Generate the trace.", self)
+        import os
+        icon_path = os.path.join(self.parent.iconPath,"trace.png")
+        self.generateTraceAction = QtGui.QAction(QtGui.QIcon(icon_path), "Generate the trace.", self)
         self.generateTraceAction.triggered.connect(self.onGenerateTraceButtonClicked)
         
     def _createProcessAttachAction(self):
@@ -226,7 +231,9 @@ class TraceGeneratorWidget(QMainWindow):
         Create that action to attach to a process
         """
         #from PySide.QtGui import QIcon
-        self.processAttachAction = QtGui.QAction(QtGui.QIcon(self.parent.iconPath + "attach.png"), "Attach to process.", self)
+        import os
+        icon_path = os.path.join(self.parent.iconPath, "attach.png")
+        self.processAttachAction = QtGui.QAction(QtGui.QIcon(icon_path), "Attach to process.", self)
         self.processAttachAction.triggered.connect(self.onAttachProcessButtonClicked)
 
     def onAttachProcessButtonClicked(self):
@@ -257,7 +264,7 @@ class TraceGeneratorWidget(QMainWindow):
         #start debugging
         self.getConfigFromGUI()
         if not self.pin_cb.isChecked():
-            self.idaTracer.run(self.processConfig.application)
+            self.idaTracer.run(self.processConfig)
         else:
             if self.remote_cb.isChecked():
                 if len(self.processConfig.host) > 0 :
@@ -273,8 +280,10 @@ class TraceGeneratorWidget(QMainWindow):
         """
         Save config
         """
+        import os
         #from PySide.QtGui import QIcon
-        self.saveConfigAction = QtGui.QAction(QtGui.QIcon(self.parent.iconPath + "save.png"), "Save config", self)
+        icon_path = os.path.join(self.parent.iconPath,"save.png")
+        self.saveConfigAction = QtGui.QAction(QtGui.QIcon(icon_path), "Save config", self)
         self.saveConfigAction.triggered.connect(self.onSaveConfigButtonClicked)
   
     def getConfigFromGUI(self):
