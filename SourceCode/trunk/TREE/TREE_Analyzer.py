@@ -39,7 +39,7 @@ class DispatcherForm(PluginForm):
         self.iconPath = os.path.join(self.idaPluginDir ,"dispatcher","icons")
         path = os.path.join(self.iconPath ,"dispatcher.png")
         self.icon = QIcon(path)
-        
+
     def setupWidgets(self):
         """
         Setup dispatcher widgets.
