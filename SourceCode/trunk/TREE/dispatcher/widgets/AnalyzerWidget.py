@@ -365,6 +365,7 @@ class AnalyzerWidget(QtGui.QMainWindow):
             
     def insert_node_br(self, s, depth):
         from ..core.structures.Parse.TaintNode import TaintNode
+        uuid = None
         try:
             uuid = self.extract_uuid(s)
         except AttributeError:

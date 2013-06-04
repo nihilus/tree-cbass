@@ -309,7 +309,7 @@ class VisualizerWidget(QtGui.QMainWindow):
             #standard
             #pos = nx.circular_layout(self.t_graph, scale=800)
             if self.policy == "TAINT_BRANCH":
-                self.genStandardLayoutBranch(self.t_graph, scale=800)
+                pos = self.genStandardLayoutBranch(self.t_graph, scale=800)
             else:
                 pos = self.genStandardLayout(self.t_graph, scale=800)
         #Select node connection and its decorator types
@@ -420,12 +420,86 @@ class VisualizerWidget(QtGui.QMainWindow):
         #
         numChains = 0
         roots = [n for n,d in t_graph.in_degree().items() if d == 0]
+        self.cur_chain = dict()
+        self.std_layout = dict()
+        x_counter = 0
+        y_counter = 0
+        y_chain_length = 20
+        for i in roots:
+            self.cur_chain[i] = 0
+            root = t_graph.node[i]['inode']
+            cur_x = x_counter*(scale/len(roots))
+            cur_y = 0
+            A = []
+            A.append(cur_x)
+            A.append(cur_y)
+            self.std_layout[i] = A
+            self.cur_chain[i] = cur_chain[i] + 1
+            #
+            #Supposedly recurse through an entire chain and the other chains should be unaffected
+            #Property that exists on the taint branch policy
+            #
+            print root
+            if root.child_c:
+                self.stdLayoutBrancRec(t_graph, scale, root.child_c, i, len(roots))
+            elif root.child_d:
+                self.stdLayoutBrancRec(t_graph, scale, root.child_d, i, len(roots))
+            else:
+                print root.child_c
+            x_counter = x_counter + 1
+            #for x in xrange(2**i)):
+            #    #cur_x = x_counter*(800/len(roots))
+            #    #cur_y = (600/y_chain_length)*y_counter
+            #    #A = []
+            #    #A.append(cur_x)
+            #    #A.append(cur_y)
+            #    #std_layout[i] = A
+            #    #cur_chain[i] = cur_chain[i] + 1
+            #print i
+            #print t_graph.node[i]['inode'].depth
+        #for i in t_graph:
+        
+    def stdLayoutBrancRec(self, t_graph, scale, node, chain, x_inc):
+        node_f = t_graph.node[node]['inode']
+        print node_f
+        root = t_graph.node[node]['inode']
+        cur_x = x_counter*(scale/x_inc)
+        cur_y = cur_chain[chain]*60
+        A = []
+        A.append(cur_x)
+        A.append(cur_y)
+        self.std_layout[i] = A
+        self.cur_chain[chain] = cur_chain[chain] + 1
+        if node_f.child_c:
+            self.stdLayoutBrancRec(t_graph, scale, node_f.child_c, i, x_inc)
+        elif node_f.child_d:
+            self.stdLayoutBrancRec(t_graph, scale, node_f.child_d, i, x_inc)
+        else:
+            print "end"
+            
+    def genStandardLayoutBranch2(self, t_graph, scale):
+        #
+        # Branch depth-based layout, columns are chain sequences
+        # Rows are depth levels
+        #
+        numChains = 0
+        roots = [n for n,d in t_graph.in_degree().items() if d == 0]
+        cur_chain = dict()
+        std_layout = dict()
         print roots
         for i in roots:
+            cur_chain[i] = 0
+            #for x in xrange(2**i)):
+            #    cur_x = x_counter*(scale/len(roots))
+            #    cur_y = (600/y_chain_length)*y_counter
+            #    A = []
+            #    A.append(cur_x)
+            #    A.append(cur_y)
+            #    std_layout[i] = A
+            #    cur_chain[i] = cur_chain[i] + 1
             print i
             print t_graph.node[i]['inode'].depth
-        #for i in t_graph:
-
+        #for i in t_graph
         
     def _createGraphView2(self, A):
         from ..core.structures.Graph.PySideGraph import *
@@ -551,7 +625,6 @@ class VisualizerWidget(QtGui.QMainWindow):
         bLoaded = isLoaded(int_addr)
         if bLoaded:
           print "Found addr: 0x%x" % int_addr
-          idc.MakeCode(int_addr)
           idc.Jump(int_addr)
         #self.filters_filename_table.insertRow(self.filters_filename_table.rowCount())
         #self.filters_filename_table.setItem(self.filters_filename_table.rowCount()-1, 0, self.QtGui.QTableWidgetItem(" "))
