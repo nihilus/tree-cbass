@@ -14,36 +14,58 @@ import logging
 import os.path
 import idaapi
 
-class FileIO:
-    
+class IO(object):
     def __init__(self):
         self.logger = None
-        self.debuggerInstance = None
+        self.lpBuffer = None
         self.filter = None
-        self.pBuffer = None
-        self.pSize = 0
-        self.handleSet = set()
-    
+        self.tempStack = []
+        
     def SetLoggerInstance(self,logger):
         self.logger = logger
         
     def SetDebuggerInstance(self,dbgHook):
         self.debuggerInstance = dbgHook
-    
+
     def SetFilters(self,_filter):
         self.filter = _filter
         
-    def My_freadEnd(self):
-        _buffer = idaapi.dbg_read_memory(self.pBuffer,self.pSize)
-        self.logger.debug( _buffer)
+class FileIO(IO):
+    
+    def __init__(self):
+        super(FileIO, self).__init__()
+        self.handleSet = set()
         
+    def My_freadEnd(self):
+
         numBytesRead = idc.GetRegValue("EAX")
         self.logger.info( "_fread read %d bytes." % (numBytesRead) )
         
+        pBuffer = self.tempStack.pop(0)
+        pSize = self.tempStack.pop(0)
+        stream = self.tempStack.pop(0)
+        callerAddr = self.tempStack.pop(0)
+        callerFuncName = self.tempStack.pop(0)
+        threadID = self.tempStack.pop(0)
+        
+        _buffer = idaapi.dbg_read_memory(pBuffer,pSize)
+        self.logger.debug( _buffer)
+        
+        inputLoggingList = []
+        
+        inputLoggingList.append(pBuffer)
+        inputLoggingList.append(pSize)
+        inputLoggingList.append(_buffer)
+        inputLoggingList.append(stream)
+        inputLoggingList.append(callerAddr)
+        inputLoggingList.append(callerFuncName)
+        inputLoggingList.append(threadID)
+        
         if numBytesRead > 0:
             self.logger.info( "_fread succeeded.")
-            self.debuggerInstance.callbackProcessing(self.pBuffer,self.pSize,_buffer)
+            self.debuggerInstance.callbackProcessing(inputLoggingList)
         else:
+            Print ("_fread failed." )
             self.logger.info( "_fread failed.")
         
         return 0
@@ -73,14 +95,18 @@ class FileIO:
         self.pBuffer = ptr
 
         retAddr = Util.GetData(0x0)
-        """
-        Not sure if I need this, comment out for now
         
-        bptConstant = idc.CheckBpt(retAddr)
-            
-        if bptConstant != idc.BPTCK_NONE:
-            idc.DelBpt(retAddr)
-        """    
+        callerAddr = retAddr-idc.ItemSize(retAddr)
+        
+        self.tempStack = []
+        self.tempStack.append(self.pBuffer)
+        self.tempStack.append(self.pSize)
+        self.tempStack.append(stream)
+        self.tempStack.append(callerAddr)
+
+        self.tempStack.append("fread")
+        self.tempStack.append(idc.GetCurrentThreadId())
+         
         if stream in self.handleSet:
             self.logger.info( "Found stream 0x%x" % stream)
             
@@ -89,6 +115,8 @@ class FileIO:
             idc.SetBptCnd(retAddr,"linuxFileIO.My_freadEnd()")
         else:
             self.logger.info( "Cannot find handle 0x%x" % stream)
+            Print( "Removing un-needed fread breakpoint." )
+            idc.DelBpt(retAddr)
 
         return 0
     

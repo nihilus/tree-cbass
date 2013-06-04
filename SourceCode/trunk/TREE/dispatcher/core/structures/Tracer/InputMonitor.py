@@ -147,56 +147,57 @@ def checkWindowsLibs(name,ea,bCheckFileIO,bCheckNetworkIO):
                 else:
                     logger.info( "wsock32_recv at 0x%x is data not code." % recv_func )
              
-def checkLinuxLibs(name,ea):
+def checkLinuxLibs(name,ea,bCheckFileIO,bCheckNetworkIO):
+    import idc
+    import logging
+    Print ("Found Libc at 0x%x" % ea)
+    logger = logging.getLogger('IDATrace')
     
+    logger.info( "Found Libc at 0x%x" % ea )
+    idc.RefreshDebuggerMemory() 
     library_name = name.upper()
+    
     Print( "Checking Linux for library " + library_name )
     
     if "LIBC" in library_name:
-        import idc
-        import logging
-        
-        # "Found Libc at 0x%x" % ea
-        logger = logging.getLogger('IDATrace')
-        
-        logger.info( "Found Libc at 0x%x" % ea )
-        idc.RefreshDebuggerMemory()              
-        
-        fopen_func = idc.LocByName("_IO_file_fopen");
-        
-        if fopen_func == idc.BADADDR:
-            logger.info( "Cannot find _IO_file_fopen" )
-            # "Cannot find _IO_file_fopen."
-        else:
-            logger.info( "We found _IO_file_fopen at 0x%x." % fopen_func )
-            Print( "We found _IO_file_fopen at 0x%x." % fopen_func )
-            idc.AddBpt(fopen_func)
-            idc.SetBptAttr(fopen_func, idc.BPT_BRK, 0)
-            idc.SetBptCnd(fopen_func, "linuxFileIO.My_fopen()")
-        
-        fread_func = idc.LocByName("_IO_fread");
-        
-        if fread_func == idc.BADADDR:
-            logger.info( "Cannot find _IO_fread" )
-            Print( "Cannot find _IO_fread." )
-        else:
-            logger.info( "We found _IO_fread at 0x%x." % fread_func )
-            Print( "We found _IO_fread at 0x%x." % fread_func  )
-            idc.AddBpt(fread_func)
-            idc.SetBptAttr(fread_func, idc.BPT_BRK, 0)
-            idc.SetBptCnd(fread_func, "linuxFileIO.My_fread()")
 
-        fclose_func = idc.LocByName("_IO_fclose");
-        
-        if fclose_func == idc.BADADDR:
-            logger.info( "Cannot find _IO_fclose" )
-            Print( "Cannot find _IO_fclose." )
-        else:
-            logger.info( "We found _IO_fclose at 0x%x." % fclose_func )
-            Print( "We found _IO_fclose at 0x%x." % fclose_func  )
-            idc.AddBpt(fclose_func)
-            idc.SetBptAttr(fclose_func, idc.BPT_BRK, 0)
-            idc.SetBptCnd(fclose_func, "linuxFileIO.My_fclose()")
+        if bCheckFileIO:
+            
+            fopen_func = idc.LocByName("_IO_file_fopen");
+            
+            if fopen_func == idc.BADADDR:
+                logger.info( "Cannot find _IO_file_fopen" )
+                # "Cannot find _IO_file_fopen."
+            else:
+                logger.info( "We found _IO_file_fopen at 0x%x." % fopen_func )
+                Print( "We found _IO_file_fopen at 0x%x." % fopen_func )
+                idc.AddBpt(fopen_func)
+                idc.SetBptAttr(fopen_func, idc.BPT_BRK, 0)
+                idc.SetBptCnd(fopen_func, "linuxFileIO.My_fopen()")
+            
+            fread_func = idc.LocByName("_IO_fread");
+            
+            if fread_func == idc.BADADDR:
+                logger.info( "Cannot find _IO_fread" )
+                Print( "Cannot find _IO_fread." )
+            else:
+                logger.info( "We found _IO_fread at 0x%x." % fread_func )
+                Print( "We found _IO_fread at 0x%x." % fread_func  )
+                idc.AddBpt(fread_func)
+                idc.SetBptAttr(fread_func, idc.BPT_BRK, 0)
+                idc.SetBptCnd(fread_func, "linuxFileIO.My_fread()")
+    
+            fclose_func = idc.LocByName("_IO_fclose");
+            
+            if fclose_func == idc.BADADDR:
+                logger.info( "Cannot find _IO_fclose" )
+                Print( "Cannot find _IO_fclose." )
+            else:
+                logger.info( "We found _IO_fclose at 0x%x." % fclose_func )
+                Print( "We found _IO_fclose at 0x%x." % fclose_func  )
+                idc.AddBpt(fclose_func)
+                idc.SetBptAttr(fclose_func, idc.BPT_BRK, 0)
+                idc.SetBptCnd(fclose_func, "linuxFileIO.My_fclose()")
         
 def checkMacOSXLibs(name,ea):
     Print( "Checking Mac OSX" )
