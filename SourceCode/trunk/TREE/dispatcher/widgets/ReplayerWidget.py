@@ -40,14 +40,14 @@ class ReplayerWidget(QtGui.QMainWindow):
         self.taint_nodes_label = QtGui.QLabel("Taint Nodes(0/0)")
         
         self._createToolbar()
-        
+        self._createTraceTable()
         self._createTaintTable()
         #Layout information
         self.graphView = QtGui.QGraphicsView()
         visualizer_layout = QtGui.QVBoxLayout()
         
         upper_table_widget = QtGui.QWidget()
-        upper_tables_layout = QtGui.QVBoxLayout()
+        upper_tables_layout = QtGui.QHBoxLayout()
         
         
         lower_tables_widget = QtGui.QTabWidget()
@@ -62,6 +62,7 @@ class ReplayerWidget(QtGui.QMainWindow):
         
         #lower_tables_layout.addWidget(QtGui.QGraphicsView(QtGui.QGraphicsScene()))
         upper_tables_layout.addWidget(self.graphView)
+        upper_tables_layout.addWidget(self.trace_table)
         upper_table_widget.setLayout(upper_tables_layout)
         
         splitter = self.QtGui.QSplitter(self.QtCore.Qt.Vertical)
@@ -78,6 +79,7 @@ class ReplayerWidget(QtGui.QMainWindow):
         """
         Create the toolbar
         """
+        self._createImportTraceAction()
         self._createTaintMarkAction()
         self._createForwardAction()
         self._createFastForwardAction()
@@ -88,13 +90,14 @@ class ReplayerWidget(QtGui.QMainWindow):
         self._createTaintCheckAction()
         
         self.toolbar = self.addToolBar('Trace Generation Toolbar')
+        self.toolbar.addAction(self.importTraceAction)
         self.toolbar.addAction(self.taintMarkAction)
         self.toolbar.addAction(self.forwardAction)
         self.toolbar.addAction(self.fastForwardAction)
         self.toolbar.addAction(self.infoAction)
         self.toolbar.addAction(self.zoomAction)
-        self.toolbar.addAction(self.backwardAction)
         self.toolbar.addAction(self.rewindAction)
+        self.toolbar.addAction(self.backwardAction)
         self.toolbar.addAction(self.taintCheckAction)
         
     def _definePropEnum(self):
@@ -108,12 +111,27 @@ class ReplayerWidget(QtGui.QMainWindow):
         self.layout_prop.append("Spectral")
         self.layout_prop.append("Standard")
         
+    def _createTraceTable(self):
+        """
+        Create the top table used for showing all
+        """
+        self.trace_table = QtGui.QTableWidget()
+        #self.trace_table.clicked.connect(self.onTaintClicked)
+        #self.taint_table.doubleClicked.connect(self.onProcessDoubleClicked)
+        
+    def _createImportTraceAction(self):
+        """
+        Create the refresh action for the oolbar. triggers a scan of virtualmachines and updates the GUI.
+        """
+        self.importTraceAction = QtGui.QAction(QIcon(self.parent.iconPath + "import.png"), "Import trace", self)
+        self.importTraceAction.triggered.connect(self._onImportTraceButtonClicked)
+        
     def _createTaintMarkAction(self):
         """
         Create the refresh action for the oolbar. triggers a scan of virtualmachines and updates the GUI.
         """
-        self.taintMarkAction = QtGui.QAction(QIcon(self.parent.iconPath + "refresh.png"), "Refresh the " \
-            + "view", self)
+        self.taintMarkAction = QtGui.QAction(QIcon(self.parent.iconPath + "taintmark.png"), "Mark a " \
+            + "taint", self)
         self.taintMarkAction.triggered.connect(self._onTaintMarkButtonClicked)
         
     def _createForwardAction(self):
@@ -121,8 +139,8 @@ class ReplayerWidget(QtGui.QMainWindow):
         Create the import trace action
         """
         self.forwardAction = QtGui.QAction(QIcon(self.parent.iconPath +
-        "import.png"),
-            "Import the trace file", self)
+        "forward.png"),
+            "Forward", self)
         self.forwardAction.triggered.connect(self._onForwardButtonClicked)
         
     def _createFastForwardAction(self):
@@ -130,8 +148,8 @@ class ReplayerWidget(QtGui.QMainWindow):
         Create the import trace action
         """
         self.fastForwardAction = QtGui.QAction(QIcon(self.parent.iconPath +
-        "import.png"),
-            "Import the trace file", self)
+        "fastforward.png"),
+            "Fast Forward", self)
         self.fastForwardAction.triggered.connect(self._onFastForwardButtonClicked)
         
     def _createInfoAction(self):
@@ -139,8 +157,8 @@ class ReplayerWidget(QtGui.QMainWindow):
         Create the import trace action
         """
         self.infoAction = QtGui.QAction(QIcon(self.parent.iconPath +
-        "import.png"),
-            "Import the trace file", self)
+        "info.png"),
+            "Info", self)
         self.infoAction.triggered.connect(self._onInfoButtonClicked)
         
     def _createZoomAction(self):
@@ -148,8 +166,8 @@ class ReplayerWidget(QtGui.QMainWindow):
         Create the import trace action
         """
         self.zoomAction = QtGui.QAction(QIcon(self.parent.iconPath +
-        "import.png"),
-            "Import the trace file", self)
+        "zoom.png"),
+            "Zoom", self)
         self.zoomAction.triggered.connect(self._onZoomButtonClicked)
         
     def _createBackwardAction(self):
@@ -157,8 +175,8 @@ class ReplayerWidget(QtGui.QMainWindow):
         Create the import trace action
         """
         self.backwardAction = QtGui.QAction(QIcon(self.parent.iconPath +
-        "import.png"),
-            "Import the trace file", self)
+        "backward.png"),
+            "Backwards", self)
         self.backwardAction.triggered.connect(self._onBackwardButtonClicked)
         
     def _createRewindAction(self):
@@ -166,8 +184,8 @@ class ReplayerWidget(QtGui.QMainWindow):
         Create the import trace action
         """
         self.rewindAction = QtGui.QAction(QIcon(self.parent.iconPath +
-        "import.png"),
-            "Import the trace file", self)
+        "rewind.png"),
+            "Rewind", self)
         self.rewindAction.triggered.connect(self._onRewindButtonClicked)
         
     def _createTaintCheckAction(self):
@@ -175,8 +193,8 @@ class ReplayerWidget(QtGui.QMainWindow):
         Create the import trace action
         """
         self.taintCheckAction = QtGui.QAction(QIcon(self.parent.iconPath +
-        "import.png"),
-            "Import the trace file", self)
+        "taintcheck.png"),
+            "Taint Check", self)
         self.taintCheckAction.triggered.connect(self._onTaintCheckButtonClicked)
         
     def _createTaintTable(self):
@@ -203,6 +221,17 @@ class ReplayerWidget(QtGui.QMainWindow):
         self.taint_table.setSelectionMode(self.QtGui.QAbstractItemView.SingleSelection)
         self.taint_table.resizeColumnsToContents()
         self.taint_table.setSortingEnabled(True)
+        
+    def _onImportTraceButtonClicked(self):
+        """
+        Action for refreshing the window data by checking each process
+        """
+        #self._createGraphView()
+        fname, _ = self.QtGui.QFileDialog.getOpenFileName(self, 'Import Trace')
+        self.trace_fname = fname
+        self.populateTraceTable()
+        #self.genTraceTable()
+        
         
     def _onTaintMarkButtonClicked(self):
         """
@@ -549,6 +578,54 @@ class ReplayerWidget(QtGui.QMainWindow):
         print "[debug] trace imported from file into dictionary"
         f.close()
         
+    def populateTraceTable(self):
+        """
+        Method for populating the taints table
+        """
+        f=open(self.trace_fname, 'r')
+        # read input file line by line
+        trace_nodes = []
+        for line in f:
+            #Hard implementation of 'E' search
+            if line.startswith('E'):
+                trace_nodes.append(line)
+                #splitted = line.split(' ')
+                #self.node_ea[splitted[5]] = splitted[1]
+        f.close()
+        self.trace_table.setSortingEnabled(False)
+        self.trace_header_labels = ["EA", "2", "3", "4", "5", "6"]
+        self.trace_table.clear()
+        self.trace_table.setColumnCount(len(self.trace_header_labels))
+        self.trace_table.setHorizontalHeaderLabels(self.trace_header_labels)
+        self.trace_table.setSelectionMode(self.QtGui.QAbstractItemView.SingleSelection)
+        self.trace_table.resizeColumnsToContents()
+        self.trace_table.setSortingEnabled(True)
+        self.trace_table.setRowCount(len(trace_nodes))
+        self.trace_table.setContextMenuPolicy(self.QtCore.Qt.CustomContextMenu)
+        self.trace_table.customContextMenuRequested.connect(self.handleTraceMenu)
+        for row, ynode in enumerate(trace_nodes):
+            splitted = ynode.split(' ')
+            for column, column_name in enumerate(self.trace_header_labels):
+                ##@self.process_header_labels = ["UUID", "Type", "Name", "StartInd", "EndInd", "Edge Anno", "Child C", "Child D"]
+                if column == 0:
+                    tmp_item = self.QtGui.QTableWidgetItem(splitted[1])
+                elif column == 1:
+                    tmp_item = self.QtGui.QTableWidgetItem(splitted[2])
+                elif column == 2:
+                    tmp_item = self.QtGui.QTableWidgetItem(splitted[3])
+                elif column == 3:
+                    tmp_item = self.QtGui.QTableWidgetItem(splitted[4])
+                elif column == 4:
+                    tmp_item = self.QtGui.QTableWidgetItem(splitted[5])
+                elif column == 5:
+                    tmp_item = self.QtGui.QTableWidgetItem(''.join(splitted[6:]))
+                tmp_item.setFlags(tmp_item.flags() & ~self.QtCore.Qt.ItemIsEditable)
+                self.trace_table.setItem(row, column, tmp_item)
+            self.trace_table.resizeRowToContents(row)
+        self.trace_table.setSelectionMode(self.QtGui.QAbstractItemView.SingleSelection)
+        self.trace_table.resizeColumnsToContents()
+        self.trace_table.setSortingEnabled(True)
+        
     def populateTaintsTableImported(self):
         """
         Method for populating the taints table
@@ -615,6 +692,25 @@ class ReplayerWidget(QtGui.QMainWindow):
         self.connect(addr, self.QtCore.SIGNAL('triggered()'), self.addrGo)
         menu.addAction(addr)
         menu.exec_(self.QtGui.QCursor.pos())
+        
+    def handleTraceMenu(self, pos):
+        menu = self.QtGui.QMenu()
+        addr = self.QtGui.QAction("Mark Taint", menu)
+        addr.setStatusTip("Mark Taint")
+        menu.addAction(addr)
+        self.connect(addr, self.QtCore.SIGNAL('triggered()'), self.markTaint)
+        addr = self.QtGui.QAction("Splice Start", menu)
+        addr.setStatusTip("Mark Splice Start")
+        self.connect(addr, self.QtCore.SIGNAL('triggered()'), self.addrGo)
+        menu.addAction(addr)
+        addr = self.QtGui.QAction("Splice End", menu)
+        addr.setStatusTip("Mark Splice End")
+        self.connect(addr, self.QtCore.SIGNAL('triggered()'), self.addrGo)
+        menu.addAction(addr)
+        menu.exec_(self.QtGui.QCursor.pos())
+        
+    def markTaint(self):
+        self.trace_table.currentItem().row()
         
     def addrGo(self):
         from idc import *
