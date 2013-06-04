@@ -34,28 +34,11 @@ class DispatcherForm(PluginForm):
         global HOTKEYS
         HOTKEYS = []
         self.dispatcher_widgets = []
-        self.idaPluginDir = GetIdaDirectory() + "\\plugins\\"
-        self.iconPath = self.idaPluginDir + "\\dispatcher\\icons\\"
-
-        self.icon = QIcon(self.iconPath + "dispatcher.png")
+        self.idaPluginDir = os.path.join(GetIdaDirectory(),"plugins")
         
-    def ensureRootPathSanity(self, configuration):
-        try:
-            root_dir = configuration["paths"]["dispatcher_root_dir"]
-            if not os.path.exists(root_dir) or not "TREE_Analyzer.py" in os.listdir(root_dir):
-                print "[!] Dispatcher.py is not present in root directory specified in \"config.py\", " \
-                    + "trying to resolve path..."
-                resolved_pathname = os.path.dirname(sys.argv[0])
-                if "TREE_Analyzer.py" in os.listdir(resolved_pathname):
-                    print "[+] Dispatcher root directory successfully resolved."
-                    configuration["paths"]["dispatcher_root_dir"] = resolved_pathname
-                else:
-                    print "[-] TREE_Analyzer.py is not resolvable!"
-                    raise Exception()
-        except:
-            print "[!] Dispatcher config is broken. Could not locate root directory. " \
-                 + "Try setting the field \"idascope_root_dir\" to the path where \"TREE_Analyzer.py\" is located."
-            sys.exit(-1)
+        self.iconPath = os.path.join(self.idaPluginDir ,"dispatcher","icons")
+        path = os.path.join(self.iconPath ,"dispatcher.png")
+        self.icon = QIcon(path)
         
     def setupWidgets(self):
         """

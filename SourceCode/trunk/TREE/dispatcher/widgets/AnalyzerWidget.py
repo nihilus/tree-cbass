@@ -7,6 +7,8 @@ except:
 from PySide import QtGui, QtCore
 from PySide.QtGui import QIcon
 
+import os
+
 class AnalyzerWidget(QtGui.QMainWindow):
     """
     This widget is the front-end for the trace generations.
@@ -17,7 +19,8 @@ class AnalyzerWidget(QtGui.QMainWindow):
         # Access to shared modules
         self.parent = parent
         self.name = "Taint Analysis"
-        self.icon = QIcon(self.parent.iconPath + "trace.png")
+        path = os.path.join(self.parent.iconPath, "trace.png")
+        self.icon = QIcon(path)
         
         #References to qt-specific modules
         self.QtGui = QtGui
@@ -167,7 +170,8 @@ class AnalyzerWidget(QtGui.QMainWindow):
         """
         Create the refresh action for the oolbar. triggers a scan of virtualmachines and updates the GUI.
         """
-        self.refreshAction = QtGui.QAction(QIcon(self.parent.iconPath + "refresh.png"), "Refresh the " \
+        path = os.path.join(self.parent.iconPath , "refresh.png")
+        self.refreshAction = QtGui.QAction(QIcon(path), "Refresh the " \
             + "taint data", self)
         self.refreshAction.triggered.connect(self._onRefreshButtonClicked)
         
@@ -175,16 +179,17 @@ class AnalyzerWidget(QtGui.QMainWindow):
         """
         Create that action that performs the trace
         """
-        self.generateAnalyzeAction = QtGui.QAction(QIcon(self.parent.iconPath + \
-            "trace.png"), "Generate the taint graph", self)
+        path = os.path.join(self.parent.iconPath,"trace.png")
+        self.generateAnalyzeAction = QtGui.QAction(QIcon(path), "Generate the taint graph", self)
         self.generateAnalyzeAction.triggered.connect(self.onStartAnalyzeButtonClicked)
         
     def _createImportTraceAction(self):
         """
         Create the import trace action
         """
-        self.importTraceAction = QtGui.QAction(QIcon(self.parent.iconPath +
-        "import.png"),
+        path = os.path.join(self.parent.iconPath,"import.png")
+
+        self.importTraceAction = QtGui.QAction(QIcon(path),
             "Import the trace file", self)
         self.importTraceAction.triggered.connect(self.onImportTraceButtonClicked)
         

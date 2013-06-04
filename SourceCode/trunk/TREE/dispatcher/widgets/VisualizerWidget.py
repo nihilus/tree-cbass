@@ -10,6 +10,7 @@ from idaapi import *
 from idautils import *
 from idc import *
 from ..core.structures.Graph.PySideGraph import *
+import os
 
 class VisualizerWidget(QtGui.QMainWindow):
     """
@@ -21,7 +22,8 @@ class VisualizerWidget(QtGui.QMainWindow):
         # Access to shared modules
         self.parent = parent
         self.name = "Visualizer"
-        self.icon = QIcon(self.parent.iconPath + "trace.png")
+        path = os.path.join(self.parent.iconPath,"trace.png")
+        self.icon = QIcon(path)
         
         #References to qt-specific modules
         self.QtGui = QtGui
@@ -112,7 +114,8 @@ class VisualizerWidget(QtGui.QMainWindow):
         """
         Create the refresh action for the oolbar. triggers a scan of virtualmachines and updates the GUI.
         """
-        self.refreshAction = QtGui.QAction(QIcon(self.parent.iconPath + "refresh.png"), "Refresh the " \
+        path = os.path.join(self.parent.iconPath,"refresh.png")
+        self.refreshAction = QtGui.QAction(QIcon(path), "Refresh the " \
             + "view", self)
         self.refreshAction.triggered.connect(self._onRefreshButtonClicked)
         
@@ -121,18 +124,16 @@ class VisualizerWidget(QtGui.QMainWindow):
         """
         Create the import trace action
         """
-        self.importTraceAction = QtGui.QAction(QIcon(self.parent.iconPath +
-        "import.png"),
-            "Import the trace file", self)
+        path = os.path.join(self.parent.iconPath,"import.png")
+        self.importTraceAction = QtGui.QAction(QIcon(path), "Import the trace file", self)
         self.importTraceAction.triggered.connect(self.onImportTraceButtonClicked)
         
     def _createIDAGraphAction(self):
         """
         Create the import trace action
         """
-        self.importIDAGraphAction = QtGui.QAction(QIcon(self.parent.iconPath +
-        "online.png"),
-            "Generate IDA Graph", self)
+        path = os.path.join(self.parent.iconPath,"online.png")
+        self.importIDAGraphAction = QtGui.QAction(QIcon(path),"Generate IDA Graph", self)
         self.importIDAGraphAction.triggered.connect(self.onIDAGraphClicked)
         
     def _createImportIndexAction(self):
