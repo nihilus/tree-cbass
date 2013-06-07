@@ -140,10 +140,25 @@ class TraceGeneratorWidget(QMainWindow):
         self.gridLayout_3.addWidget(self.remote_cb, 1, 0, 1, 1)
         self.gridLayout_3.addWidget(self.pin_cb, 1, 1, 1, 1)
         
+        self.configParaLayout1 = QtGui.QVBoxLayout()
+        self.configParaLayout1.setObjectName("configParaLayout1")
+        
+        self.interactiveModeLayout = QtGui.QHBoxLayout()
+        self.interactiveModeLayout.setObjectName("interactiveModeLayout")
+        
+        self.interactive_cb = QtGui.QCheckBox(self.gridLayoutWidget_3)
+        self.interactive_cb.setObjectName("interactive_cb")
+
+        self.interactive_cb.stateChanged.connect(self.interactive_cbStateChanged)
+        self.interactiveModeLayout.addWidget(self.interactive_cb)
+        self.configParaLayout1.addLayout(self.interactiveModeLayout)
+        
         self.horizontalLayout_7 = QtGui.QHBoxLayout()
         self.horizontalLayout_7.setObjectName("horizontalLayout_7")
+            
         self.verticalLayout_5 = QtGui.QVBoxLayout()
         self.verticalLayout_5.setObjectName("verticalLayout_5")
+        
         self.application_label = QtGui.QLabel(self.gridLayoutWidget_3)
         self.application_label.setObjectName("applicationlabel")
         self.verticalLayout_5.addWidget(self.application_label)
@@ -154,8 +169,10 @@ class TraceGeneratorWidget(QMainWindow):
         self.arguments_label.setObjectName("arguments_label")
         self.verticalLayout_5.addWidget(self.arguments_label)
         self.horizontalLayout_7.addLayout(self.verticalLayout_5)
+        
         self.verticalLayout_6 = QtGui.QVBoxLayout()
         self.verticalLayout_6.setObjectName("verticalLayout_6")
+        
         self.application_edit = QtGui.QLineEdit(self.gridLayoutWidget_3)
         self.application_edit.setObjectName("application_edit")
         self.verticalLayout_6.addWidget(self.application_edit)
@@ -166,7 +183,10 @@ class TraceGeneratorWidget(QMainWindow):
         self.arguments_edit.setObjectName("arguments_edit")
         self.verticalLayout_6.addWidget(self.arguments_edit)
         self.horizontalLayout_7.addLayout(self.verticalLayout_6)
-        self.gridLayout_3.addLayout(self.horizontalLayout_7, 0, 0, 1, 1)
+        
+        self.configParaLayout1.addLayout(self.horizontalLayout_7)
+        
+        self.gridLayout_3.addLayout(self.configParaLayout1, 0, 0, 1, 1)
         self.retranslateUi()
         
         splitter1 = QtGui.QSplitter(QtCore.Qt.Horizontal)
@@ -200,6 +220,7 @@ class TraceGeneratorWidget(QMainWindow):
         self.port_label.setText("Port     ")
         self.remote_cb.setText("Remote")
         self.pin_cb.setText("PIN")
+        self.interactive_cb.setText("Interactive Mode")
         self.path_label.setText("Path:")
         self.arguments_label.setText("Arguments:    ")
 
@@ -240,11 +261,15 @@ class TraceGeneratorWidget(QMainWindow):
         """
         Action for calling the trace functionality 
         """
+        import idc
         
         #start debugging
         self.getConfigFromGUI()
         if not self.pin_cb.isChecked():
-            self.idaTracer.attach(self.processConfig)
+            if self.idaTracer.taintStart is None or self.idaTracer.taintStop is None:
+               idc.Warning("Please set the starting and stopping points before using Attach Mode")
+            else:
+                self.idaTracer.attach(self.processConfig)
         else:
             if self.remote_cb.isChecked():
                 if len(self.processConfig.host) > 0 :
@@ -461,8 +486,13 @@ class TraceGeneratorWidget(QMainWindow):
         if state == self.QtCore.Qt.Checked:
             self.path_edit.selectAll()
         
-            
+    def interactive_cbStateChanged(self,state):
         
+        if state == self.QtCore.Qt.Checked:
+            self.filters_qb.setDisabled(1)
+        else:
+            self.filters_qb.setEnabled(1)
+            
     def pinCommunication(self, host="127.0.0.1",port=23966,bRemote=False):
         #
         # Most of this is stub code, waiting on the pin agent implementation

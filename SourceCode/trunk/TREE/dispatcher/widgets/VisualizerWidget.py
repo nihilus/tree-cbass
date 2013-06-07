@@ -33,6 +33,7 @@ class VisualizerWidget(QtGui.QMainWindow):
         self._definePropEnum()
         self._createGui()
         self.t_graph = nx.MultiDiGraph()
+        #The taint graph object was added to prevent openning multiple instance the IDA Graphviewer
         self.taintGraph = None
         
     def _createGui(self):
@@ -241,6 +242,8 @@ class VisualizerWidget(QtGui.QMainWindow):
         from ..core.structures.Graph.TaintGraph import TaintGraph
         from ..core.structures.Graph.BCTaintGraph import BCTaintGraph
         
+        #Check if its the first time we've generated the taint graph
+        #Close the graph if its was generated earlier
         if self.taintGraph is not None:
           print "Closing taint graph"
           self.taintGraph.Close()

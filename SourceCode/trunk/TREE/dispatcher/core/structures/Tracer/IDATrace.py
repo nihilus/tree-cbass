@@ -24,56 +24,49 @@ class IDATrace():
         self.config = None
         (processName, osType, osArch) = self.getProcessInfo()
         self.processConfig = self.createProcessConfig(processName, osType, osArch)
-        
-        try:
-            taintStart_ctx
+
+        #register the hotkey for marking the starting point for taint tracking
+        taintStart_ctx = idaapi.add_hotkey("Shift-A", self.taintStart)
+        self.taintStart = None
+        #register the hotkey for marking the stopping point for taint tracking
+        taintStop_ctx = idaapi.add_hotkey("Shift-Z", self.taintStop)
+        self.taintStop = None
     
-            if idaapi.del_hotkey(taintStart_ctx):
-                Print ("Hotkey taint start hotkey unregistered!")
-                del taintStart_ctx
-            else:
-                Print("Failed to delete taint start hotkey!")
-        except:
-            taintStart_ctx = idaapi.add_hotkey("Shift-A", self.taintStart)
-            if taintStart_ctx is None:
-                print("Failed to register taint start hotkey!")
-                del taintStart_ctx
-            else:
-                Print ("Hotkey taint start registered!")
-                
-        try:
-            taintStop_ctx
-    
-            if idaapi.del_hotkey(taintStop_ctx):
-                Print ("Hotkey taint stop hotkey unregistered!")
-                del taintStop_ctx
-            else:
-                Print("Failed to delete taint stop hotkey!")
-        except:
-            taintStop_ctx = idaapi.add_hotkey("Shift-Z", self.taintStop)
-            if taintStop_ctx is None:
-                print("Failed to register taint stop hotkey!")
-                del taintStop_ctx
-            else:
-                Print ("Hotkey taint stop registered!")
-        
+    """
+    This function is the callback function when the user hits the Shift-A hotkey.
+    This will set the starting break point for our interactive tainting
+    """
     def taintStart(self):
         import idc
         Print("Taint Start pressed!")
-        taintStart = idc.ScreenEA()
-        Print( idc.GetDisasm(taintStart) )
-        idc.AddBpt(taintStart)
-        idc.SetBptAttr(taintStart, idc.BPT_BRK, 0)
-        idc.SetBptCnd(taintStart, "attachmodeCallback.startTrace()")
-                
+        #Remove the starting breakpoint
+        if self.taintStart is not None:
+            idc.DelBpt(self.taintStart)
+        
+        #Add a new starting breakpoint
+        self.taintStart = idc.ScreenEA()
+        Print( idc.GetDisasm(self.taintStart) )
+        idc.AddBpt(self.taintStart)
+        idc.SetBptAttr(self.taintStart, idc.BPT_BRK, 0)
+        idc.SetBptCnd(self.taintStart, "attachmodeCallback.startTrace()")
+    
+    """
+    This function is the callback function when the user hits the Shift-Z hotkey.
+    This will set the stopping break point for our interactive tainting
+    """           
     def taintStop(self):
         import idc
         Print("Taint Stop pressed!")
-        taintStop = idc.ScreenEA()
-        Print( idc.GetDisasm(taintStop) )
-        idc.AddBpt(taintStop)
-        idc.SetBptAttr(taintStop, idc.BPT_BRK, 0)
-        idc.SetBptCnd(taintStop, "attachmodeCallback.stopTrace()")
+        #Remove the stopping breakpoint
+        if self.taintStop is not None:
+            idc.DelBpt(self.taintStop)
+        
+        #Add a new stopping breakpoint
+        self.taintStop = idc.ScreenEA()
+        Print( idc.GetDisasm(self.taintStop) )
+        idc.AddBpt(self.taintStop)
+        idc.SetBptAttr(self.taintStop, idc.BPT_BRK, 0)
+        idc.SetBptCnd(self.taintStop, "attachmodeCallback.stopTrace()")
         
     def getRunningProcesses(self,process_name):
         import idc
@@ -84,12 +77,10 @@ class IDATrace():
         Print("Searching for %s" % process_name )
         
         for i in range(numOfProcessesRunning):
-            Print("Process ID=[%d], %s" % (idc.GetProcessPid(i),idc.GetProcessName(i) ))
+            #Print("Process ID=[%d], %s" % (idc.GetProcessPid(i),idc.GetProcessName(i) ))
             
             if process_name in idc.GetProcessName(i):
                 return idc.GetProcessPid(i)
-
-            
 
         return -1
 
