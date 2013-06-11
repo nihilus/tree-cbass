@@ -16,8 +16,6 @@ from PySide.QtGui import QIcon
 
 from dispatcher.widgets.AnalyzerWidget import AnalyzerWidget
 from dispatcher.widgets.VisualizerWidget import VisualizerWidget
-from dispatcher.widgets.ConcurrencyWidget import ConcurrencyWidget
-from dispatcher.widgets.ReplayerWidget import ReplayerWidget
 
 HOTKEYS = None
 DISPATCHER = None
@@ -48,9 +46,6 @@ class DispatcherForm(PluginForm):
         print ("[/] setting up widgets...")
         self.dispatcher_widgets.append(AnalyzerWidget(self))
         self.dispatcher_widgets.append(VisualizerWidget(self))
-        self.dispatcher_widgets.append(ReplayerWidget(self))
-        #self.dispatcher_widgets.append(ConcurrencyWidget(self))
-        #self.dispatcher_widgets.append(TaintVisualizerWidget(self))
         self.setupDispatcherForm()
         print("[\\] this took %3.2f seconds.\n" % (time.time() - time_before))
         

@@ -22,10 +22,10 @@ from networkx import *
 
 G=complete_graph(5)   # start with K5 in networkx
 A=to_agraph(G)        # convert to a graphviz graph
+A.layout(prog='dot')
 X1=from_agraph(A)     # convert back to networkx (but as Graph)
 X2=Graph(A)          # fancy way to do conversion
 G1=Graph(X1)          # now make it a Graph 
-
 A.write('k5.dot')     # write to dot file
 X3=read_dot('k5.dot') # read from dotfile
 
