@@ -17,7 +17,7 @@ class IDATrace():
         import idc
         import os
         
-        from dispatcher.core.Util import ConfigReader
+        from dispatcher.core.Util import ConfigReader, unique_file_name
         from dispatcher.core.structures.Tracer.Config.config import ConfigFile as ConfigFile
         
         #Get the root IDA directory in order to locate the config.xml file
@@ -30,7 +30,6 @@ class IDATrace():
         self.windowsFileIO       = funcCallbacks['windowsFileIO']
         self.windowsNetworkIO    = funcCallbacks['windowsNetworkIO']
         self.linuxFileIO         = funcCallbacks['linuxFileIO'] 
-        self.customCallback      = funcCallbacks['customCallback']
         self.interactivemodeCallback  = funcCallbacks['interactivemodeCallback']
                 
         #register the hotkey for marking the starting point for taint tracking
@@ -49,11 +48,16 @@ class IDATrace():
         configReader.Read(ini_path)
 
         filePath = os.path.splitext(configReader.traceFile)
+        processBasename = os.path.splitext(processName)
+        
+        self.tracefile = filePath[0] + "_" + processBasename[0] + filePath[1]
+        self.tracefile = unique_file_name(self.tracefile)
+        Print(self.tracefile)
 
-        self.tracefile = filePath[0] + "_" + processName[0] + filePath[1]
-
+        self.treeTracefile = self.tracefile + ".TREE"
+        
         self.logger = None
-        logfile = filePath[0] + "_log_" +processName[0] + ".log"
+        logfile = filePath[0] + "_log_" +processBasename[0] + ".log"
         
         self.initLogging(logfile,configReader.logging,configReader.debugging)
 
@@ -281,7 +285,7 @@ class IDATrace():
         
         idaapi.set_process_options(application,args,sdir,host,_pass,port)
 
-        self.EThook = ETDbgHook(self.tracefile,self.logger,interactiveMode)
+        self.EThook = ETDbgHook(self.tracefile,self.treeTracefile,self.logger,interactiveMode)
         self.EThook.hook()
         self.EThook.steps = 0
              
@@ -291,8 +295,7 @@ class IDATrace():
         from dispatcher.core.structures.Tracer import InputMonitor as InputMonitor
         from dispatcher.core.structures.Tracer.Arch.x86.Windows import WindowsApiCallbacks as WindowsApiCallbacks
         from dispatcher.core.structures.Tracer.Arch.x86.Linux import LinuxApiCallbacks as LinuxApiCallbacks
-        from dispatcher.core.structures.Tracer import CustomCallbacks as CustomCallbacks
-    
+
         self.setDebuggerOptions(processConfig,False)
         filters = dict()
         
@@ -346,19 +349,7 @@ class IDATrace():
                 self.linuxNetworkIO.SetDebuggerInstance(self.EThook)
                 self.linuxNetworkIO.SetFilters(filters)
                 self.linuxNetworkIO.SetLoggerInstance(self.logger)
-            
-        customBreakpoints = processConfig.getCustomBreakpoints()
-        
-        if len(customBreakpoints) > 0:
-            self.customCallback.SetDebuggerInstance(self.EThook)
-            self.customCallback.SetFilters(filters)
-            
-            for breakPoint, callBack in customBreakpoints.items():
-                idc.AddBpt(breakPoint)
-                idc.SetBptCnd(breakPoint,callBack)
-        else:
-            Print( "No custom breakpoints." )
-            
+   
         self.logger.info("Starting to trace..please wait...")
         idaapi.run_to(idaapi.cvar.inf.maxEA)
     

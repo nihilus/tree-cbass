@@ -34,7 +34,7 @@ isa_bits=32
 
 class ETDbgHook(DBG_Hooks):
 
-    def __init__(self, traceFile,logger,mode):
+    def __init__(self, traceFile,treeTraceFile,logger,mode):
         super(ETDbgHook, self ).__init__()
         self.logger = logger
 
@@ -50,6 +50,7 @@ class ETDbgHook(DBG_Hooks):
         self.bCheckFileIO = False
         self.bCheckNetworkIO = False
         self.memoryWriter.fileOpen(traceFile)
+        self.treeIDBFile = treeTraceFile
         self.startTracing = False
         self.interactiveMode = mode
 
@@ -98,8 +99,9 @@ class ETDbgHook(DBG_Hooks):
         if self.startTracing:
             self.logger.info( "Process suspended" )
             idc.TakeMemorySnapshot(0)
-            idbPath = idc.GetIdbPath()
-            idc.SaveBase(idbPath)
+            #idbPath = idc.GetIdbPath()
+
+            idc.SaveBase(self.treeIDBFile)
             
             self.dbg_step_into()
             idaapi.request_step_into()
