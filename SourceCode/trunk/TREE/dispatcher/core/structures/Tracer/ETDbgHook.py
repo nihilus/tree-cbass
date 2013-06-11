@@ -34,10 +34,10 @@ isa_bits=32
 
 class ETDbgHook(DBG_Hooks):
 
-    def __init__(self, targetProcess,logger):
+    def __init__(self, traceFile,logger,mode):
         super(ETDbgHook, self ).__init__()
         self.logger = logger
-        self.bDbg = targetProcess.bDbg
+
         hostOS = None
         if(sys.platform == 'win32'):
             hostOS = WINDOWS
@@ -46,16 +46,14 @@ class ETDbgHook(DBG_Hooks):
         self.xDecoder32 = x86Decoder(isa_bits,32, hostOS)
         #self.memoryWriter = BufferWriter()
         self.memoryWriter = FileWriter()
-        self.tracefileName = targetProcess.traceFile
         self.checkInput = None
         self.bCheckFileIO = False
         self.bCheckNetworkIO = False
-        self.memoryWriter.fileOpen(self.tracefileName)
+        self.memoryWriter.fileOpen(traceFile)
         self.startTracing = False
-        self.attachMode = False
+        self.interactiveMode = mode
 
     def dbg_process_start(self, pid, tid, ea, name, base, size):
-        self.attachMode=False
         self.logger.info("Process started, pid=%d tid=%d name=%s ea=0x%x" % (pid, tid, name,ea))
         self.memoryWriter.writeToFile("L %s %x %x\n" % (name, base, size))
 
@@ -63,22 +61,21 @@ class ETDbgHook(DBG_Hooks):
         self.logger.info("Process exited pid=%d tid=%d ea=0x%x code=%d" % (pid, tid, ea, code))
         self.memoryWriter.writeToFile("T 0x%x %d\n" % ( ea, code))
         self.memoryWriter.fileClose()
-        
+ 
     def dbg_library_unload(self, pid, tid, ea, info):
         self.logger.info("Library unloaded: pid=%d tid=%d ea=0x%x info=%s" % (pid, tid, ea, info))
         self.memoryWriter.writeToFile("U 0x%x 0x%x\n" % (ea, tid))
         
     def dbg_process_attach(self, pid, tid, ea, name, base, size):
-        self.attachMode=True
         self.logger.info("Process attach pid=%d tid=%d ea=0x%x name=%s base=%x size=%x" % (pid, tid, ea, name, base, size))
         
     def dbg_process_detach(self, pid, tid, ea):
         self.logger.info("Process detached, pid=%d tid=%d ea=0x%x" % (pid, tid, ea))
-            
+      
     def dbg_library_load(self, pid, tid, ea, name, base, size):
         self.logger.info( "Library loaded: pid=%d tid=%d name=%s base=%x" % (pid, tid, name, base) )
         self.memoryWriter.writeToFile("L %s %x %x\n" % (name, base,size))
-        if self.attachMode==False:
+        if self.interactiveMode==False:
             self.checkInput(name,base,self.bCheckFileIO,self.bCheckNetworkIO)
                                   
     def dbg_trace(self, tid, ip):
@@ -139,12 +136,14 @@ class ETDbgHook(DBG_Hooks):
             MakeCode(eip)
             self.logger.error("0x%x %s     --GOOD" % (eip,GetDisasm(eip)) )
         """
+        """
         if self.bDbg:
             #self.logger.debug("eip=0x%x size=%d" % (cmd.ea,cmd.size))
             if not isCode(GetFlags(eip)):
                 MakeCode(eip)
             self.logger.debug("%s" % GetDisasm(eip))
-            
+        """
+        
         DecodeInstruction(eip)
         
         inslen = cmd.size
@@ -170,8 +169,8 @@ class ETDbgHook(DBG_Hooks):
             else:
                 self.logger.error( "Cannot decode instruction at 0x%x %x %s" % (cmd.ea,cmd.size,toHex(bytes)) )
                 
-            if self.bDbg:
-                self.logger.debug("source_operands_number=%d" % (instInfo.n_src_operand))
+
+            self.logger.debug("source_operands_number=%d" % (instInfo.n_src_operand))
     
             lReadEA = 0
             lReadSize = 0
@@ -181,8 +180,8 @@ class ETDbgHook(DBG_Hooks):
             
             regs = {}
             for i in range(instInfo.n_src_operand):
-                if self.bDbg:
-                    self.logger.debug("%d: width=%d, rw=%d, type=%d, ea_string=%s" %(i, instInfo.src_operands[i]._width_bits,instInfo.src_operands[i]._rw,instInfo.src_operands[i]._type,instInfo.src_operands[i]._ea))
+
+                self.logger.debug("%d: width=%d, rw=%d, type=%d, ea_string=%s" %(i, instInfo.src_operands[i]._width_bits,instInfo.src_operands[i]._rw,instInfo.src_operands[i]._type,instInfo.src_operands[i]._ea))
                 
                 if(instInfo.src_operands[i]._type == REGISTER):
                     if(instInfo.src_operands[i]._ea == "STACKPOP"):
@@ -199,11 +198,10 @@ class ETDbgHook(DBG_Hooks):
                     parts = (instInfo.src_operands[i]._ea).split(":")
                     for part in parts:
                         comps = part.split("=")
-                        
-                        if self.bDbg:
-                            if(len(comps)==2):
-                                self.logger.debug("%s is %s"%(comps[0], comps[1]))                    
-                        
+
+                        if(len(comps)==2):
+                            self.logger.debug("%s is %s"%(comps[0], comps[1]))                    
+                    
                         if comps[0] =="SEG":
                             if(comps[1]=="FS"):
                                 bSegFS = 1
@@ -230,14 +228,15 @@ class ETDbgHook(DBG_Hooks):
                         self.logger.debug("FS segement register ignored for NOW:%s" %(instInfo.attDisa))                    
                     else:
                         lReadSize = instInfo.src_operands[i]._width_bits/8
-                    if self.bDbg: 
-                        self.logger.debug("lEA = 0x%x" %(lReadEA))                    
+                    
+                    self.logger.debug("lEA = 0x%x" %(lReadEA))                    
+              
+            self.logger.debug("dest_operands_number=%d" % (instInfo.n_dest_operand))
             
-            if self.bDbg:                 
-                self.logger.debug("dest_operands_number=%d" % (instInfo.n_dest_operand))
             for i in range(instInfo.n_dest_operand):
-                if self.bDbg: 
-                    self.logger.debug("%d: width=%d, rw=%d, type=%d, ea_string=%s" %(i, instInfo.dest_operands[i]._width_bits,instInfo.dest_operands[i]._rw,instInfo.dest_operands[i]._type,instInfo.dest_operands[i]._ea))
+                
+                self.logger.debug("%d: width=%d, rw=%d, type=%d, ea_string=%s" %(i, instInfo.dest_operands[i]._width_bits,instInfo.dest_operands[i]._rw,instInfo.dest_operands[i]._type,instInfo.dest_operands[i]._ea))
+                
                 if(instInfo.dest_operands[i]._type == REGISTER):
                     if(instInfo.dest_operands[i]._ea == "STACKPUSH"): #push ino stack
                         regs["ESP"] = GetRegValue("ESP")
@@ -253,10 +252,10 @@ class ETDbgHook(DBG_Hooks):
                     parts = (instInfo.dest_operands[i]._ea).split(":")
                     for part in parts:
                         comps = part.split("=")
-                        if self.bDbg: 
-                            if(len(comps)==2):
-                                self.logger.debug("%s is %s" %(comps[0], comps[1]))             
-                        
+
+                        if(len(comps)==2):
+                            self.logger.debug("%s is %s" %(comps[0], comps[1]))             
+                    
                         if comps[0] =="SEG":
                             if(comps[1]=="FS"):
                                 bSegFS = 1
@@ -265,21 +264,20 @@ class ETDbgHook(DBG_Hooks):
                         elif comps[0] =="BASE":
                             lBase = GetRegValue(comps[1])
                             regs[comps[1]] = lBase
-                            if self.bDbg: 
-                                self.logger.debug("BASE %s equals 0x%x" %(comps[1],lBase))
+
+                            self.logger.debug("BASE %s equals 0x%x" %(comps[1],lBase))
+                        
                         elif comps[0] =="INDEX":
                             lIndex = GetRegValue(comps[1])
                             regs[comps[1]] = lIndex
-                            if self.bDbg: 
-                                self.logger.debug("lIndex %s equals 0x%x" %(comps[1],lIndex))                        
+                            
+                            self.logger.debug("lIndex %s equals 0x%x" %(comps[1],lIndex))                        
                         elif comps[0] =="SCALE":
                             lScale = int(comps[1])
-                            if self.bDbg: 
-                                self.logger.debug("lScale equals 0x%x" %(lScale))                                                
+                            self.logger.debug("lScale equals 0x%x" %(lScale))                                                
                         elif comps[0] =="DISP":
                             lDisp = int(comps[1])
-                            if self.bDbg: 
-                                self.logger.debug("lDisp equals 0x%x" %(lDisp))                                                                        
+                            self.logger.debug("lDisp equals 0x%x" %(lDisp))                                                                        
                         else:
                             break
                     lWriteEA = lBase + lIndex*lScale + lDisp
@@ -289,8 +287,7 @@ class ETDbgHook(DBG_Hooks):
                     else:
                         lWriteSize = instInfo.dest_operands[i]._width_bits/8
                     
-                    if self.bDbg:   
-                        self.logger.debug("lEA = 0x%x" %(lWriteEA))                    
+                    self.logger.debug("lEA = 0x%x" %(lWriteEA))                    
     
             self.memoryWriter.writeToFile(" Reg( ")
             for reg in regs:

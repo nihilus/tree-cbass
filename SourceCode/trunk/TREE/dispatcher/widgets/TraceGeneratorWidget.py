@@ -1,6 +1,8 @@
 from PySide.QtGui import QMainWindow 
 from PySide import QtGui, QtCore
 from dispatcher.core.DebugPrint import dbgPrint, Print
+import os
+import idc
 
 #from PySide.QtGui import QIcon
 class TraceGeneratorWidget(QMainWindow):
@@ -14,9 +16,7 @@ class TraceGeneratorWidget(QMainWindow):
 
         from ..core.structures.Tracer import IDATrace
         from ..core.structures.Tracer.Config.config import ProcessConfig as ProcessConfig
-        
-        import os
-        
+
         QtGui.QMainWindow.__init__(self)
         Print( "[|] loading TraceGenerationWidget" )
         # Access to shared modules
@@ -242,7 +242,7 @@ class TraceGeneratorWidget(QMainWindow):
         Create that action that performs the trace
         """
         #from PySide.QtGui import QIcon
-        import os
+
         icon_path = os.path.join(self.parent.iconPath,"trace.png")
         self.generateTraceAction = QtGui.QAction(QtGui.QIcon(icon_path), "Generate the trace.", self)
         self.generateTraceAction.triggered.connect(self.onGenerateTraceButtonClicked)
@@ -252,23 +252,28 @@ class TraceGeneratorWidget(QMainWindow):
         Create that action to attach to a process
         """
         #from PySide.QtGui import QIcon
-        import os
+
         icon_path = os.path.join(self.parent.iconPath, "attach.png")
         self.processAttachAction = QtGui.QAction(QtGui.QIcon(icon_path), "Attach to process.", self)
         self.processAttachAction.triggered.connect(self.onAttachProcessButtonClicked)
 
+    def checkInteractiveMode(self):
+
+        if self.idaTracer.taintStart is None or self.idaTracer.taintStop is None:
+            idc.Warning("Please set the starting and stopping points before using Interactive Mode")
+            return False
+        else:
+            return True
+                
     def onAttachProcessButtonClicked(self):
         """
         Action for calling the trace functionality 
         """
-        import idc
-        
+
         #start debugging
         self.getConfigFromGUI()
         if not self.pin_cb.isChecked():
-            if self.idaTracer.taintStart is None or self.idaTracer.taintStop is None:
-               idc.Warning("Please set the starting and stopping points before using Attach Mode")
-            else:
+            if self.checkInteractiveMode():
                 self.idaTracer.attach(self.processConfig)
         else:
             if self.remote_cb.isChecked():
@@ -288,24 +293,32 @@ class TraceGeneratorWidget(QMainWindow):
         
         #start debugging
         self.getConfigFromGUI()
-        if not self.pin_cb.isChecked():
-            self.idaTracer.run(self.processConfig)
+        
+        interactiveMode = self.interactive_cb.isChecked()
+        
+        if interactiveMode:
+            if self.checkInteractiveMode():
+                self.idaTracer.interactive(self.processConfig)
+                Print("Using interactive mode.")
         else:
-            if self.remote_cb.isChecked():
-                if len(self.processConfig.host) > 0 :
-                    port = int(self.processConfig.port,10)
-                    self.pinCommunication(self.processConfig.host,port,True)
-                else:
-                    #IDA alert box
-                    Print("Please enter a host address to debug" )
+            if not self.pin_cb.isChecked():
+                self.idaTracer.run(self.processConfig)
             else:
-                self.pinCommunication()
-  
+                if self.remote_cb.isChecked():
+                    if len(self.processConfig.host) > 0 :
+                        port = int(self.processConfig.port,10)
+                        self.pinCommunication(self.processConfig.host,port,True)
+                    else:
+                        #IDA alert box
+                        Print("Please enter a host address to debug" )
+                else:
+                    self.pinCommunication()
+        
     def _createSaveConfigAction(self):
         """
         Save config
         """
-        import os
+
         #from PySide.QtGui import QIcon
         icon_path = os.path.join(self.parent.iconPath,"save.png")
         self.saveConfigAction = QtGui.QAction(QtGui.QIcon(icon_path), "Save config", self)
@@ -334,7 +347,7 @@ class TraceGeneratorWidget(QMainWindow):
         tempFileFilter = []
         for row in range(self.filters_filename_table.rowCount()):
             data = self.filters_filename_table.item(row, 0).text()
-            Print( "Adding file %s" % data )
+            #Print( "Adding file %s" % data )
             tempFileFilter.append(data)
             
         if len(tempFileFilter) > 0:
@@ -498,7 +511,6 @@ class TraceGeneratorWidget(QMainWindow):
         # Most of this is stub code, waiting on the pin agent implementation
         #
         import socket
-        import os
         import time
         
         HOST = host

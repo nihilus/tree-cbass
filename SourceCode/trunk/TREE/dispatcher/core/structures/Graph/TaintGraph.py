@@ -23,7 +23,7 @@ class TaintGraph(GraphViewer):
     self.node_ea = node_ea
     self.node_lib = node_lib
     self.selectedNode = None
-
+  
   def OnRefresh(self):
     '''
     @TODO 

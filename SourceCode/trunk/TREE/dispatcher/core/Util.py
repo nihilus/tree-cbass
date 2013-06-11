@@ -3,16 +3,21 @@ import ConfigParser
 from dispatcher.core.DebugPrint import DebugPrint
 
 class ConfigReader:
-    def __init__(self,path):
-        self.path = path
-        self.version =""
-    
-    def Read(self):
+    def __init__(self):
+        self.version = None
+        self.logging = None
+        self.debugging = None
+        self.traceFile = None
+        
+    def Read(self,path):
+
         config = ConfigParser.ConfigParser()
-        config.read(self.path)
+        config.read(path)
         _dbgPrint = DebugPrint()
         print config.get('DEFAULT','DebugMessageOn')
         print config.get('DEFAULT','Version')
+        print config.get('DEFAULT','Logging')
+        print config.get('DEFAULT','Debugging')
         
         if config.get('DEFAULT','DebugMessageOn')=="True":
             _dbgPrint.dbgFlag = True
@@ -22,6 +27,9 @@ class ConfigReader:
             print "dbgFlag set to False"
             
         self.version = config.get('DEFAULT','Version')
+        self.logging = config.get('DEFAULT','Logging')
+        self.debugging = config.get('DEFAULT','Debugging')
+        self.traceFile = config.get('DEFAULT','Trace_File')
 
 def toHex(s):
     

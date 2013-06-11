@@ -22,7 +22,7 @@ class BCTaintGraph(GraphViewer):
     self.graph = graph
     self.node_ea = node_ea
     self.selectedNode = None
-
+  
   def OnRefresh(self):
     '''
     @TODO 

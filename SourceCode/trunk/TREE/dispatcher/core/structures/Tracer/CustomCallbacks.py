@@ -9,8 +9,7 @@ from dispatcher.core.DebugPrint import dbgPrint, Print
 
 class CustomApiFunctions(object):
     def __init__(self):
-        import logging
-        
+
         self.logger = logging.getLogger('IDATrace')
         self.debuggerInstance = None
         self.filter = None

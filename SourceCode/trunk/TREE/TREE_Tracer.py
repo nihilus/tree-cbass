@@ -19,13 +19,12 @@ NAME = "TREE Tracer"
 from dispatcher.core.structures.Tracer.Arch.x86.Windows import WindowsApiCallbacks as WindowsApiCallbacks
 from dispatcher.core.structures.Tracer import CustomCallbacks as CustomCallbacks
 from dispatcher.core.structures.Tracer.Arch.x86.Linux import LinuxApiCallbacks as LinuxApiCallbacks
-from dispatcher.core.structures.Tracer import AttachmodeCallbacks as AttachmodeCallbacks
+from dispatcher.core.structures.Tracer import InteractivemodeCallbacks as InteractivemodeCallbacks
 
 windowsFileIO = None
 linuxFileIO = None
 customCallback = None
-attachmodeCallback = None
-
+interactivemodeCallback = None
 
 #Need to have this first, evaluate everything with Python not IDC
 idaapi.enable_extlang_python(True)
@@ -37,14 +36,16 @@ class TreeTracerPluginFormClass(PluginForm):
         self.idaPluginDir = os.path.join(GetIdaDirectory(),"plugins")
         print self.idaPluginDir
         self.iconPath = os.path.join(self.idaPluginDir, "dispatcher","icons")
-
+        """
         icon_path = os.path.join(self.iconPath , "dispatcher.png")
         print icon_path
         self.icon = QIcon( icon_path )
+        """
         ini_path = os.path.join(self.idaPluginDir,"settings.ini")
         print ini_path
-        configReader = ConfigReader(ini_path)
-        configReader.Read()
+        configReader = ConfigReader()
+        configReader.Read(ini_path)
+
         self.version= configReader.version
         
     def setupWidgets(self):
@@ -54,18 +55,18 @@ class TreeTracerPluginFormClass(PluginForm):
         time_before = time.time()
         
         Print ("[/] setting up widgets...")
-        global windowsFileIO,windowsNetworkIO,linuxFileIO,customCallback,attachmodeCallback
+        global windowsFileIO,windowsNetworkIO,linuxFileIO,customCallback,interactivemodeCallback
         
         windowsFileIO = WindowsApiCallbacks.FileIO()
         windowsNetworkIO = WindowsApiCallbacks.NetworkIO()
         linuxFileIO = LinuxApiCallbacks.FileIO()
         customCallback = CustomCallbacks.CustomApiFunctions()
-        attachmodeCallback = AttachmodeCallbacks.AttachmodeFunctions()
+        interactivemodeCallback = InteractivemodeCallbacks.InteractivemodeFunctions()
         
         functionCallbacks = dict()
         functionCallbacks = {'windowsFileIO':windowsFileIO ,'linuxFileIO':linuxFileIO ,
                              'customCallback':customCallback,'windowsNetworkIO':windowsNetworkIO ,
-                             'attachmodeCallback':attachmodeCallback}
+                             'interactivemodeCallback':interactivemodeCallback}
         
         layout = QtGui.QVBoxLayout()
         layout.addWidget(TraceGeneratorWidget(self,functionCallbacks))
@@ -79,7 +80,7 @@ class TreeTracerPluginFormClass(PluginForm):
         """
         self.printBanner()
         self.parent = self.FormToPySideWidget(form)
-        self.parent.setWindowIcon(self.icon)
+#        self.parent.setWindowIcon(self.icon)
         self.setupWidgets()
 
     def OnClose(self, form):
@@ -116,7 +117,7 @@ class tracer_plugin_t(idaapi.plugin_t):
     comment = NAME
     help = "This is help"
     wanted_name = "TREE Tracer"
-    wanted_hotkey = "Ctrl-F7"
+    wanted_hotkey = "Ctrl-F5"
 
     def init(self):
         Print("tracer_plugin_t installed")
