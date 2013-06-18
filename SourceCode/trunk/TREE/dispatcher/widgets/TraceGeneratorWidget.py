@@ -17,7 +17,7 @@ class TraceGeneratorWidget(QMainWindow):
         from ..core.structures.Tracer import IDATrace
         from ..core.structures.Tracer.Config.config import ProcessConfig as ProcessConfig
 
-        QtGui.QMainWindow.__init__(self)
+        super(TraceGeneratorWidget, self).__init__()
         Print( "[|] loading TraceGenerationWidget" )
         # Access to shared modules
        
@@ -36,6 +36,10 @@ class TraceGeneratorWidget(QMainWindow):
         self.setCentralWidget(self.central_widget)
         self._createGui()
         self.populateConfig()
+        
+    def closeEvent(self, event):
+        print("TraceGeneratorWidget closing...")
+        QMainWindow.closeEvent(self, event)
         
     def _createGui(self):
         """

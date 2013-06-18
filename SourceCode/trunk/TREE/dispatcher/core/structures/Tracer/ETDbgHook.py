@@ -14,8 +14,6 @@ from idc import *
 from idaapi import *
 from idautils import *
 
-from FileOutput.writer import BufferWriter
-from FileOutput.writer import FileWriter
 from Arch.x86.x86Decoder import x86Decoder
 from Arch.x86.x86Decoder import instDecode
 from dispatcher.core.structures.Analyzer.x86Decoder import WINDOWS, LINUX
@@ -32,9 +30,43 @@ MEMORY=3
 
 isa_bits=32
 
+class FileWriter():
+    """
+    File Writer writes data to a file
+    
+    Call fileOpen to create an output file
+    Call writeToFile to write to the file
+    Call fileClose to close the file
+    
+    """
+    
+    def __init__(self,filename):
+        self.file=None
+        self.filename = filename
+
+        try:
+            print ("%s opened for writing" % filename)
+            self.file=file(filename,'wb')
+        except IOError:
+            print "IOError cannot open the file"
+
+    def writeToFile(self,data):
+        if not self.file.closed:
+            self.file.write(data)
+        else:
+            print ("Cannot write because %s is closed." % self.filename)
+            self.file=file(self.filename,'wb')
+            if self.file.closed:
+                print ("Cannot re-open %s for writing."% self.filename)
+                
+    def fileClose(self):
+        self.file.close()
+        #self.filename = None
+        print ("%s file closed." % self.filename)
+        
 class ETDbgHook(DBG_Hooks):
 
-    def __init__(self, traceFile,treeTraceFile,logger,mode):
+    def __init__(self,traceFile,treeTraceFile,logger,mode):
         super(ETDbgHook, self ).__init__()
         self.logger = logger
 
@@ -44,25 +76,28 @@ class ETDbgHook(DBG_Hooks):
         elif (sys.platform == 'linux2'):
             hostOS = LINUX
         self.xDecoder32 = x86Decoder(isa_bits,32, hostOS)
-        #self.memoryWriter = BufferWriter()
-        self.memoryWriter = FileWriter()
+
+        self.memoryWriter = FileWriter(traceFile)
         self.checkInput = None
         self.bCheckFileIO = False
         self.bCheckNetworkIO = False
-        self.memoryWriter.fileOpen(traceFile)
+
         self.treeIDBFile = treeTraceFile
         self.startTracing = False
         self.interactiveMode = mode
 
     def dbg_process_start(self, pid, tid, ea, name, base, size):
+        
         self.logger.info("Process started, pid=%d tid=%d name=%s ea=0x%x" % (pid, tid, name,ea))
         self.memoryWriter.writeToFile("L %s %x %x\n" % (name, base, size))
 
     def dbg_process_exit(self, pid, tid, ea, code):
+                
         self.logger.info("Process exited pid=%d tid=%d ea=0x%x code=%d" % (pid, tid, ea, code))
         self.memoryWriter.writeToFile("T 0x%x %d\n" % ( ea, code))
+        
         self.memoryWriter.fileClose()
- 
+            
     def dbg_library_unload(self, pid, tid, ea, info):
         self.logger.info("Library unloaded: pid=%d tid=%d ea=0x%x info=%s" % (pid, tid, ea, info))
         self.memoryWriter.writeToFile("U 0x%x 0x%x\n" % (ea, tid))
@@ -76,7 +111,11 @@ class ETDbgHook(DBG_Hooks):
     def dbg_library_load(self, pid, tid, ea, name, base, size):
         self.logger.info( "Library loaded: pid=%d tid=%d name=%s base=%x" % (pid, tid, name, base) )
         self.memoryWriter.writeToFile("L %s %x %x\n" % (name, base,size))
-        if self.interactiveMode==False:
+        if self.interactiveMode:
+            print("dbg_library_load: %d using interactive mode" % (tid))
+            self.checkInput = None
+        else:
+            print("dbg_library_load: %d not using interactive mode." % (tid))
             self.checkInput(name,base,self.bCheckFileIO,self.bCheckNetworkIO)
                                   
     def dbg_trace(self, tid, ip):
@@ -97,6 +136,7 @@ class ETDbgHook(DBG_Hooks):
     def dbg_suspend_process(self):
         
         if self.startTracing:
+            self.startTracing = False
             self.logger.info( "Process suspended" )
             idc.TakeMemorySnapshot(0)
             #idbPath = idc.GetIdbPath()
@@ -360,6 +400,7 @@ class ETDbgHook(DBG_Hooks):
         #update the instruction sequence counter
         instSeq = instSeq+1
         
+        self.removeBreakpoints()
         """
         eip = GetRegValue("EIP")
         DelBpt(eip)
@@ -374,5 +415,25 @@ class ETDbgHook(DBG_Hooks):
     def stopTrace(self):
         #self.dbg_step_into()
        # idaapi.request_step_into()
+        self.startTracing = False
         idaapi.request_detach_process()
         idaapi.run_requests()
+        
+    def removeBreakpoints(self):
+
+    #    print "%d breakpoints found." % idc.GetBptQty()
+        
+        while(True):
+            numOfBpt = idc.GetBptQty()
+            
+            if numOfBpt==0:
+                break
+            
+            for i in range(numOfBpt):
+                
+                bptAddr = idc.GetBptEA(i)
+               # print "i is %d 0x%x" % (i,bptAddr)
+                
+                if idc.DelBpt(bptAddr):
+                    print( "Breakpoint %d at 0x%x removed." % (i,bptAddr) )
+                

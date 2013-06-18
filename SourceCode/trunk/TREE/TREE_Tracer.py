@@ -69,6 +69,7 @@ class TreeTracerPluginFormClass(PluginForm):
         """
         When creating the form, setup the modules and widgets
         """
+        print("OnCreate Called.")
         self.printBanner()
         self.parent = self.FormToPySideWidget(form)
         self.parent.setWindowIcon(self.icon)
@@ -78,7 +79,7 @@ class TreeTracerPluginFormClass(PluginForm):
         """
         Called when the plugin form is closed
         """
-        Print("Plugin from closing.")
+        print("Plugin form closing.")
 
     def printBanner(self):
         banner = "#############################################\n" \
@@ -115,12 +116,12 @@ class tracer_plugin_t(idaapi.plugin_t):
         return idaapi.PLUGIN_OK
 
     def run(self, arg):
+        Print("tracer_plugin_t run!")
         plg = TreeTracerPluginFormClass()
         plg.Show()
 
     def term(self):
         Print("tracer_plugin_t uninstalled!")
-
 
 def PLUGIN_ENTRY():
     return tracer_plugin_t()

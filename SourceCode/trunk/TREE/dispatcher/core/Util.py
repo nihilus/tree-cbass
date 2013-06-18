@@ -11,28 +11,31 @@ class ConfigReader:
         self.logging = None
         self.debugging = None
         self.traceFile = None
+        self.configFile = None
         
     def Read(self,path):
 
         config = ConfigParser.ConfigParser()
         config.read(path)
         _dbgPrint = DebugPrint()
+        """
         print config.get('DEFAULT','DebugMessageOn')
         print config.get('DEFAULT','Version')
         print config.get('DEFAULT','Logging')
         print config.get('DEFAULT','Debugging')
-        
+        """
         if config.get('DEFAULT','DebugMessageOn')=="True":
             _dbgPrint.dbgFlag = True
-            print "dbgFlag set to True"
+           # print "dbgFlag set to True"
         else:
             _dbgPrint.dbgFlag = False
-            print "dbgFlag set to False"
+           # print "dbgFlag set to False"
             
         self.version = config.get('DEFAULT','Version')
-        self.logging = config.get('DEFAULT','Logging')
-        self.debugging = config.get('DEFAULT','Debugging')
+        self.logging = config.get('DEFAULT','Logging') == "True"
+        self.debugging = config.get('DEFAULT','Debugging') == "True"
         self.traceFile = config.get('DEFAULT','Trace_File')
+        self.configFile = config.get('DEFAULT','Config_File')
 
 def toHex(s):
     
