@@ -33,8 +33,6 @@ class VisualizerWidget(QtGui.QMainWindow):
         self._definePropEnum()
         self._createGui()
         self.t_graph = nx.MultiDiGraph()
-        #The taint graph object was added to prevent openning multiple instance the IDA Graphviewer
-        self.taintGraph = None
         
     def _createGui(self):
         """
@@ -229,7 +227,7 @@ class VisualizerWidget(QtGui.QMainWindow):
         """ 
         Action for importing an XML file containing VM information
         """
-        from ..core.structures.Parse import TrNode
+        #from ..core.structures.Parse import TrNode
         fname, _ = self.QtGui.QFileDialog.getOpenFileName(self, 'Import Trace')
         self.trace_fname = fname
         #self.populateTraceTable()
@@ -241,19 +239,12 @@ class VisualizerWidget(QtGui.QMainWindow):
         #self.populateTraceTable()
         from ..core.structures.Graph.TaintGraph import TaintGraph
         from ..core.structures.Graph.BCTaintGraph import BCTaintGraph
-        
-        #Check if its the first time we've generated the taint graph
-        #Close the graph if its was generated earlier
-        if self.taintGraph is not None:
-          print "Closing taint graph"
-          self.taintGraph.Close()
-          
         if self.policy == "TAINT_BRANCH":
-            self.taintGraph = BCTaintGraph(self.t_graph, self.node_ea)
+            tv = BCTaintGraph(self.t_graph, self.node_ea)
         else:
-            self.taintGraph = TaintGraph(self.t_graph, self.node_ea, self.node_lib)
-        self.taintGraph.Show()
-
+            tv = TaintGraph(self.t_graph, self.node_ea, self.node_lib)
+        tv.Show()
+    
     def onImportIndexButtonClicked(self):
         """
         Action for importing an XML file containing VM information
