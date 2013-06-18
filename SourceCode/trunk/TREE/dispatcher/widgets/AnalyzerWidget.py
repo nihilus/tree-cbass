@@ -365,7 +365,6 @@ class AnalyzerWidget(QtGui.QMainWindow):
             
     def insert_node_br(self, s, depth):
         from ..core.structures.Parse.TaintNode import TaintNode
-        uuid = None
         try:
             uuid = self.extract_uuid(s)
         except AttributeError:
@@ -612,9 +611,8 @@ class AnalyzerWidget(QtGui.QMainWindow):
             self.extendTaints()
             self.parent.setTabFocus("Visualizer")
             self.parent.passTaintGraph(self.t_graph, "Visualizer", self.radioGroup2.checkedButton().text())
-            self.parent.passTraceFile(self.trace_fname, "Visualizer")
             
-    def extendTaints(self):
+    def extendTaints2(self):
         """
         Method to extend taint information with trace. Library context added to taint nodes from trace
         """
@@ -637,6 +635,48 @@ class AnalyzerWidget(QtGui.QMainWindow):
         if self.verbose_trace_cb.isChecked():
           print "[debug] trace imported from file into dictionary"
         f.close()
+        for node in self.t_graph.nodes(data=True):
+            ind = node[1]['inode'].startind.split(':')[0]
+            #if node[1]['inode'].endind is not None:
+            #    ind = node[1]['inode'].endind.split(':')[0]
+            try:
+                addr = int(self.node_ea[ind], 16)
+                node[1]['inode'].setEA(addr)
+            except KeyError:
+                node[1]['inode'].setEA(None)
+            if node[1]['inode'].ea:
+                for key in self.node_lib.keys():
+                    base_addr = int(self.node_lib[key].split(' ')[0], 16)
+                    end_addr = base_addr + int(self.node_lib[key].split(' ')[1], 16)
+                    if node[1]['inode'].ea >= base_addr and node[1]['inode'].ea < end_addr:
+                        if self.verbose_trace_cb.isChecked():
+                          print "Found library: %s" % key
+                        node[1]['inode'].setLib(key)
+                        break
+            
+    def extendTaints(self):
+        """
+        Method to extend taint information with trace. Library context added to taint nodes from trace
+        """
+        from ..core.structures.Analyzer.TraceParser import TraceReader, IDATextTraceReader, PinTraceReader        
+        from ..core.structures.Analyzer.TraceParser import Invalid, LoadImage, UnloadImage, Input, ReadMemory, WriteMemory, Execution, Snapshot, eXception
+        TR = None
+        if(self.pin_trace_cb.isChecked()):
+            TR = PinTraceReader(self.trace_fname)
+        else:
+            TR = IDATextTraceReader(self.trace_fname)
+        self.node_ea = dict()
+        self.node_lib = dict()
+        if self.verbose_trace_cb.isChecked():
+          print "[debug] trace imported from file into dictionary"
+        tRecord = TR.getNext()
+        while(tRecord is not None):
+            recordType = tRecord.getRecordType()
+            if (recordType == LoadImage):
+                self.node_lib[tRecord.ImageName] = str(tRecord.LoadAddress) + " " + str(tRecord.ImageSize)
+            elif(recordType==Execution):
+                self.node_ea[tRecord.currentInstSeq] = tRecord.currentInstruction
+            tRecord = TR.getNext()
         for node in self.t_graph.nodes(data=True):
             ind = node[1]['inode'].startind.split(':')[0]
             #if node[1]['inode'].endind is not None:

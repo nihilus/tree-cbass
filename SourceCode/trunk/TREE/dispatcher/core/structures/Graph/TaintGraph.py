@@ -16,13 +16,6 @@ class TaintGraph(GraphViewer):
     GraphViewer.__init__(self, "Taint Graph")
     self.graph = graph
     self.selectedNode = None
-    
-  def __init__(self, graph, node_ea, node_lib):
-    GraphViewer.__init__(self, "Taint Graph")
-    self.graph = graph
-    self.node_ea = node_ea
-    self.node_lib = node_lib
-    self.selectedNode = None
   
   def OnRefresh(self):
     '''
@@ -37,14 +30,9 @@ class TaintGraph(GraphViewer):
         try:
             idNode[node_ea] = self.AddNode(y['inode'])
         except:
-            print "screwed"
+            print " "
     for x,y,d in self.graph.edges(data=True):
-        print x
-        print y
-        print d
         try:
-            print idNode[x]
-            print idNode[y]
             self.AddEdge(idNode[x],idNode[y])
         except:
             continue
@@ -55,20 +43,11 @@ class TaintGraph(GraphViewer):
     return True
     
   def OnDblClick(self, node_id):
-    print "[debug] dbl clicked %d\n" % node_id
     uuid = self.AddrNode[node_id]
-    addr = 0
-    ind = ''
-    ind = self.graph.node[uuid]['inode'].startind.split(':')[0]
-    #print ind
-    #if self.graph.node[uuid]['inode'].endind is not None:
-    #    ind = self.graph.node[uuid]['inode'].endind.split(':')[0]
-    #    print "endi"
-    #print ind
-    #prefer endind if exists
+    print self.graph.node[uuid]['inode'].ea
+    print type(self.graph.node[uuid]['inode'].ea)
     try:
-        addr = self.node_ea[ind]
-        int_addr = int(addr,16)
+        int_addr = self.graph.node[uuid]['inode'].ea
         bLoaded = isLoaded(int_addr)
         if bLoaded:
           print "Found addr: 0x%x" % int_addr

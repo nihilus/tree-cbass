@@ -242,7 +242,8 @@ class VisualizerWidget(QtGui.QMainWindow):
         if self.policy == "TAINT_BRANCH":
             tv = BCTaintGraph(self.t_graph, self.node_ea)
         else:
-            tv = TaintGraph(self.t_graph, self.node_ea, self.node_lib)
+            tv = TaintGraph(self.t_graph)
+            #tv = TaintGraph(self.t_graph, self.node_ea, self.node_lib)
         tv.Show()
     
     def onImportIndexButtonClicked(self):

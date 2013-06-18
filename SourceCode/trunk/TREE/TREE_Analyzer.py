@@ -141,14 +141,6 @@ class DispatcherForm(PluginForm):
             if widget.name == widget_name:
                 widget.setTaintGraph(t, prop_policy)
                 
-    def passTraceFile(self, t, widget_name):
-        """
-        Pass the taintgraph from the analyzer to visualizer
-        """
-        for widget in self.dispatcher_widgets:
-            if widget.name == widget_name:
-                widget.setTraceFile(t)
-
 ####################################################################
 #   Plugin
 ####################################################################
