@@ -18,7 +18,7 @@ ARM = 3
 PPC = 4
 MIPS = 5
     
-log = logging.getLogger('cbass')
+log = logging.getLogger('TREE')
 
 class NotImplemented(Exception):
     pass

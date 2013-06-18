@@ -50,6 +50,9 @@ class Operand(Structure):
                   ("_ea",c_char * MAX_DIS_LEN)]  
     def printInfo(self):
         print("width=%d, rw=%d, type=%d, ea_string=%s" %(self._width_bits,self._rw,self._type,self._ea))
+    
+    def getDebugInfo(self):
+        return "width=%d, rw=%d, type=%d, ea_string=%s. " %(self._width_bits,self._rw,self._type,self._ea)
         
 class instDecode(Structure):
     _fields_ = [("n_src_operand", c_int),
@@ -71,8 +74,20 @@ class instDecode(Structure):
 
         print("\ndest_operand_num=%d:\n" %(self.n_dest_operand))
         for i in range(self.n_dest_operand):
-            self.dest_operands[i].printInfo()        
-              
+            self.dest_operands[i].printInfo()
+    
+    def getDebugInfo(self):
+        sDbg = "Inst_category=%d, Disassembly: %s\n"  %(self.inst_category,self.attDisa)
+        sDbg = sDbg+ ("src_operand_num=%d:\n" %(self.n_src_operand))
+        for i in range(self.n_src_operand):
+            sDbg = sDbg + self.src_operands[i].getDebugInfo()
+
+        sDbg = sDbg + "\ndest_operand_num=%d:\n" %(self.n_dest_operand)
+        for i in range(self.n_dest_operand):
+            sDbg = sDbg + self.dest_operands[i].getDebugInfo()
+        
+        return sDbg
+            
 class x86Decoder(object):
     def __init__(self, process_bits,target_bits,target_OS):
         self.process_bits = process_bits

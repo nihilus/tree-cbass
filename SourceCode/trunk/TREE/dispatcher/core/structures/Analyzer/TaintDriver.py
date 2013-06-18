@@ -3,7 +3,7 @@
 This is the main script for IR-based taint analysis and symbolic execution program. 
 Inputs:
 	-- Dynamic Trace File
-	-- Static artifacts generated from IDA disassembly and static analysis 
+	-- Database, module and table information to connect to static artifacts generated from disassembly and static analysis 
  Output:
    -- Taint results along the path from the dynamic trace
    -- Constraints modeled after the input as free variables
@@ -16,6 +16,9 @@ Inputs:
 '''
 import sys
 import os
+import subprocess
+import socket
+
 from optparse import OptionParser
 import logging
 import struct
@@ -48,19 +51,20 @@ def main(args):
     parser.add_option("-e", "--end", dest="endSequence",default=-1,
                       help="The point to end taint tracking")
     parser.add_option("-i", "--settaint", dest="taintSource",default="Input",
-                      help="Initial taint source marking")    
+                      help="Initial taint source marking")
+    parser.add_option("-c", "--invokeCBASS", dest="testJython",default=False,action="store_true",
+                      help="Test invoke Jython script from Python")
+    
     parser.add_option("-v", "--verbose", dest="verbose", default=False, action="store_true",
                       help="Display detailed instruction simulation process ")
 
     (options, args) = parser.parse_args()
-    log = logging.getLogger('CIDATA')
+    log = logging.getLogger('TREE')
     
     if options.verbose:
-	os.remove("debug.log") #clean existing debug log
-        logging.basicConfig(filename="debug.log",level=logging.DEBUG)	
+        logging.basicConfig(filename="tree_debug.log",level=logging.DEBUG)	
     else:
-	os.remove("warning.log") #clean existing debug log
-        logging.basicConfig(filename="warning.log",level=logging.INFO)
+        logging.basicConfig(filename="tree_warning.log",level=logging.INFO)
 
     if options.verbose:
 	print ("Host System=%s" %sys.platform)
@@ -69,7 +73,23 @@ def main(args):
 	    print ("End Sequence = %d" %(int(options.endSequence)))
 	else:
 	    print ("No End!")
+
+    if options.testJython:
+	#Send Request to CBASS Server, get result back
+	HOST = "127.0.0.1"
+        PORT = 8888
 	
+	packet = " Request from TREE"
+	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.connect((HOST, PORT))
+        s.send(packet)
+        data = s.recv(1024)
+        print data
+
+        s.close()
+
+        return
+    
     hostOS = None	
     if(sys.platform == 'win32'):
         hostOS = WINDOWS

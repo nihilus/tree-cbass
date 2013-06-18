@@ -1,7 +1,7 @@
 '''
 
 This program interfaces with the dynamic execution trace(generated from platform-dependent instrumentation or emulation environment) and 
-provide concrete values of memory and registers for concrte/symbolic execution. 
+provides concrete values of memory and registers for concrte/symbolic execution. 
 Inputs:
     -- Dynamic Trace File with fine-grained instruction level state information
  Output:
@@ -16,7 +16,7 @@ import os
 import struct
 import logging
 
-log = logging.getLogger('CIDATA')
+log = logging.getLogger('TREE')
 from ctypes import *
 from ctypes.util import *
 import ctypes
@@ -51,11 +51,34 @@ class InstructionTraceRecord(TraceRecord):
         self.currentInstSeq = 0
         self.currentReadAddr = None
         self.currentReadSize = None
-        self.currentReadValue = None
+        self.currentReadValue = {}
         self.currentWriteAddr = None
         self.currentWriteSize = None
-        self.currentWriteValue = None
+        self.currentWriteValue = {}
         self.reg_value={}
+
+    def getDebugInfo(self):
+        
+        sDbg = "0x%x %d 0x%x 0x%x " %(self.currentInstruction,self.currentInstSize,self.currentThreadId,self.currentInstSeq)
+
+        if (len(self.reg_value)>0):
+            sDbg = sDbg + "Reg( "
+            for reg in self.reg_value:
+                sDbg = sDbg + "%s=%s " %(reg,self.reg_value[reg])
+            sDbg = sDbg + " ) "
+        
+        if(self.currentReadSize is not None):
+            sDbg = sDbg + "R %d 0x%x " %(self.currentReadSize, self.currentReadAddr)
+            for i in range(self.currentReadSize):
+                sDbg = sDbg + "0x%x " % self.currentReadValue[i]
+                
+        if(self.currentWriteSize is not None):                
+            sDbg = sDbg + "W %d 0x%x " %(self.currentWriteSize, self.currentWriteAddr)
+            for i in range(self.currentWriteSize):
+                sDbg = sDbg + "0x%x " % self.currentWriteValue[i]
+        
+        sDbg = sDbg + " \n"
+        return sDbg
 
 class ExceptionTraceRecord(TraceRecord):    
     def __init__(self):
@@ -319,6 +342,7 @@ class PinTraceReader(TraceReader):
         super(PinTraceReader,self).__init__(trace_file)        
         self.trace_fd = open(self.exe_trace, 'rb')
         self.xDecoder32 = x86Decoder(32,32, WINDOWS)
+        self.InstSeq =0
 
     def getNext(self):
 
@@ -328,15 +352,11 @@ class PinTraceReader(TraceReader):
 
         try: 
             tag = self.trace_fd.read(1) 
-            sDbg= "First tag=%s" % (tag)
-            log.debug(sDbg)
-#            print ("%s" %sDbg)
                     
             while tag:
                 tRecord = None
-                sDbg= "tag=%s" % (tag)
-                log.debug(sDbg)
-#                print ("%s" %sDbg)
+                #sDbg= "tag=%s" % (tag)
+                #log.debug(sDbg)
                 
                 if tag == 'L': #load image
                     tRecord = self.parseImageLine(self.trace_fd.readline()) 
@@ -368,7 +388,7 @@ class PinTraceReader(TraceReader):
         iRecord.inputBytes = split[3]
         sDbg= "Input received at 0x%x for %d bytes:" %(iRecord.currentInputAddr,iRecord.currentInputSize)
         log.debug(sDbg)
-        print("%s" %(sDbg))
+        #print("%s" %(sDbg))
         
         #TODO: Enhance PIN Tracer to provide following information
         iRecord.callingThread = 0            
@@ -381,7 +401,7 @@ class PinTraceReader(TraceReader):
 
     def parseImageLine(self, line):
         sDbg= "parsing image line: %s" % (line)
-        print("%s" %(sDbg))
+        #print("%s" %(sDbg))
         log.debug(sDbg)
 
         iRecord = LoadImageTraceRecord()
@@ -392,7 +412,7 @@ class PinTraceReader(TraceReader):
         iRecord.ImageName = (csplit[0].rsplit("\\",1))[1]
         sDbg= "parsing image: %s" % (iRecord.ImageName)
         log.debug(sDbg)
-        print("%s" %(sDbg))
+        #print("%s" %(sDbg))
         
         iRecord.LoadAddress = int(csplit[1], 16)
         iRecord.ImageSize = int(csplit[3], 16) - int(csplit[2], 16)
@@ -415,44 +435,30 @@ class PinTraceReader(TraceReader):
     def parseInstructionLine(self):
         
         iRecord = InstructionTraceRecord()        
-        iRecord.currentInstSeq +=1;
+        iRecord.currentInstSeq = self.InstSeq
+        self.InstSeq =self.InstSeq+1;
         
         iRecord.currentInstruction = struct.unpack("<I", self.trace_fd.read(4))[0]
-        print("Instruction address 0x%x\n" %iRecord.currentInstruction)
+        sDbg = "Instruction address 0x%x " %iRecord.currentInstruction
+        log.debug(sDbg)
 
         iRecord.currentInstSize = struct.unpack("<B", self.trace_fd.read(1))[0]
-        print("Instruction currentInstSize 0x%x\n" %iRecord.currentInstSize)
-
+        sDbg = "Instruction currentInstSize 0x%x " %iRecord.currentInstSize
+        log.debug(sDbg)
+        
         iRecord.sEncoding = bytearray(self.trace_fd.read(iRecord.currentInstSize))
-#        print("Instruction encoding %s\n" %(str(iRecord.sEncoding)))
-        '''
-        instcode = c_byte*iRecord.currentInstSize
-        instBytes = instcode()
-        
-        i=0
-        for byte in iRecord.sEncoding:
-            instBytes[i]= byte
-            i=i+1
-        
-        instInfo = instDecode()            
-        if iRecord.currentInstSize > 0:
-            self.xDecoder32.decode_inst(iRecord.currentInstSize, pointer(instBytes),ctypes.byref((instInfo)))
-            print("In Parser")
-            instInfo.printInfo()
-            print("End Parser")
-        '''
         iRecord.currentThreadId = struct.unpack("<B", self.trace_fd.read(1))[0]
 
         sDbg = "PinTraceReader: parse binary instruction block: addr = 0x%x,threadID=%d, size=%s" %(iRecord.currentInstruction,iRecord.currentThreadId,iRecord.currentInstSize)
         log.debug(sDbg)
-        print ("%s" %sDbg)
+        #print ("%s" %sDbg)
         reg_mem_count = struct.unpack("<B", self.trace_fd.read(1))[0]
         regCount = reg_mem_count & 0xf
         memRead = (reg_mem_count & 0xc0) >>6
         memWrite = (reg_mem_count & 0x30) >> 4
-        sDbg = "BinTraceReader: regcount = %d,memRead=%d, memWrite=%d" %(regCount,memRead,memWrite)
+        sDbg = "PinTraceReader: regcount = %d,memRead=%d, memWrite=%d" %(regCount,memRead,memWrite)
         log.debug(sDbg)
-        print("%s" %sDbg)
+        #print("%s" %sDbg)
         
         i=0
         while i<regCount:
@@ -461,9 +467,9 @@ class PinTraceReader(TraceReader):
             regName = self.x86_thread.get_reg_name(regId)
             iRecord.reg_value[regName] = regValue
             i=i+1
-            sDbg = "BinTraceReader: regID=%d, regName = %s,regValue = 0x%x" %(regId, regName,regValue)
+            sDbg = "PinTraceReader: regID=%d, regName = %s,regValue = 0x%x" %(regId, regName,regValue)
             log.debug(sDbg)
-            print("%s" %sDbg)
+            #print("%s" %sDbg)
 
         i=0
         while i<memRead:                    
@@ -473,10 +479,10 @@ class PinTraceReader(TraceReader):
 
             j=0
             while j<iRecord.currentReadSize:
-                iRecord.currentReadValue = struct.unpack("<B",self.trace_fd.read(1))[0]
-                sDbg = "readValue = %x" %(iRecord.currentReadValue)
+                iRecord.currentReadValue[j] = struct.unpack("<B",self.trace_fd.read(1))[0]
+                sDbg = "readValue = %x" %(iRecord.currentReadValue[j])
                 log.debug(sDbg)            
-                print("%s" %sDbg)
+                #print("%s" %sDbg)
                 j=j+1                
         i=0
         while i<memWrite:
@@ -485,10 +491,10 @@ class PinTraceReader(TraceReader):
             i=i+1
             j=0
             while j<iRecord.currentWriteSize:
-                iRecord.currentWriteValue = struct.unpack("<B", self.trace_fd.read(1))[0]
-                j=j+1
-                sDbg = "writeValue = %x at 0x%x" %(iRecord.currentWriteValue,iRecord.currentWriteAddr+j)
+                iRecord.currentWriteValue[j] = struct.unpack("<B", self.trace_fd.read(1))[0]
+                sDbg = "writeValue = %x at 0x%x" %(iRecord.currentWriteValue[j],iRecord.currentWriteAddr+j)
                 log.debug(sDbg)
+                j=j+1
                 
         return iRecord
                             
