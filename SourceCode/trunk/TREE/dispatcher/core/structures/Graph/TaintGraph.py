@@ -58,9 +58,6 @@ class TaintGraph(GraphViewer):
       
     except KeyError:
         addr = 0
-        print "Index %s not found " % ind
-        
-    print "[debug] %s" % ind
 
     return True
     
