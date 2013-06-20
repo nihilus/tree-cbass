@@ -33,6 +33,8 @@ class VisualizerWidget(QtGui.QMainWindow):
         self._definePropEnum()
         self._createGui()
         self.t_graph = nx.MultiDiGraph()
+        #The taint graph object was added to prevent openning multiple instance the IDA Graphviewer
+        self.taintGraph = None
         
     def _createGui(self):
         """
@@ -239,11 +241,16 @@ class VisualizerWidget(QtGui.QMainWindow):
         #self.populateTraceTable()
         from ..core.structures.Graph.TaintGraph import TaintGraph
         from ..core.structures.Graph.BCTaintGraph import BCTaintGraph
+        
+        if self.taintGraph is not None:
+          print "Closing taint graph"
+          self.taintGraph.Close()
+          
         if self.policy == "TAINT_BRANCH":
-            tv = BCTaintGraph(self.t_graph, self.node_ea)
+            self.taintGraph = BCTaintGraph(self.t_graph, self.node_ea)
         else:
-            tv = TaintGraph(self.t_graph)
-            #tv = TaintGraph(self.t_graph, self.node_ea, self.node_lib)
+            self.taintGraph = TaintGraph(self.t_graph, self.node_ea, self.node_lib)
+        self.taintGraph.Show()
         tv.Show()
     
     def onImportIndexButtonClicked(self):
