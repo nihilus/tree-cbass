@@ -673,7 +673,12 @@ class AnalyzerWidget(QtGui.QMainWindow):
         while(tRecord is not None):
             recordType = tRecord.getRecordType()
             if (recordType == LoadImage):
-                self.node_lib[tRecord.ImageName] = str(tRecord.LoadAddress) + " " + str(tRecord.ImageSize)
+                imageName = None
+                if self.pin_trace_cb.isChecked():
+                    imageName = tRecord.ImageName
+                else:
+                    imageName = tRecord.ImageName[0] 
+                self.node_lib[imageName] = str(tRecord.LoadAddress) + " " + str(tRecord.ImageSize)
             elif(recordType==Execution):
                 self.node_ea[str(tRecord.currentInstSeq)] = tRecord.currentInstruction
             tRecord = TR.getNext()
