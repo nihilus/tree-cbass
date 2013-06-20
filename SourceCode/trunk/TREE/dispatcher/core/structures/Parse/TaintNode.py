@@ -4,6 +4,7 @@ class TaintNode(object):
         self.nodeattr = None
         self.ea = None
         self.lib = None
+        self.node_label = None
         self.depth = 0
 
     def __str__(self):
@@ -14,6 +15,10 @@ class TaintNode(object):
             return "[%s][%s]%s_%s\n[%s][%s]" % (self.lib, self.uuid, self.typ, self.name, self.startind, self.endind)
         else:
             return "[%s]%s_%s\n[%s][%s]" % (self.uuid, self.typ, self.name, self.startind, self.endind)
+            
+    def node_label(self):
+        self.node_label = self.typ.split("_")[:1]
+        return "[%s]" % (self.node_label)
     
     def SetNodeAttr(self, s):
         self.nodeattr = s

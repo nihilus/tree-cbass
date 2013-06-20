@@ -71,22 +71,24 @@ class TaintGraph(GraphViewer):
     
   def OnGetText(self, node_id):
     uuid = self.AddrNode[node_id]
-    print uuid
+    #print uuid
     a = self.graph.node[uuid]['inode']
+    label = a.name
+    print label
     if a.nodeattr == 'c':
-        uuid = "[c] " + str(uuid)
+        uuid = "[c] " + str(label)
     if not a.nodeattr:
-        return (uuid, 0x0000ff) #Was Green 0x7fff00, Change to red 0x0000ff to display the sink (XL)
+        return (str(label), 0x0000ff) #Was Green 0x7fff00, Change to red 0x0000ff to display the sink (XL)
     if a.child_c is None and a.child_d is None:
         print "[debug] sink: %s" % uuid
-        return (uuid, 0x7fff00) #Was Red 0x0000ff, Change to Grace 0x7fff00 to display the source (XL)
+        return (str(label), 0x7fff00) #Was Red 0x0000ff, Change to Grace 0x7fff00 to display the source (XL)
     #reg
     elif a.typ == 'reg':
-        return (uuid, 0xff88ff) #pink
+        return (str(label), 0xff88ff) #pink
     #mem
     else:
         #return (self.AddrNode[node_id], 0xff00f0)
-        return (uuid, 0xffffff) #white
+        return (str(label), 0xffffff) #white
   
   def OnSelect(self, node_id):
     print "[debug] %sd selected" % self.AddrNode[node_id]
