@@ -75,7 +75,8 @@ class InstructionTraceRecord(TraceRecord):
         if(self.currentWriteSize is not None):                
             sDbg = sDbg + "W %d 0x%x " %(self.currentWriteSize, self.currentWriteAddr)
             for i in range(self.currentWriteSize):
-                sDbg = sDbg + "0x%x " % self.currentWriteValue[i]
+                if(self.currentWriteValue[i] !=None):
+                    sDbg = sDbg + "0x%x " % self.currentWriteValue[i]
         
         sDbg = sDbg + " \n"
         return sDbg
@@ -313,12 +314,13 @@ class IDATextTraceReader(TraceReader):
                     
                     if(memBytes[0]!='X'):
                         j =0;
-                        iRecord.currentReadValue = c_byte*iRecord.currentReadSize
-                        readBytes = iRecord.currentReadValue()
+                        #iRecord.currentReadValue = c_byte*iRecord.currentReadSize
+                        #readBytes = iRecord.currentReadValue()
                         while j<iRecord.currentReadSize:
-                            readBytes[j] = int(memBytes[j],16)
-                            sDbg= "Offset:%d,Value=0x%x" %(j,readBytes[j])
-                            log.debug(sDbg)
+                            #readBytes[j] = int(memBytes[j],16)
+                            iRecord.currentReadValue[j] = int(memBytes[j],16)
+                            #sDbg= "Offset:%d,Value=0x%x" %(j,readBytes[j])
+                            #log.debug(sDbg)
                         #TODO: validate if this matches exec simulation
                             j=j+1               
                         i=i+3

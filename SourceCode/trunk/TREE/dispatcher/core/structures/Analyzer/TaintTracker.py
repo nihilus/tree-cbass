@@ -51,7 +51,7 @@ class TaintTracker(object):
         self.static_taint = {} #keyed by instruction encoding, and mapping to a static taint template
         self.dynamic_taint={} #keyed by memory or register/thread address, and mapping to its taint object(defined in CIDTaint) 
         self.output_fd = out_fd
-        self.bDebug = True
+        self.bDebug = False
         self.taint_policy = taint_policy # TAINT_DATA is  DEFAULT
         self.trace_type = trace_type
         self.pcs =[]
@@ -903,9 +903,10 @@ class TaintTracker(object):
                 del self.dynamic_taint[normalizedSrcReg1Names[j]]
                 
     def TaintPropogateUnary(self, instInfo, instRec):
-        sDbg = "Taint propagating unary: %s\n" %(instInfo.attDisa)
-        sDbg = instInfo.getDebugInfo()
-        log.debug(sDbg)
+        if (self.bDebug==True):
+            sDbg = "Taint propagating unary: %s\n" %(instInfo.attDisa)
+            sDbg = instInfo.getDebugInfo()
+            log.debug(sDbg)
         tid = instRec.currentThreadId
         instStr = str(instInfo.attDisa).strip("b'")
         if(instInfo.n_src_operand!=1 or instInfo.n_dest_operand!=1):
