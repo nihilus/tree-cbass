@@ -74,7 +74,6 @@ class TaintGraph(GraphViewer):
     #print uuid
     a = self.graph.node[uuid]['inode']
     label = a.name
-    print label
     if a.nodeattr == 'c':
         uuid = "[c] " + str(label)
     if not a.nodeattr:

@@ -526,7 +526,6 @@ class VisualizerWidget(QtGui.QMainWindow):
                 cur_thread[int(thread.t1)].append(node)
             self.graphScene.addItem(node)
             cur_num = cur_num + 1
-
         self.graphView.setScene(self.graphScene)
         self.graphView.update()
         self.graphView.repaint()
