@@ -128,9 +128,9 @@ class VisualizerWidget(QtGui.QMainWindow):
         #If no config then connect to virtualbox in config
         self.taint_table.setSortingEnabled(False)
         if self.policy == "TAINT_BRANCH":
-            self.taints_header_labels = ["UUID", "Type", "Name", "StartInd", "EndInd", "Transformation Instruction"]
+            self.taints_header_labels = ["UUID", "Type", "Name", "Start Sequence", "End Sequence", "Transformation Instruction"]
         else:
-            self.taints_header_labels = ["UUID", "Type", "Name", "StartInd", "EndInd", "Transformation Instruction", "Child C", "Child D"]
+            self.taints_header_labels = ["UUID", "Type", "Name", "Start Sequence", "End Sequence", "Transformation Instruction", "Child C", "Child D"]
         self.taint_table.clear()
         self.taint_table.setColumnCount(len(self.taints_header_labels))
         self.taint_table.setHorizontalHeaderLabels(self.taints_header_labels)
@@ -274,7 +274,14 @@ class VisualizerWidget(QtGui.QMainWindow):
                     if column == 0:
                         tmp_item = self.QtGui.QTableWidgetItem(ynode[1]['inode'].uuid)
                     elif column == 1:
-                        tmp_item = self.QtGui.QTableWidgetItem(ynode[1]['inode'].typ)
+                        typ = ''
+                        if ynode[1]['inode'].typ == "in":
+                            typ = "input"
+                        elif ynode[1]['inode'].typ == "mem":
+                            typ = "memory"
+                        elif ynode[1]['inode'].typ == "reg":
+                            typ = "register"
+                        tmp_item = self.QtGui.QTableWidgetItem(typ)
                     elif column == 2:
                         tmp_item = self.QtGui.QTableWidgetItem(ynode[1]['inode'].name)
                     elif column == 3:
@@ -293,7 +300,14 @@ class VisualizerWidget(QtGui.QMainWindow):
                     if column == 0:
                         tmp_item = self.QtGui.QTableWidgetItem(ynode[1]['inode'].uuid)
                     elif column == 1:
-                        tmp_item = self.QtGui.QTableWidgetItem(ynode[1]['inode'].typ)
+                        typ = ''
+                        if ynode[1]['inode'].typ == "in":
+                            typ = "input"
+                        elif ynode[1]['inode'].typ == "mem":
+                            typ = "memory"
+                        elif ynode[1]['inode'].typ == "reg":
+                            typ = "register"
+                        tmp_item = self.QtGui.QTableWidgetItem(typ)
                     elif column == 2:
                         tmp_item = self.QtGui.QTableWidgetItem(ynode[1]['inode'].name)
                     elif column == 3:
