@@ -12,9 +12,9 @@ class TaintNode(object):
 
     def label(self):
         if self.lib:
-            return "[%s][%s]%s_%s\n[%s][%s]" % (self.lib, self.uuid, self.typ, self.name, self.startind, self.endind)
+            return "[%s][%s]%s_%s\n[%s][%s]" % (self.lib, self.uuid, self.typ, self.name, self.edgeann)
         else:
-            return "[%s]%s_%s\n[%s][%s]" % (self.uuid, self.typ, self.name, self.startind, self.endind)
+            return "[%s]%s_%s\n[%s]" % (self.uuid, self.typ, self.name, self.edgeann)
             
     def node_label(self):
         self.node_label = self.typ.split("_")[:1]

@@ -215,7 +215,6 @@ class VisualizerWidget(QtGui.QMainWindow):
         else:
             self.taintGraph = TaintGraph(self.t_graph)
         self.taintGraph.Show()
-        tv.Show()
     
     def onImportIndexButtonClicked(self):
         """
@@ -311,6 +310,7 @@ class VisualizerWidget(QtGui.QMainWindow):
                     elif column == 7:
                         if hasattr(ynode[1]['inode'], 'child_d'):
                             tmp_item = self.QtGui.QTableWidgetItem(ynode[1]['inode'].child_d)
+                            #self.QtCore.QObject.connect(tmp_item, self.QtCore.SIGNAL('clicked()'), self.childClick)
                         else:
                             tmp_item = self.QtGui.QTableWidgetItem(" ")
                     tmp_item.setFlags(tmp_item.flags() & ~self.QtCore.Qt.ItemIsEditable)
@@ -328,7 +328,7 @@ class VisualizerWidget(QtGui.QMainWindow):
         menu.addAction(addr)
         menu.exec_(self.QtGui.QCursor.pos())
         
-    def childDoubleClick(self, mi):
+    def childClick(self, mi):
         print "test"
         
     def addrGo(self):
