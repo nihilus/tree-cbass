@@ -85,6 +85,11 @@ class ETDbgHook(DBG_Hooks):
         self.treeIDBFile = treeTraceFile
         self.startTracing = False
         self.interactiveMode = mode
+        
+        # Save TREE Trace Info to netnode
+        TreeTrace = idaapi.netnode("$ TreeTrace", 0, 1)        
+        TREEMagicNumber = 888 # 888 is the magic number for TREE Trace
+        TreeTrace.supset(TREEMagicNumber,treeTraceFile)
 
     def dbg_process_start(self, pid, tid, ea, name, base, size):
         
@@ -418,6 +423,7 @@ class ETDbgHook(DBG_Hooks):
         self.startTracing = False
         idaapi.request_detach_process()
         idaapi.run_requests()
+        
         
     def removeBreakpoints(self):
 

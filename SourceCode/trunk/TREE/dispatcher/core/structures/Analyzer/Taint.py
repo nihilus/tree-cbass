@@ -1,6 +1,6 @@
 '''
 
-This is the basic taint class for CBASS. 
+This is the basic taint class for CBASS/TREE. 
    
  * @author Nathan Li
  * 
@@ -9,9 +9,9 @@ This is the basic taint class for CBASS.
 import logging
 import struct
     
-log = logging.getLogger('CIDATA')
+log = logging.getLogger('TREE')
 
-INPUT_TAINT=-1
+INITIAL_TAINT=-1
 REGISTER_TAINT = 0
 MEMORY_TAINT = 1
 BRANCH_TAINT = 2
@@ -84,7 +84,7 @@ class Taint(object):
             taintStr =taintStr+"reg_"
         elif(self.taintType == MEMORY_TAINT):
             taintStr =taintStr+"mem_"
-        elif(self.taintType == INPUT_TAINT):
+        elif(self.taintType == INITIAL_TAINT):
             taintStr =taintStr+"in_"            
         else:
             taintStr =taintStr+"bc_"
@@ -102,10 +102,6 @@ class Taint(object):
             return taintStr
         
         return taintStr
-#        taint_tree = ""
-#       if(len(self.taintSources)>0):        
-#            taint_tree = "\n".join([("\t" + str(t)) for t in self.taintSources])
-        #        return "".join(["%s<-%s" % (taintStr,self.creatorInstAmenic), "\n", taint_tree])
 
     def taint_tree(self, level=1):
         taintStr ="[%s]" %(self.tuid)
@@ -114,7 +110,7 @@ class Taint(object):
             taintStr =taintStr+"reg_"
         elif(self.taintType == MEMORY_TAINT):
             taintStr =taintStr+"mem_"
-        elif(self.taintType == INPUT_TAINT):
+        elif(self.taintType == INITIAL_TAINT):
             taintStr =taintStr+"in_"                 
         else:
             taintStr =taintStr+"bc_"
@@ -164,7 +160,7 @@ class Taint(object):
             taintStr =taintStr+"reg_"
         elif(self.taintType == MEMORY_TAINT):
             taintStr =taintStr+"mem_"
-        elif(self.taintType == INPUT_TAINT):
+        elif(self.taintType == INITIAL_TAINT):
             taintStr =taintStr+"in_"                             
         else:
             taintStr =taintStr+"bc_"
@@ -206,7 +202,7 @@ class Taint(object):
     def dumpTaintTree(self,output_fd):
         taintids=set()
         taintids.add(self.tuid)
-        
+        taintStr = ""
         while len(taintids)!=0:
             tid = taintids.pop()
             taint = Taint.uid2Taint[tid]
@@ -217,6 +213,11 @@ class Taint(object):
             for bSrc in taint.bSources:
                 taintids.add(bSrc.tuid)                
             if(tid not in Taint.visited):
-                output_fd.write("%s\n" %taint.taint_simple())
+                newStr = "%s\n" %taint.taint_simple()
+                taintStr = taintStr + newStr
+                if (output_fd !=None):
+                    output_fd.write("%s" %newStr)
                 Taint.visited.add(tid)
+        
+        return taintStr
 

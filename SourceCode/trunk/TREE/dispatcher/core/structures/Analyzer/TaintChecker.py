@@ -15,10 +15,9 @@ from ctypes.util import *
 from ctypes import *
 import ctypes
 import operator
-from Taint import Taint, INPUT_TAINT,REGISTER_TAINT,MEMORY_TAINT,BRANCH_TAINT 
+from Taint import Taint, INITIAL_TAINT,REGISTER_TAINT,MEMORY_TAINT,BRANCH_TAINT 
 from TraceParser import TraceReader, IDATextTraceReader, PinTraceReader
 from x86Decoder import x86Decoder, instDecode, IMMEDIATE, REGISTER,MEMORY, WINDOWS, LINUX
-from Taint import Taint, INPUT_TAINT, REGISTER_TAINT, MEMORY_TAINT
 from x86ISA import X86ISA
 #Trace type enumeration
 IDA = 0
@@ -92,7 +91,8 @@ class TaintChecker(object):
 
         faultAddress = tRecord.currentExceptionAddress
         self.taintTracker.output_fd.write("EXCEPTION:\n")
-        
+        strTaint ="EXCEPTION:\n"
+
         if(not(tLastERecord.currentInstruction in self.taintTracker.static_taint)):                
             instlen = tLastERecord.currentInstSize
             instcode = c_byte*instlen
@@ -120,7 +120,8 @@ class TaintChecker(object):
             print ("%s" %sException)
             instInfo.printInfo()		
         self.taintTracker.output_fd.write("%s" %(sException))
-                
+        strTaint = strTaint + "%s" %(sException)
+	
         for reg in tLastERecord.reg_value:
             if (self.bDebug==True):
                 print ("reg= %s, value=%s" %(reg,tLastERecord.reg_value[reg]))
@@ -132,17 +133,18 @@ class TaintChecker(object):
                 if(normalizedRegName in self.taintTracker.dynamic_taint):
                     if (self.bDebug==True):
                         print ("tainted = %s" %self.taintTracker.dynamic_taint[normalizedRegName].taint_simple())
-                    self.taintTracker.dynamic_taint[normalizedRegName].dumpTaintTree(self.taintTracker.output_fd)
+                    strTaint = strTaint + self.taintTracker.dynamic_taint[normalizedRegName].dumpTaintTree(self.taintTracker.output_fd)
                     
 	    #Check if the memory pointed by the reg is tainted
             memBase = tLastERecord.reg_value[reg]
             if (tLastERecord.reg_value[reg]==faultAddress):
                 for i in range(4):
                     if(memBase+i in self.taintTracker.dynamic_taint):
-                        self.taintTracker.dynamic_taint[faultAddress+i].dumpTaintTree(self.taintTracker.output_fd)
+                        strTaint = strTaint + self.taintTracker.dynamic_taint[faultAddress+i].dumpTaintTree(self.taintTracker.output_fd)
                         if (self.bDebug==True):
                             print ("tainted = %s" %self.taintTracker.dynamic_taint[faultAddress+i].taint_simple())
-                            
+        return strTaint
+    
     def DumpExceptionAnalysis(self, tRecord, tLastERecord,verBose):
         faultAddress = tRecord.currentExceptionAddress
         
@@ -171,12 +173,13 @@ class TaintChecker(object):
             instInfo = self.taintTracker.static_taint[tLastERecord.currentInstruction]
 
         self.taintTracker.output_fd.write("EXCEPTION:\n")
+        strTaint = "EXCEPTION:\n"
         sException= "Exception Instruction=0x%x, %s, Thread=%x, Seq=0x%x\n" %(tLastERecord.currentInstruction,instInfo.attDisa,tLastERecord.currentThreadId,tLastERecord.currentInstSeq)
         if (self.bDebug==True):
             print ("%s" %sException)
             instInfo.printInfo()		
         self.taintTracker.output_fd.write("%s" %(sException))
-        
+        strTaint = strTaint + "%s" %(sException)
         for i in range(instInfo.n_src_operand):
             if(instInfo.src_operands[i]._type == REGISTER):
                 reg = instInfo.src_operands[i]._ea
@@ -190,7 +193,7 @@ class TaintChecker(object):
                     if(normalizedRegName in self.taintTracker.dynamic_taint):
                         if (self.bDebug==True):
                             print ("tainted = %s" %self.taintTracker.dynamic_taint[normalizedRegName].taint_simple())
-                        self.taintTracker.dynamic_taint[normalizedRegName].dumpTaintTree(self.taintTracker.output_fd)
+                        strTaint = strTaint +self.taintTracker.dynamic_taint[normalizedRegName].dumpTaintTree(self.taintTracker.output_fd)
 
         for i in range(instInfo.n_dest_operand):
             if(instInfo.dest_operands[i]._type == REGISTER):
@@ -203,7 +206,7 @@ class TaintChecker(object):
                     if(normalizedRegName in self.taintTracker.dynamic_taint):
                         if (self.bDebug==True):
                             print ("tainted = %s" %self.taintTracker.dynamic_taint[normalizedRegName].taint_simple())
-                        self.taintTracker.dynamic_taint[normalizedRegName].dumpTaintTree(self.taintTracker.output_fd)
+                        strTaint = strTaint +self.taintTracker.dynamic_taint[normalizedRegName].dumpTaintTree(self.taintTracker.output_fd)
             
         for reg in tLastERecord.reg_value:
             if (self.bDebug==True):
@@ -216,17 +219,18 @@ class TaintChecker(object):
                 if(normalizedRegName in self.taintTracker.dynamic_taint):
                     if (self.bDebug==True):
                         print ("tainted = %s" %self.taintTracker.dynamic_taint[normalizedRegName].taint_simple())
-                    self.taintTracker.dynamic_taint[normalizedRegName].dumpTaintTree(self.taintTracker.output_fd)
+                    strTaint = strTaint + self.taintTracker.dynamic_taint[normalizedRegName].dumpTaintTree(self.taintTracker.output_fd)
                     
 	    #Check if the memory pointed by the reg is tainted
             memBase = tLastERecord.reg_value[reg]
             if (tLastERecord.reg_value[reg]==faultAddress):
                 for i in range(4):
                     if(memBase+i in self.taintTracker.dynamic_taint):
-                        self.taintTracker.dynamic_taint[faultAddress+i].dumpTaintTree(self.taintTracker.output_fd)
+                        strTaint = strTaint + self.taintTracker.dynamic_taint[faultAddress+i].dumpTaintTree(self.taintTracker.output_fd)
                         if (self.bDebug==True):
                             print ("tainted = %s" %self.taintTracker.dynamic_taint[faultAddress+i].taint_simple())
-
+	return strTaint
+    
         #DEBUG
         #self.DumpLiveTaints()
 
@@ -247,9 +251,12 @@ class TaintChecker(object):
         
         for t in self.taintTracker.dynamic_taint:
             self.taintTracker.dynamic_taint[t].terminateTaint(-1,-1)
-        for t in self.taintTracker.dynamic_taint: 
-            self.taintTracker.output_fd.write("%s \n" %(self.taintTracker.dynamic_taint[t].taint_tree()))
+        for t in self.taintTracker.dynamic_taint:
+            newTaint = strTaint + "%s \n" %(self.taintTracker.dynamic_taint[t].taint_tree())	    
+            strTaint = strTaint + newTaint
+	    self.taintTracker.output_fd.write("%s \n" %(newTaint))
             #self.output_fd.write("%s \n" %(self.dynamic_taint[t].taint_simple()))
+	return strTaint
 
     def DisplayPCs(self):
         self.taintTracker.output_fd.write("Path Conditions:\n")

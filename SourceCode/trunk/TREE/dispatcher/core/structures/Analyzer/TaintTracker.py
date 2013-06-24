@@ -23,7 +23,7 @@ import operator
 
 from TraceParser import InstructionTraceRecord
 from x86Decoder import x86Decoder, instDecode, IMMEDIATE, REGISTER,MEMORY, WINDOWS, LINUX
-from Taint import Taint, INPUT_TAINT, REGISTER_TAINT, MEMORY_TAINT, BRANCH_TAINT
+from Taint import Taint, INITIAL_TAINT, REGISTER_TAINT, MEMORY_TAINT, BRANCH_TAINT
 from x86ISA import X86ISA
 from TaintChecker import TaintChecker
 
@@ -49,7 +49,7 @@ class TaintTracker(object):
         self.xDecoder = x86Decoder(processBits, targetBits, hostOS)
         self.targetBits = targetBits
         self.static_taint = {} #keyed by instruction encoding, and mapping to a static taint template
-        self.dynamic_taint={} #keyed by memory or register/thread address, and mapping to its taint object(defined in CIDTaint) 
+        self.dynamic_taint={} #keyed by memory or register/thread address, and mapping to its taint object(defined in Taint) 
         self.output_fd = out_fd
         self.bDebug = False
         self.taint_policy = taint_policy # TAINT_DATA is  DEFAULT

@@ -159,7 +159,16 @@ class DispatcherPlugin(plugin_t):
     
     def init(self):
         self.icon_id = 0
-        return idaapi.PLUGIN_OK
+        TreeTrace = idaapi.netnode("$ TreeTrace", 0, 1)
+        TREEMagicNumber = 888 # 888 is the magic number for TREE Trace
+        
+        traced = TreeTrace.supstr(TREEMagicNumber)
+        if traced == None:
+            print "No Trace with this IDB. Turn OFF TREE Analyzer"        
+            return idaapi.PLUGIN_SKIP
+        else:
+            print "Trace %s is found with this IDB. Turn ON TREE Analyzer" %(traced)
+            return idaapi.PLUGIN_OK
         
     def run(self, arg=0):
         f = DispatcherForm()

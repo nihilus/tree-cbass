@@ -10,7 +10,7 @@ import os
 from optparse import OptionParser
 import logging
 import struct
-from Taint import Taint, INPUT_TAINT,REGISTER_TAINT,MEMORY_TAINT,BRANCH_TAINT 
+from Taint import Taint, INITIAL_TAINT,REGISTER_TAINT,MEMORY_TAINT,BRANCH_TAINT 
 from TraceParser import TraceReader, IDATextTraceReader, PinTraceReader
 from TaintTracker import TaintTracker
 
@@ -23,11 +23,23 @@ class TaintMarker(object):
         for i in range(INRecord.currentInputSize):
             if(address+i in self.taintTracker.dynamic_taint):
                 self.taintTracker.dynamic_taint[address+i].terminateTaint(INRecord.sequence,INRecord.callingThread)
-            taint = Taint(INPUT_TAINT,address+i,INRecord.sequence,INRecord.callingThread, INRecord.inputFunction,True)
+            taint = Taint(INITIAL_TAINT,address+i,INRecord.sequence,INRecord.callingThread, INRecord.inputFunction,True)
             taint.setInputFunctionCaller(INRecord.functionCaller)
             Taint.uid2Taint[taint.tuid]= taint
             self.taintTracker.dynamic_taint[address+i] = taint
             #print("Input Taint: %s" %(taint.taint_simple()))
+
+    def SetPartialInputTaint(self, INRecord, Offset,Size):
+        address = INRecord.currentInputAddr
+        for i in range(INRecord.currentInputSize):
+            if ((i< Offset) or (i >=Offset+Size)):
+                continue
+            if(address+i in self.taintTracker.dynamic_taint):
+                self.taintTracker.dynamic_taint[address+i].terminateTaint(INRecord.sequence,INRecord.callingThread)
+            taint = Taint(INITIAL_TAINT,address+i,INRecord.sequence,INRecord.callingThread, INRecord.inputFunction,True)
+            taint.setInputFunctionCaller(INRecord.functionCaller)
+            Taint.uid2Taint[taint.tuid]= taint
+            self.taintTracker.dynamic_taint[address+i] = taint
             
     def setInteractiveTaint(self,taintSource):
         split = taintSource.split("_")
