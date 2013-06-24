@@ -38,7 +38,6 @@ class AnalyzerWidget(QtGui.QMainWindow):
         Create the main GUI with its components
         """
         # Create buttons
-        self.trace_label = QtGui.QLabel("Trace Nodes (0/0)")
         self.taint_nodes_label = QtGui.QLabel("Taint Nodes(0/0)")
         
         self._createToolbar()
@@ -64,6 +63,8 @@ class AnalyzerWidget(QtGui.QMainWindow):
             if bIsFirst:
                 radio.setChecked(True)
                 bIsFirst = False
+            else:
+                radio.setEnabled(False)
             vbox.addWidget(radio)
         
         vbox2 = QtGui.QVBoxLayout()
@@ -81,7 +82,6 @@ class AnalyzerWidget(QtGui.QMainWindow):
         self.analyzeTypeGroup.setLayout(vbox)
         self.propPolicy.setLayout(vbox2)
         #self.sink_taint_only_cb.stateChanged.connect(self.populateVMTable)
-        taint_info_layout.addWidget(self.trace_label)
         taint_info_layout.addWidget(self.propPolicy)
         taint_info_layout.addWidget(self.analyzeTypeGroup)
         
