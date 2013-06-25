@@ -10,6 +10,7 @@ from idaapi import *
 from idautils import *
 from idc import *
 import os
+from collections import deque
 
 class VisualizerWidget(QtGui.QMainWindow):
     """
@@ -23,6 +24,7 @@ class VisualizerWidget(QtGui.QMainWindow):
         self.name = "Visualizer"
         path = os.path.join(self.parent.iconPath,"trace.png")
         self.icon = QIcon(path)
+        self.taint_queue = deque(maxlen=12)
         
         #References to qt-specific modules
         self.QtGui = QtGui
@@ -267,6 +269,7 @@ class VisualizerWidget(QtGui.QMainWindow):
         self.taint_table.setRowCount(len(self.t_graph))
         self.taint_table.setContextMenuPolicy(self.QtCore.Qt.CustomContextMenu)
         self.taint_table.customContextMenuRequested.connect(self.handleTaintMenu)
+        self.taint_table.cellClicked.connect(self.childClick)
         if self.policy == "TAINT_BRANCH":
             for row, ynode in enumerate(self.t_graph.nodes(data=True)):
                 for column, column_name in enumerate(self.taints_header_labels):
@@ -324,7 +327,7 @@ class VisualizerWidget(QtGui.QMainWindow):
                     elif column == 7:
                         if hasattr(ynode[1]['inode'], 'child_d'):
                             tmp_item = self.QtGui.QTableWidgetItem(ynode[1]['inode'].child_d)
-                            #self.QtCore.QObject.connect(tmp_item, self.QtCore.SIGNAL('clicked()'), self.childClick)
+                            #self.QtCore.QObject.connect(tmp_item, self.QtCore.SIGNAL('clicked()'), self.childDoubleClick)
                         else:
                             tmp_item = self.QtGui.QTableWidgetItem(" ")
                     tmp_item.setFlags(tmp_item.flags() & ~self.QtCore.Qt.ItemIsEditable)
@@ -342,8 +345,48 @@ class VisualizerWidget(QtGui.QMainWindow):
         menu.addAction(addr)
         menu.exec_(self.QtGui.QCursor.pos())
         
-    def childClick(self, mi):
-        print "test"
+    def childClick(self, x, y):
+        if y == 6:
+            print "child c"
+        elif y == 7:
+            self.clearTableHighlight(self.taint_table, y)
+            self.highlightTaintChildren(x,y,0)
+            #self.taint_table.item(x,y).setBackground(self.QtCore.Qt.red)
+            
+    def highlightTaintChildren(self, x, y, depth):
+        #Clear current taints
+        #Keep in mind cells are initialized to " "
+        #print type(self.taint_table.findItems(self.taint_table.item(x,y).text(), self.QtCore.Qt.MatchExactly))
+        if(depth >3):
+            return
+        elif not self.taint_table.item(x,y).text().strip():
+            print "breakout"
+            return
+        else:
+            for child in (self.taint_table.item(x,y).text().split(" ")):
+                #Search for child's row in taint_table
+                row = self.tableSearch(self.taint_table, child)
+                self.taint_table.item(row,y).setBackground(self.QtCore.Qt.red)
+                self.highlightTaintChildren(row, y, depth+1)
+                return
+        return
+            
+    def tableSearch(self, table, val):
+        """
+        Search through every row in the uuid for a value and retun the corresponding row
+        """
+        row = None
+        for i in xrange(table.rowCount()):
+            if int(table.item(i,0).text()) == int(val):
+                row = i
+                break
+        return row
+        
+    def clearTableHighlight(self, table, column):
+        """
+        """
+        for i in xrange(table.rowCount()):
+            self.taint_table.item(i,column).setBackground(self.QtCore.Qt.white)
         
     def addrGo(self):
         from idc import *
