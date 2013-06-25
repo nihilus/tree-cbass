@@ -19,6 +19,7 @@ from Arch.x86.x86Decoder import instDecode
 from dispatcher.core.structures.Analyzer.x86Decoder import WINDOWS, LINUX
 
 from dispatcher.core.Util import toHex
+from dispatcher.core.structures.Tracer.FileOutput.writer import BufferWriter
 
 #curid = 0
 nException=0
@@ -29,40 +30,6 @@ REGISTER=2
 MEMORY=3
 
 isa_bits=32
-
-class FileWriter():
-    """
-    File Writer writes data to a file
-    
-    Call fileOpen to create an output file
-    Call writeToFile to write to the file
-    Call fileClose to close the file
-    
-    """
-    
-    def __init__(self,filename):
-        self.file=None
-        self.filename = filename
-
-        try:
-            print ("%s opened for writing" % filename)
-            self.file=file(filename,'wb')
-        except IOError:
-            print "IOError cannot open the file"
-
-    def writeToFile(self,data):
-        if not self.file.closed:
-            self.file.write(data)
-        else:
-            print ("Cannot write because %s is closed." % self.filename)
-            self.file=file(self.filename,'wb')
-            if self.file.closed:
-                print ("Cannot re-open %s for writing."% self.filename)
-                
-    def fileClose(self):
-        self.file.close()
-        #self.filename = None
-        print ("%s file closed." % self.filename)
         
 class ETDbgHook(DBG_Hooks):
 
@@ -77,7 +44,8 @@ class ETDbgHook(DBG_Hooks):
             hostOS = LINUX
         self.xDecoder32 = x86Decoder(isa_bits,32, hostOS)
 
-        self.memoryWriter = FileWriter(traceFile)
+        self.memoryWriter = BufferWriter()
+        #self.memoryWriter.fileOpen(traceFile)
         self.checkInput = None
         self.bCheckFileIO = False
         self.bCheckNetworkIO = False
@@ -85,11 +53,6 @@ class ETDbgHook(DBG_Hooks):
         self.treeIDBFile = treeTraceFile
         self.startTracing = False
         self.interactiveMode = mode
-        
-        # Save TREE Trace Info to netnode
-        TreeTrace = idaapi.netnode("$ TreeTrace", 0, 1)        
-        TREEMagicNumber = 888 # 888 is the magic number for TREE Trace
-        TreeTrace.supset(TREEMagicNumber,treeTraceFile)
 
     def dbg_process_start(self, pid, tid, ea, name, base, size):
         
@@ -100,8 +63,9 @@ class ETDbgHook(DBG_Hooks):
                 
         self.logger.info("Process exited pid=%d tid=%d ea=0x%x code=%d" % (pid, tid, ea, code))
         self.memoryWriter.writeToFile("T 0x%x %d\n" % ( ea, code))
-        
-        self.memoryWriter.fileClose()
+        data = self.memoryWriter.getBufferData()
+        self.takeSnapshot(data)
+      #  self.memoryWriter.fileClose(data)
             
     def dbg_library_unload(self, pid, tid, ea, info):
         self.logger.info("Library unloaded: pid=%d tid=%d ea=0x%x info=%s" % (pid, tid, ea, info))
@@ -143,11 +107,7 @@ class ETDbgHook(DBG_Hooks):
         if self.startTracing:
             self.startTracing = False
             self.logger.info( "Process suspended" )
-            idc.TakeMemorySnapshot(0)
-            #idbPath = idc.GetIdbPath()
-
-            idc.SaveBase(self.treeIDBFile)
-            
+        
             self.dbg_step_into()
             idaapi.request_step_into()
             idaapi.run_requests()
@@ -405,7 +365,7 @@ class ETDbgHook(DBG_Hooks):
         #update the instruction sequence counter
         instSeq = instSeq+1
         
-        self.removeBreakpoints()
+      #  self.removeBreakpoints()
         """
         eip = GetRegValue("EIP")
         DelBpt(eip)
@@ -424,7 +384,6 @@ class ETDbgHook(DBG_Hooks):
         idaapi.request_detach_process()
         idaapi.run_requests()
         
-        
     def removeBreakpoints(self):
 
     #    print "%d breakpoints found." % idc.GetBptQty()
@@ -442,4 +401,12 @@ class ETDbgHook(DBG_Hooks):
                 
                 if idc.DelBpt(bptAddr):
                     print( "Breakpoint %d at 0x%x removed." % (i,bptAddr) )
-                
+                    
+    def takeSnapshot(self,data):
+        idc.TakeMemorySnapshot(0)
+        
+        ExTraces = idaapi.netnode("$ ExTraces", 0, True)
+
+        ExTraces.setblob(data,0,'A')
+            
+        idc.SaveBase(self.treeIDBFile)

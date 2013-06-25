@@ -1,6 +1,3 @@
-# writer.py
-
-__version__ = "$Revision: 16dd63848921 $"
 # $Source$
 
 #---------------------------------------------------------------------
@@ -45,12 +42,13 @@ class BufferWriter():
             self.output.close()
             self.output = cStringIO.StringIO()
         """
-        
-    def fileClose(self):
-        contents = self.output.getvalue() #Get all the data content
-        self.file.write(contents) #Write the data content to a file
-        
-        self.output.close() #Close the memory buffer
+    
+    def getBufferData(self):
+        return self.output.getvalue()
+    
+    def fileClose(self,data):
+ 
+        self.file.write(data) #Write the data content to a file
 
         self.file.close() #Close the actual file
         

@@ -61,7 +61,7 @@ class IDATrace():
         #Print(self.tracefile)
         
         traceFileName = os.path.splitext(self.tracefile)
-        self.treeTracefile = traceFileName[0] + ".TREE"
+        self.treeTracefile = traceFileName[0] + ".idb"
         
         self.logger = None
         logfile = traceFileName[0] + ".log"
@@ -262,26 +262,6 @@ class IDATrace():
             Print("Using interactive mode.")
         else:
             Print("Using non-interactive mode.")
-            
-                
-        if idaapi.dbg_is_loaded():
-            Print( "The debugger is loaded, lets try to stop it." )
-            bStop = idc.StopDebugger()
-            
-            if bStop:
-                Print( "Stopped debugger." )
-        
-                try:    
-                    if EThook:
-                        Print("Removing previous hook ...")
-                        EThook.unhook()
-                        
-                except:
-                    Print("Cannot remove debugger hook.")
-                    
-            else:
-                Print( "Cannot stop debugger." )
-                sys.exit(1)
 
         EThook = ETDbgHook(self.tracefile,self.treeTracefile,self.logger,interactiveMode)
         EThook.hook()

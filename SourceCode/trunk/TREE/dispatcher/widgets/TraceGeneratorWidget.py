@@ -40,6 +40,31 @@ class TraceGeneratorWidget(QMainWindow):
     def closeEvent(self, event):
         print("TraceGeneratorWidget closing...")
         QMainWindow.closeEvent(self, event)
+    
+    def showStatus(self):
+
+        self.colorLabel.setStyleSheet("font: 15pt;font-weight:bold");
+        self.colorLabel.setText("This is a test message")
+        self.colorLabel.setPalette(QtGui.QPalette("red"))
+        self.colorLabel.setAutoFillBackground(True)
+        
+        self.statusbar.addWidget(self.colorLabel, 100)
+        self.statusbar.show()
+        
+    def showStatus(self,message):
+        
+        frameStyle = QtGui.QFrame.Sunken | QtGui.QFrame.Panel
+        self.colorLabel = QtGui.QLabel()
+        self.colorLabel.setFrameStyle(frameStyle)
+        self.colorLabel.setStyleSheet("font:13pt; font-weight:bold; color:green");
+        self.colorLabel.setText(message)
+        #self.colorLabel.setAutoFillBackground(True)
+        
+        self.statusbar.addWidget(self.colorLabel)
+        self.statusbar.show()
+        
+    def hideStatus(self):
+        self.statusbar.removeWidget(self.colorLabel)
         
     def _createGui(self):
         """
@@ -48,6 +73,10 @@ class TraceGeneratorWidget(QMainWindow):
         # Create buttons
         #from PySide import QtGui, QtCore
         #self.setWindowTitle("Hello")
+        self.statusbar = QtGui.QStatusBar(self)
+        self.statusbar.setObjectName("statusbar")
+        self.setStatusBar(self.statusbar)
+        
         self._createToolbar()
         trace_layout = QtGui.QVBoxLayout()
         self.filters_qb = QtGui.QGroupBox()
@@ -232,7 +261,7 @@ class TraceGeneratorWidget(QMainWindow):
         """
         Create the toolbar
         """
-
+        
         self._createGenerateTraceAction()
         self._createProcessAttachAction()
         self._createSaveConfigAction() 
@@ -506,8 +535,10 @@ class TraceGeneratorWidget(QMainWindow):
     def interactive_cbStateChanged(self,state):
         
         if state == self.QtCore.Qt.Checked:
+            self.showStatus("Interactive Mode: Please set the starting (shift-a) and ending (shift-z) points.")
             self.filters_qb.setDisabled(1)
         else:
+            self.hideStatus()
             self.filters_qb.setEnabled(1)
             
     def pinCommunication(self, host="127.0.0.1",port=23966,bRemote=False):
