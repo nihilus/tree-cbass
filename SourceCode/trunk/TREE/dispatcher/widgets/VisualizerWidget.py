@@ -347,7 +347,8 @@ class VisualizerWidget(QtGui.QMainWindow):
         
     def childClick(self, x, y):
         if y == 6:
-            print "child c"
+            self.clearTableHighlight(self.taint_table, y)
+            self.highlightTaintChildren(x,y,0)
         elif y == 7:
             self.clearTableHighlight(self.taint_table, y)
             self.highlightTaintChildren(x,y,0)
@@ -363,7 +364,7 @@ class VisualizerWidget(QtGui.QMainWindow):
             print "breakout"
             return
         else:
-            for child in (self.taint_table.item(x,y).text().split(" ")):
+            for child in self.taint_table.item(x,y).text().split(" "):
                 #Search for child's row in taint_table
                 row = self.tableSearch(self.taint_table, child)
                 self.taint_table.item(row,y).setBackground(self.QtCore.Qt.red)
@@ -391,10 +392,9 @@ class VisualizerWidget(QtGui.QMainWindow):
     def addrGo(self):
         from idc import *
         uuid = self.taint_table.item(self.taint_table.currentItem().row(), 0).text()
-        int_addr = self.t_graph.node[uuid]['inode'].ea
-        bLoaded = isLoaded(int_addr)
+        bLoaded = isLoaded(self.t_graph.node[uuid]['inode'].ea)
         if bLoaded:
-          print "Found addr: 0x%x" % int_addr
-          idc.Jump(int_addr)
+          print "Found addr: 0x%x" % self.t_graph.node[uuid]['inode'].ea
+          idc.Jump(self.t_graph.node[uuid]['inode'].ea)
         #self.filters_filename_table.insertRow(self.filters_filename_table.rowCount())
         #self.filters_filename_table.setItem(self.filters_filename_table.rowCount()-1, 0, self.QtGui.QTableWidgetItem(" "))

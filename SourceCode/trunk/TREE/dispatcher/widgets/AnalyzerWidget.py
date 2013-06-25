@@ -680,21 +680,21 @@ class AnalyzerWidget(QtGui.QMainWindow):
                     imageName = tRecord.ImageName[0] 
                 self.node_lib[imageName] = str(tRecord.LoadAddress) + " " + str(tRecord.ImageSize)
             elif(recordType==Execution):
-                self.node_ea[str(tRecord.currentInstSeq)] = tRecord.currentInstruction
+                self.node_ea[hex(tRecord.currentInstSeq)] = tRecord.currentInstruction
             tRecord = TR.getNext()
         for node in self.t_graph.nodes(data=True):
             ind = node[1]['inode'].startind.split(':')[0]
             if(self.pin_trace_cb.isChecked()):
                 ind = int(ind, 0)
-            #if node[1]['inode'].endind is not None:
-            #    ind = node[1]['inode'].endind.split(':')[0]
+            addr = None
             try:
-                addr = self.node_ea[str(ind)]
-                if(not self.pin_trace_cb.isChecked()):
-                    addr = int(addr, 16)
-                node[1]['inode'].setEA(addr)
+                addr = self.node_ea[ind]
             except KeyError:
-                node[1]['inode'].setEA(None)
+                addr = None
+            if addr is None:
+                continue
+            print addr
+            node[1]['inode'].setEA(addr)
             if node[1]['inode'].ea:
                 for key in self.node_lib.keys():
                     base_addr = int(self.node_lib[key].split(' ')[0], 16)
@@ -702,7 +702,6 @@ class AnalyzerWidget(QtGui.QMainWindow):
                     if node[1]['inode'].ea >= base_addr and node[1]['inode'].ea < end_addr:
                         if self.verbose_trace_cb.isChecked():
                           print "Found library: %s" % key
-                        print key
                         node[1]['inode'].setLib(key)
                         break
             
