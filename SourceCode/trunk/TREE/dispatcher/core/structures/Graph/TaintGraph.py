@@ -44,17 +44,18 @@ class TaintGraph(GraphViewer):
     
   def OnDblClick(self, node_id):
     uuid = self.AddrNode[node_id]
+    int_addr = 0
     try:
         int_addr = self.graph.node[uuid]['inode'].ea
-        bLoaded = isLoaded(int_addr)
-        if bLoaded:
-          print "Found addr: 0x%x" % int_addr
-          idc.MakeCode(int_addr)
-          idc.Jump(int_addr)
-        else:
-          print "Invalid address at 0x%x" % int_addr
     except KeyError:
-        addr = 0
+        int_addr = 0
+    bLoaded = isLoaded(int_addr)
+    if bLoaded:
+      print "Found addr: 0x%x" % int_addr
+      idc.MakeCode(int_addr)
+      idc.Jump(int_addr)
+    else:
+      print "Invalid address at 0x%x" % int_addr
     return True
     
   def OnHint(self, node_id):
