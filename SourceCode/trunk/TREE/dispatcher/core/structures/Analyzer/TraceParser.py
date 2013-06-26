@@ -106,63 +106,32 @@ class LoadImageTraceRecord(TraceRecord):
         self.ImageSize = None
         self.LoadAddress = None
         
-        
-class TraceReader(object):
-    def __init__(self, trace_file):
-        self.exe_trace = trace_file
-        self.x86_thread = X86Thread()
-            
-    def loadImage(self, imageName, loadOffset, lowAddress, highAddress):
-#        self.images[imageName] = BinImage(loadOffset, lowAddress,highAddress)
-        self.currentImage = imageName
 
-    def getCurrentImage(self):
-        return self.currentImage
-              
-    def unloadImage(self, mod_id, mod_path):
-        pass
- 
-    def getNext(self):
-        pass
+class IDBTraceReader(object):
+
+    def __init__(self, trace_buf):
+        self.trace_buffer = trace_buf
+        self.lines = self.trace_buffer.splitlines()
+        self.current_line = 0
     
-    def parseInput(self, line):
-        pass
-
-    def parseInstruction(self, line):
-        pass
- 
-    def parseImageLine(self, line):
-        pass
-   
-    def parseException(self,line):
-        pass
-        
-        
-class IDATextTraceReader(TraceReader):
-
-    def __init__(self, trace_file):
-        super(IDATextTraceReader,self).__init__(trace_file)
-        self.trace_fd = open(self.exe_trace, 'r') 
-        
+    def reSet(self):
+        self.current_line = 0
+    
     def getNext(self):
-        if(self.trace_fd is None):
-            print("Invalid trace file\n")
-            return None
-        
-        line = self.trace_fd.readline()        
-        sDbg = "TextTraceReader: %sline:%s" %("\n\n",line)
-        log.debug(sDbg)
-        
-        if line==None:
-            print ("No more line. Quit!\n")
+        if(self.trace_buffer is None):
+            print("Invalid trace buffer\n")
             return None
 
+        line =  self.lines[self.current_line]
+        self.current_line = self.current_line+1
         line = line.strip()
         split = line.split(" ")
         skip = 0
 
         while line is not None:
             log.debug(line)
+            if(self.current_line >= len(self.lines)):
+                return None
             tRecord = None
             if split[0] == "L":
                 tRecord = self.parseImageLine(line)
@@ -171,11 +140,11 @@ class IDATextTraceReader(TraceReader):
             elif split[0] == "I":
                 tRecord = self.parseInputLine(line)
                 skip = 0				
-                sDbg = "TextTraceReader: After input %s, return tRecord" %(line)
+                sDbg = "TraceReader: After input %s, return tRecord" %(line)
                 log.debug(sDbg)
                 return tRecord
             elif split[0] == "E":
-                sDbg = "TextTraceReader: ELine %s, return tRecord" %(line)
+                sDbg = "TraceReader: ELine %s, return tRecord" %(line)
                 log.debug(sDbg)
                 tRecord = self.parseInstructionLine(line) 
                 skip = 0
@@ -199,7 +168,8 @@ class IDATextTraceReader(TraceReader):
                     sDbg= "Skip too many lines: STOP! %s" %line
                     log.debug(sDbg)
                     break            
-            line = self.trace_fd.readline()
+            self.current_line = self.current_line+1
+            line =  self.lines[self.current_line]
             line = line.strip()
             split = line.split(" ")
 
@@ -209,7 +179,7 @@ class IDATextTraceReader(TraceReader):
         
         iRecord.currentInputAddr = int(split[1], 16)
         iRecord.currentInputSize = int(split[2], 10)
-        sDbg= "Text Trace Input received at 0x%x for %d bytes" %(iRecord.currentInputAddr,iRecord.currentInputSize)
+        sDbg= "Trace Input received at 0x%x for %d bytes" %(iRecord.currentInputAddr,iRecord.currentInputSize)
         #I 103e138 12 414141414141414141414141 0x63c4 0x0 wsock32_recv 0x11d110e 0x78
         # or I 103e138 12 414141414141414141414141 "old format"
         iRecord.inputBytes = split[3]
@@ -339,165 +309,5 @@ class IDATextTraceReader(TraceReader):
 
         return iRecord
 
-class PinTraceReader(TraceReader):
-    def __init__(self, trace_file):
-        super(PinTraceReader,self).__init__(trace_file)        
-        self.trace_fd = open(self.exe_trace, 'rb')
-        self.xDecoder32 = x86Decoder(32,32, WINDOWS)
-        self.InstSeq =0
 
-    def getNext(self):
-
-        if(self.trace_fd is None):
-            print("Invalid trace file\n")
-            return None
-
-        try: 
-            tag = self.trace_fd.read(1) 
-                    
-            while tag:
-                tRecord = None
-                #sDbg= "tag=%s" % (tag)
-                #log.debug(sDbg)
-                
-                if tag == 'L': #load image
-                    tRecord = self.parseImageLine(self.trace_fd.readline()) 
-                    return tRecord
-                elif tag == 'I': #input
-                    tRecord = self.parseInputLine()
-                    return tRecord
-                elif tag =='E':
-                    tRecord = self.parseInstructionLine() 
-                    return tRecord
-                elif tag == 'X':
-                    tRecord = self.parseExceptionLine(self.trace_fd.readline())      
-                    return tRecord
-                else:
-                    sDbg= "Unknown tag"
-                    log.debug(sDbg)
-                    
-                tag = self.trace_fd.read(1)     
-        finally:
-            pass
-			
-    def parseInputLine(self):
-        line = self.trace_fd.readline()
-        split = line.split(" ")
-        iRecord = InputTraceRecord()
-        
-        iRecord.currentInputAddr = int(split[1], 16)
-        iRecord.currentInputSize = int(split[2], 16)
-        iRecord.inputBytes = split[3]
-        sDbg= "Input received at 0x%x for %d bytes:" %(iRecord.currentInputAddr,iRecord.currentInputSize)
-        log.debug(sDbg)
-        #print("%s" %(sDbg))
-        
-        #TODO: Enhance PIN Tracer to provide following information
-        iRecord.callingThread = 0            
-        iRecord.sequence = 0            
-        iRecord.inputFunction = "ReadFile"
-        iRecord.functionCaller = 0xffff
-        iRecord.inputHandle = 0
-
-        return iRecord
-
-    def parseImageLine(self, line):
-        sDbg= "parsing image line: %s" % (line)
-        #print("%s" %(sDbg))
-        log.debug(sDbg)
-
-        iRecord = LoadImageTraceRecord()
-        
-        split = line #remoe the L identifier, then split with comma
-        csplit = split.split(",")
-        # Image load, extrac the name from the fullpath               
-        iRecord.ImageName = (csplit[0].rsplit("\\",1))[1]
-        sDbg= "parsing image: %s" % (iRecord.ImageName)
-        log.debug(sDbg)
-        #print("%s" %(sDbg))
-        
-        iRecord.LoadAddress = int(csplit[1], 16)
-        iRecord.ImageSize = int(csplit[3], 16) - int(csplit[2], 16)
-       
-        return iRecord
-
-    def parseExceptionLine(self,line):
-        split = line.split(" ")
-        iRecord = ExceptionTraceRecord()
-        
-        iRecord.currentExceptionAddress = int(split[2], 16)
-        iRecord.currentExceptionCode = int(split[1], 16)
-        sDbg= "Exception happened at 0x%x with code %x" %(iRecord.currentExceptionAddress,iRecord.currentExceptionCode)
-        log.debug(sDbg)
-        print("%s" %sDbg)
-        
-        return iRecord
-                            
-        
-    def parseInstructionLine(self):
-        
-        iRecord = InstructionTraceRecord()        
-        iRecord.currentInstSeq = self.InstSeq
-        self.InstSeq =self.InstSeq+1;
-        
-        iRecord.currentInstruction = struct.unpack("<I", self.trace_fd.read(4))[0]
-        sDbg = "Instruction address 0x%x " %iRecord.currentInstruction
-        log.debug(sDbg)
-
-        iRecord.currentInstSize = struct.unpack("<B", self.trace_fd.read(1))[0]
-        sDbg = "Instruction currentInstSize 0x%x " %iRecord.currentInstSize
-        log.debug(sDbg)
-        
-        iRecord.sEncoding = bytearray(self.trace_fd.read(iRecord.currentInstSize))
-        iRecord.currentThreadId = struct.unpack("<B", self.trace_fd.read(1))[0]
-
-        sDbg = "PinTraceReader: parse binary instruction block: addr = 0x%x,threadID=%d, size=%s" %(iRecord.currentInstruction,iRecord.currentThreadId,iRecord.currentInstSize)
-        log.debug(sDbg)
-        #print ("%s" %sDbg)
-        reg_mem_count = struct.unpack("<B", self.trace_fd.read(1))[0]
-        regCount = reg_mem_count & 0xf
-        memRead = (reg_mem_count & 0xc0) >>6
-        memWrite = (reg_mem_count & 0x30) >> 4
-        sDbg = "PinTraceReader: regcount = %d,memRead=%d, memWrite=%d" %(regCount,memRead,memWrite)
-        log.debug(sDbg)
-        #print("%s" %sDbg)
-        
-        i=0
-        while i<regCount:
-            regId = struct.unpack("<B", self.trace_fd.read(1))[0]
-            regValue = struct.unpack("<I", self.trace_fd.read(4))[0]
-            regName = self.x86_thread.get_reg_name(regId)
-            iRecord.reg_value[regName] = regValue
-            i=i+1
-            sDbg = "PinTraceReader: regID=%d, regName = %s,regValue = 0x%x" %(regId, regName,regValue)
-            log.debug(sDbg)
-            #print("%s" %sDbg)
-
-        i=0
-        while i<memRead:                    
-            iRecord.currentReadSize = struct.unpack("<B", self.trace_fd.read(1))[0]
-            iRecord.currentReadAddr = struct.unpack("<I", self.trace_fd.read(4))[0]            
-            i=i+1
-
-            j=0
-            while j<iRecord.currentReadSize:
-                iRecord.currentReadValue[j] = struct.unpack("<B",self.trace_fd.read(1))[0]
-                sDbg = "readValue = %x" %(iRecord.currentReadValue[j])
-                log.debug(sDbg)            
-                #print("%s" %sDbg)
-                j=j+1                
-        i=0
-        while i<memWrite:
-            iRecord.currentWriteSize = struct.unpack("<B", self.trace_fd.read(1))[0]            
-            iRecord.currentWriteAddr = struct.unpack("<I", self.trace_fd.read(4))[0]            
-            i=i+1
-            j=0
-            while j<iRecord.currentWriteSize:
-                iRecord.currentWriteValue[j] = struct.unpack("<B", self.trace_fd.read(1))[0]
-                sDbg = "writeValue = %x at 0x%x" %(iRecord.currentWriteValue[j],iRecord.currentWriteAddr+j)
-                log.debug(sDbg)
-                j=j+1
-                
-        return iRecord
-                            
         

@@ -113,15 +113,14 @@ class tracer_plugin_t(idaapi.plugin_t):
 
     def init(self):
         Print("tracer_plugin_t installed")
-        TreeTrace = idaapi.netnode("$ TreeTrace", 0, 1)
-        TREEMagicNumber = 888 # 888 is the magic number for TREE Trace
-        
-        traced = TreeTrace.supstr(TREEMagicNumber) 
-        if traced == None:
-            print "No Trace with this IDB. Turn On TREE Trace"
+        ExTraces = None
+        ExTraces = idaapi.netnode("$ ExTraces", 0, False) #Get the execution trace id
+        data = ExTraces.getblob(0, 'A')
+        if data is None:
+            print "This IDB has no TREE Trace. Turn ON TREE Tracer"
             return idaapi.PLUGIN_OK
         else:
-            print "Trace %s is found with this IDB. Turn OFF TREE Trace" %(traced)
+            print "This IDB has TREE Trace. Turn OFF TREE Trace"
             return idaapi.PLUGIN_SKIP
 
     def run(self, arg):

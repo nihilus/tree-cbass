@@ -16,7 +16,7 @@ from ctypes import *
 import ctypes
 import operator
 from Taint import Taint, INITIAL_TAINT,REGISTER_TAINT,MEMORY_TAINT,BRANCH_TAINT 
-from TraceParser import TraceReader, IDATextTraceReader, PinTraceReader
+from TraceParser import IDBTraceReader
 from x86Decoder import x86Decoder, instDecode, IMMEDIATE, REGISTER,MEMORY, WINDOWS, LINUX
 from x86ISA import X86ISA
 #Trace type enumeration
@@ -230,13 +230,10 @@ class TaintChecker(object):
                         if (self.bDebug==True):
                             print ("tainted = %s" %self.taintTracker.dynamic_taint[faultAddress+i].taint_simple())
 	return strTaint
-    
-        #DEBUG
-        #self.DumpLiveTaints()
 
     def DumpLiveTaintsInOrder(self):
         self.taintTracker.output_fd.write("Live Taints in the order of creation:\n")
-        
+        strTaint = "Live Taints in the order of creation:\n"
         for t in self.taintTracker.dynamic_taint:
             self.taintTracker.dynamic_taint[t].terminateTaint(-1,-1)
         
@@ -244,15 +241,17 @@ class TaintChecker(object):
             for key in self.taintTracker.dynamic_taint:
                 if self.taintTracker.dynamic_taint[ key ] == v:
                     self.taintTracker.output_fd.write("%s \n" %(v.taint_tree()))
+		    strTaint = strTaint + "%s \n" %(v.taint_tree())
                     break
-
+	return strTaint
+    
     def DumpLiveTaints(self):
         self.taintTracker.output_fd.write("Live Taints:\n")
-        
+        strTaint = "Live Taints:\n"
         for t in self.taintTracker.dynamic_taint:
             self.taintTracker.dynamic_taint[t].terminateTaint(-1,-1)
         for t in self.taintTracker.dynamic_taint:
-            newTaint = strTaint + "%s \n" %(self.taintTracker.dynamic_taint[t].taint_tree())	    
+            newTaint = strTaint + "%s \n" %(self.taintTracker.dynamic_taint[t].taint_simple())	    
             strTaint = strTaint + newTaint
 	    self.taintTracker.output_fd.write("%s \n" %(newTaint))
             #self.output_fd.write("%s \n" %(self.dynamic_taint[t].taint_simple()))
@@ -260,6 +259,7 @@ class TaintChecker(object):
 
     def DisplayPCs(self):
         self.taintTracker.output_fd.write("Path Conditions:\n")
-                
+        strTaint = "Path Conditions:\n" 
         for t in self.taintTracker.pcs:
             self.taintTracker.output_fd.write("%s \n" %(t.taint_tree()))
+	    strTaint = strTaint + "%s \n" %(t.taint_tree())

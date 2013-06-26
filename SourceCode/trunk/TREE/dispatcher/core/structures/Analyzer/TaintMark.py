@@ -11,7 +11,7 @@ from optparse import OptionParser
 import logging
 import struct
 from Taint import Taint, INITIAL_TAINT,REGISTER_TAINT,MEMORY_TAINT,BRANCH_TAINT 
-from TraceParser import TraceReader, IDATextTraceReader, PinTraceReader
+from TraceParser import IDBTraceReader
 from TaintTracker import TaintTracker
 
 class TaintMarker(object):
