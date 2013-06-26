@@ -347,10 +347,10 @@ class VisualizerWidget(QtGui.QMainWindow):
         
     def childClick(self, x, y):
         if y == 6:
-            self.clearTableHighlight(self.taint_table, y)
+            self.clearTableRowHighlight(self.taint_table)
             self.highlightTaintChildren(x,y,0)
         elif y == 7:
-            self.clearTableHighlight(self.taint_table, y)
+            self.clearTableRowHighlight(self.taint_table)
             self.highlightTaintChildren(x,y,0)
             #self.taint_table.item(x,y).setBackground(self.QtCore.Qt.red)
             
@@ -367,7 +367,7 @@ class VisualizerWidget(QtGui.QMainWindow):
             for child in self.taint_table.item(x,y).text().split(" "):
                 #Search for child's row in taint_table
                 row = self.tableSearch(self.taint_table, child)
-                self.taint_table.item(row,y).setBackground(self.QtCore.Qt.red)
+                self.highlightRow(self.taint_table, row, self.QtCore.Qt.red)
                 self.highlightTaintChildren(row, y, depth+1)
                 return
         return
@@ -383,11 +383,24 @@ class VisualizerWidget(QtGui.QMainWindow):
                 break
         return row
         
+    def highlightRow(self, table, row, color):
+        """
+        """
+        for i in xrange(len(self.taints_header_labels)):
+            table.item(row,i).setBackground(color)
+        
     def clearTableHighlight(self, table, column):
         """
         """
         for i in xrange(table.rowCount()):
             self.taint_table.item(i,column).setBackground(self.QtCore.Qt.white)
+        
+    def clearTableRowHighlight(self, table):
+        """
+        """
+        for i in xrange(table.rowCount()):
+            for j in xrange(len(self.taints_header_labels)):
+                self.taint_table.item(i,j).setBackground(self.QtCore.Qt.white)
         
     def addrGo(self):
         from idc import *
