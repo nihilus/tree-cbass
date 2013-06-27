@@ -5,6 +5,7 @@ class TaintNode(object):
         self.ea = None
         self.lib = None
         self.node_label = None
+        self.typ = None
         self.depth = 0
 
     def __str__(self):
@@ -43,6 +44,8 @@ class TaintNode(object):
                               ({C}(?P<child_c>[\d\s]+))?
                               """, re.VERBOSE)
         m = pattern.search(s)
+        if m is None:
+            return
         self.uuid = m.group('uuid')
         self.typ = m.group('type') #Check to see if 'type' is a reserved word
         self.name = m.group('name')

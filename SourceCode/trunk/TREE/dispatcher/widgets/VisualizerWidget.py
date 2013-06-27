@@ -213,7 +213,7 @@ class VisualizerWidget(QtGui.QMainWindow):
           self.taintGraph.Close()
           
         if self.policy == "TAINT_BRANCH":
-            self.taintGraph = BCTaintGraph(self.t_graph, self.node_ea)
+            self.taintGraph = BCTaintGraph(self.t_graph)
         else:
             self.taintGraph = TaintGraph(self.t_graph)
         self.taintGraph.Show()

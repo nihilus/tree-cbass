@@ -293,11 +293,6 @@ class AnalyzerWidget(QtGui.QMainWindow):
             if self.radioGroup2.checkedButton().text() == "TAINT_BRANCH":
                 for row, ynode in enumerate(self.t_graph.nodes(data=True)):
                     for column, column_name in enumerate(self.taints_header_labels):
-                        #Temporary fix until we can figure out why networkx is adding null nodes
-                        #try:
-                        #    print ynode[1]['inode'].uuid
-                        #except AttributeError:
-                        #    break
                         if column == 0:
                             tmp_item = self.QtGui.QTableWidgetItem(ynode[1]['inode'].uuid)
                         elif column == 1:
@@ -359,6 +354,8 @@ class AnalyzerWidget(QtGui.QMainWindow):
         tempNode = TaintNode()
         tempNode.depth = depth
         tempNode.ExtractData(s)
+        if tempNode.typ is None:
+            return
         self.t_graph.add_node(uuid, inode = tempNode)
         if depth == 0:
             self.cur_taint_node = tempNode
@@ -589,50 +586,6 @@ class AnalyzerWidget(QtGui.QMainWindow):
         self.extendTaints()
         self.parent.setTabFocus("Visualizer")
         self.parent.passTaintGraph(self.t_graph, "Visualizer", self.radioGroup2.checkedButton().text())
-            
-    def extendTaints2(self):
-        """
-        Method to extend taint information with trace. Library context added to taint nodes from trace
-        """
-        self.node_ea = dict()
-        self.node_lib = dict()
-        if (self.trace_data is None):
-            return
-        # read input file line by line
-        data = str(self.trace_data)
-        for line in data:
-            #Hard implementation of 'E' search
-            if line.startswith('E'):
-                splitted = line.split(' ')
-                self.node_ea[splitted[5]] = splitted[1]
-            #Hard implementation of 'L' search
-            elif line.startswith('L'):
-                splitted = line.split(' ')
-                internal_str = splitted[2] + " " + splitted[3]
-                self.node_lib[splitted[1]] = internal_str
-            else:
-                print ":"
-        if self.verbose_trace_cb.isChecked():
-          print "[debug] trace imported from file into dictionary"
-
-        for node in self.t_graph.nodes(data=True):
-            ind = node[1]['inode'].startind.split(':')[0]
-            #if node[1]['inode'].endind is not None:
-            #    ind = node[1]['inode'].endind.split(':')[0]
-            try:
-                addr = int(self.node_ea[ind], 16)
-                node[1]['inode'].setEA(addr)
-            except KeyError:
-                node[1]['inode'].setEA(None)
-            if node[1]['inode'].ea:
-                for key in self.node_lib.keys():
-                    base_addr = int(self.node_lib[key].split(' ')[0], 16)
-                    end_addr = base_addr + int(self.node_lib[key].split(' ')[1], 16)
-                    if node[1]['inode'].ea >= base_addr and node[1]['inode'].ea < end_addr:
-                        if self.verbose_trace_cb.isChecked():
-                          print "Found library: %s" % key
-                        node[1]['inode'].setLib(key)
-                        break
             
     def extendTaints(self):
         """
