@@ -17,7 +17,6 @@ class AnalyzerWidget(QtGui.QMainWindow):
     def __init__(self,parent):
         QtGui.QMainWindow.__init__(self)
         print "[|] loading AnalyzerWidget"
-        # Access to shared modules
         self.parent = parent
         self.name = "Taint Analysis"
         path = os.path.join(self.parent.iconPath, "trace.png")
@@ -26,16 +25,14 @@ class AnalyzerWidget(QtGui.QMainWindow):
         #References to qt-specific modules
         self.QtGui = QtGui
         self.QtCore = QtCore
-        #self.NumberQTableWidgetItem = NumberQTableWidgetItem
         self.central_widget = self.QtGui.QWidget()
         self.setCentralWidget(self.central_widget)
         self._defineAnalyzeTypes()
         self._definePropEnum()
-        self._createGui()
         self.t_graph = nx.MultiDiGraph()
         self.ExTraces = idaapi.netnode("$ ExTraces", 0, False) #Get the execution trace id
         self.trace_data = self.ExTraces.getblob(0, 'A') #Get the execution trace data, use str(data) to convert to data to a str
-        
+        self._createGui()
         
     def _createGui(self):
         """
@@ -46,9 +43,11 @@ class AnalyzerWidget(QtGui.QMainWindow):
         
         self._createToolbar()
         
-        self._createTraceTable()
-        self._createTaintsTable() #create detailst able
+        self._createImageTable()
+        self._createSourceTable()
         self._createTraceTable2()
+        self._initializeImagesTable()
+        self._initializeSourcesTable()
         #Layout information
         trace_layout = QtGui.QVBoxLayout()
         
@@ -81,6 +80,10 @@ class AnalyzerWidget(QtGui.QMainWindow):
             if bIsFirst:
                 radio.setChecked(True)
                 bIsFirst = False
+            #Disable Address Propagation
+            #06/27/13
+            if i == 3:
+                radio.setEnabled(False)
             vbox2.addWidget(radio)
             
         self.analyzeTypeGroup.setLayout(vbox)
@@ -91,7 +94,8 @@ class AnalyzerWidget(QtGui.QMainWindow):
         
         self.indexFileGroupBox = QtGui.QGroupBox("Misc")
         vbox2 = QtGui.QVBoxLayout()
-        self.pin_trace_cb = QtGui.QCheckBox("PIN")        
+        self.pin_trace_cb = QtGui.QCheckBox("PIN")     
+        self.pin_trace_cb.setEnabled(False)
         vbox2.addWidget(self.pin_trace_cb)
         self.verbose_trace_cb = QtGui.QCheckBox("Verbose")
         vbox2.addWidget(self.verbose_trace_cb)
@@ -110,7 +114,8 @@ class AnalyzerWidget(QtGui.QMainWindow):
         
         details_widget = QtGui.QWidget()
         details_layout = QtGui.QHBoxLayout()
-        details_layout.addWidget(self.taints_table)
+        details_layout.addWidget(self.images_table)
+        details_layout.addWidget(self.sources_table)
         details_layout.addWidget(self.trace_table2)
         details_widget.setLayout(details_layout)
         
@@ -128,11 +133,7 @@ class AnalyzerWidget(QtGui.QMainWindow):
         trace_layout.addWidget(splitter)
         
         self.central_widget.setLayout(trace_layout)
-        self.populateTraceTable()
-        #self.populateTaintsTable()
-        #self.populateVMTable()
-        #self.updateVMLabel()
-        
+        self.populateTraceTables()
         
     def _defineAnalyzeTypes(self):
         """
@@ -152,33 +153,19 @@ class AnalyzerWidget(QtGui.QMainWindow):
         self.taint_prop = []
         #self.taint_prop.append("TAINT_NOPE")
         self.taint_prop.append("TAINT_DATA")
-        self.taint_prop.append("TAINT_ADDRESS")
         self.taint_prop.append("TAINT_BRANCH")
         self.taint_prop.append("TAINT_COUNTER")
+        self.taint_prop.append("TAINT_ADDRESS")
         #self.taint_prop.append("TAINT_LAST")
         
     def _createToolbar(self):
         """
         Create the toolbar
         """
-#        self._createRefreshAction()
-#        self._createImportTraceAction()
-#        self._createImportIndexAction()
         self._createAnalyzeAction()
         
         self.toolbar = self.addToolBar('Trace Generation Toolbar')
-#        self.toolbar.addAction(self.refreshAction)
-#        self.toolbar.addAction(self.importTraceAction)
         self.toolbar.addAction(self.generateAnalyzeAction)
-        
-    def _createRefreshAction(self):
-        """
-        Create the refresh action for the oolbar. triggers a scan of virtualmachines and updates the GUI.
-        """
-        path = os.path.join(self.parent.iconPath , "refresh.png")
-        self.refreshAction = QtGui.QAction(QIcon(path), "Refresh the " \
-            + "taint data", self)
-        self.refreshAction.triggered.connect(self._onRefreshButtonClicked)
         
     def _createAnalyzeAction(self):
         """
@@ -187,72 +174,6 @@ class AnalyzerWidget(QtGui.QMainWindow):
         path = os.path.join(self.parent.iconPath,"trace.png")
         self.generateAnalyzeAction = QtGui.QAction(QIcon(path), "Generate the taint graph", self)
         self.generateAnalyzeAction.triggered.connect(self.onStartAnalyzeButtonClicked)
-
-    def _createTraceTable(self):
-        """
-        Create the top table used for showing all
-        """
-        self.trace_table = QtGui.QTableWidget()
-        self.trace_table.clicked.connect(self.onTraceClicked)
-        #self.trace_table.doubleClicked.connect(self.onProcessDoubleClicked)
-        
-    def populateTraceTable(self):
-        """
-        Populate the VM table with information about the virtual machines
-        """
-        #If no config then connect to virtualbox in config
-        self.trace_table.setSortingEnabled(False)
-        self.trace_header_labels = ["Node", "Type", "EA", "Index1", "Index2", "Instr", "Anno"]
-        self.trace_table.clear()
-        self.trace_table.setColumnCount(len(self.trace_header_labels))
-        self.trace_table.setHorizontalHeaderLabels(self.trace_header_labels)
-        if hasattr(self, 'f_taint'):
-            processes = self.t_config.root.findall('process')
-            self.trace_table.setRowCount(len(processes))
-            for row, node in enumerate(processes):
-                for column, column_name in enumerate(self.process_header_labels):
-                    ##@todo Determine if VM and if online
-                    if column == 0:
-                        tmp_item = self.QtGui.QTableWidgetItem(node.find('input').find('remote').text)
-                    elif column == 1:
-                        tmp_item = self.QtGui.QTableWidgetItem(node.attrib['name'])
-                    elif column == 2:
-                        osarch = node.find('platform').find('OS').text + ' ' + node.find('platform').find('Arch').text
-                        tmp_item = self.QtGui.QTableWidgetItem(osarch)
-                    tmp_item.setFlags(tmp_item.flags() & ~self.QtCore.Qt.ItemIsEditable)
-                    self.trace_table.setItem(row, column, tmp_item)
-                self.trace_table.resizeRowToContents(row)
-            self.trace_table.setSelectionMode(self.QtGui.QAbstractItemView.SingleSelection)
-            self.trace_table.resizeColumnsToContents()
-            self.trace_table.setSortingEnabled(True)
-        else:
-            self.trace_table.setSelectionMode(self.QtGui.QAbstractItemView.SingleSelection)
-            self.trace_table.resizeColumnsToContents()
-            self.trace_table.setSortingEnabled(True)
-            
-    def populateTaintsTable(self):
-        """
-        Populate the taints table
-        For no uneditable
-        @Todo:
-            Make editable and have changes pushed out to file
-        """
-        self.taints_table.setSortingEnabled(False)
-        if self.radioGroup2.checkedButton().text() == "TAINT_BRANCH":
-            self.taints_header_labels = ["UUID", "Type", "Name", "StartInd", "EndInd", "Edge Anno"]
-        else:
-            self.taints_header_labels = ["UUID", "Type", "Name", "StartInd", "EndInd", "Edge Anno", "Child C", "Child D"]
-        self.taints_table.clear()
-        self.taints_table.setColumnCount(len(self.taints_header_labels))
-        self.taints_table.setHorizontalHeaderLabels(self.taints_header_labels)
-        self.taints_table.setSelectionMode(self.QtGui.QAbstractItemView.SingleSelection)
-        self.taints_table.resizeColumnsToContents()
-        self.taints_table.setSortingEnabled(True)
-        
-    def _onRefreshButtonClicked(self):
-        """
-        Action for refreshing the window data by checking each process
-        """
         
     def updateTaintsLabel(self,n1, n2):
         """
@@ -261,7 +182,7 @@ class AnalyzerWidget(QtGui.QMainWindow):
         self.taint_nodes_label.setText("Taint Nodes(%d/%d)" %
             (n1, n2))
             
-    def populateTaintsOnGen(self):
+    def generateInternalGraph(self):
         """
         Action for refreshing the window data by checking each process
         """
@@ -288,58 +209,6 @@ class AnalyzerWidget(QtGui.QMainWindow):
                 for line in taint_in:
                     self.insert_node(line.rstrip('\n'))
                 self.t_graph.reverse(copy=False)
-            self.taints_table.setRowCount(len(self.t_graph))
-            self.updateTaintsLabel(len(self.t_graph), len(self.t_graph))
-            if self.radioGroup2.checkedButton().text() == "TAINT_BRANCH":
-                for row, ynode in enumerate(self.t_graph.nodes(data=True)):
-                    for column, column_name in enumerate(self.taints_header_labels):
-                        if column == 0:
-                            tmp_item = self.QtGui.QTableWidgetItem(ynode[1]['inode'].uuid)
-                        elif column == 1:
-                            tmp_item = self.QtGui.QTableWidgetItem(ynode[1]['inode'].typ)
-                        elif column == 2:
-                            tmp_item = self.QtGui.QTableWidgetItem(ynode[1]['inode'].name)
-                        elif column == 3:
-                            tmp_item = self.QtGui.QTableWidgetItem(ynode[1]['inode'].startind)
-                        elif column == 4:
-                            tmp_item = self.QtGui.QTableWidgetItem(ynode[1]['inode'].endind)
-                        elif column == 5:
-                            tmp_item = self.QtGui.QTableWidgetItem(ynode[1]['inode'].edgeann)
-                        tmp_item.setFlags(tmp_item.flags() & ~self.QtCore.Qt.ItemIsEditable)
-                        self.taints_table.setItem(row, column, tmp_item)
-                    self.taints_table.resizeRowToContents(row)
-            else:
-                for row, ynode in enumerate(self.t_graph.nodes(data=True)):
-                    for column, column_name in enumerate(self.taints_header_labels):
-                        ##@self.process_header_labels = ["UUID", "Type", "Name", "StartInd", "EndInd", "Edge Anno", "Child C", "Child D"]
-                        if column == 0:
-                            tmp_item = self.QtGui.QTableWidgetItem(ynode[1]['inode'].uuid)
-                        elif column == 1:
-                            tmp_item = self.QtGui.QTableWidgetItem(ynode[1]['inode'].typ)
-                        elif column == 2:
-                            tmp_item = self.QtGui.QTableWidgetItem(ynode[1]['inode'].name)
-                        elif column == 3:
-                            tmp_item = self.QtGui.QTableWidgetItem(ynode[1]['inode'].startind)
-                        elif column == 4:
-                            tmp_item = self.QtGui.QTableWidgetItem(ynode[1]['inode'].endind)
-                        elif column == 5:
-                            tmp_item = self.QtGui.QTableWidgetItem(ynode[1]['inode'].edgeann)
-                        elif column == 6:
-                            if hasattr(ynode[1]['inode'], 'child_c'):
-                                tmp_item = self.QtGui.QTableWidgetItem(ynode[1]['inode'].child_c)
-                            else:
-                                tmp_item = self.QtGui.QTableWidgetItem(" ")
-                        elif column == 7:
-                            if hasattr(ynode[1]['inode'], 'child_d'):
-                                tmp_item = self.QtGui.QTableWidgetItem(ynode[1]['inode'].child_d)
-                            else:
-                                tmp_item = self.QtGui.QTableWidgetItem(" ")
-                        tmp_item.setFlags(tmp_item.flags() & ~self.QtCore.Qt.ItemIsEditable)
-                        self.taints_table.setItem(row, column, tmp_item)
-                    self.taints_table.resizeRowToContents(row)
-            self.taints_table.setSelectionMode(self.QtGui.QAbstractItemView.SingleSelection)
-            self.taints_table.resizeColumnsToContents()
-            self.taints_table.setSortingEnabled(True)
             
     def insert_node_br(self, s, depth):
         from ..core.structures.Parse.TaintNode import TaintNode
@@ -486,16 +355,18 @@ class AnalyzerWidget(QtGui.QMainWindow):
         #taintPolicy = CIDTaintProp.TAINT_BRANCH # Used to test condOV;     
         taintPolicy = getattr(TaintTracker, self.radioGroup2.checkedButton().text(), "TAINT_DATA")
         #taint graph name begins with A(ddress), B(ranch), C(Counter) or D(ata) depending on policy
-        fTaint = "TaintGraph_"+os.path.basename(self.trace_fname)
+        #without extension
+        idb_filename = os.path.basename(self.trace_fname).split(".")[0]+".txt"
+        fTaint = "TaintGraph_"+idb_filename
         print ("Taint file name = %s") %(fTaint)
         if (taintPolicy == TAINT_BRANCH):
-            fTaint = "BTaintGraph_"+os.path.basename(self.trace_fname)
+            fTaint = "BTaintGraph_"+idb_filename
         elif (taintPolicy == TAINT_DATA):
-            fTaint = "DTaintGraph_"+os.path.basename(self.trace_fname)
+            fTaint = "DTaintGraph_"+idb_filename
         elif (taintPolicy == TAINT_COUNTER):
-            fTaint = "CTaintGraph_"+os.path.basename(self.trace_fname)
+            fTaint = "CTaintGraph_"+idb_filename
         elif (taintPolicy == TAINT_ADDRESS):
-            fTaint = "ATaintGraph_"+os.path.basename(self.trace_fname)				
+            fTaint = "ATaintGraph_"+idb_filename
         out_fd = open(fTaint, 'w')
         
         TP = TaintTracker(hostOS, processBits, targetBits, out_fd,TAINT_DATA, IDA)	
@@ -576,26 +447,85 @@ class AnalyzerWidget(QtGui.QMainWindow):
         self.f_taint = fTaint # TODO: enhance later, not to read from file
         self.trace_table2.setText(text)
         log.info("TREE Taint Analysis Finished")
-        self.populateTaintsTable()
-        self.populateTaintsOnGen()
         if self.verbose_trace_cb.isChecked():
           for x, y, d in self.t_graph.edges(data=True):
               print x
               print y
               print d
+        self.generateInternalGraph()
         self.extendTaints()
         self.parent.setTabFocus("Visualizer")
         self.parent.passTaintGraph(self.t_graph, "Visualizer", self.radioGroup2.checkedButton().text())
             
-    def extendTaints(self):
+    def populateTraceTables(self):
         """
-        Method to extend taint information with trace. Library context added to taint nodes from trace
+        Populate the taints table
+        For no uneditable
         """
         from ..core.structures.Analyzer.TraceParser import IDBTraceReader        
         from ..core.structures.Analyzer.TraceParser import Invalid, LoadImage, UnloadImage, Input, ReadMemory, WriteMemory, Execution, Snapshot, eXception
         TR = None
 
-        if (self.trace_data is not None):
+        if hasattr(self, "trace_data"):
+            TR = IDBTraceReader(str(self.trace_data))
+        else:
+            return
+        self.node_ea = dict()
+        self.node_lib = dict()
+        if self.verbose_trace_cb.isChecked():
+          print "[debug] trace imported into dictionary"
+        
+        TR.reSet()
+        tRecord = TR.getNext()
+        while tRecord!=None:
+            recordType = tRecord.getRecordType()
+            if (recordType == LoadImage):
+                self.images_table.insertRow(self.images_table.rowCount())
+                for column, column_name in enumerate(self.images_header_labels):
+                    #Name
+                    if column == 0: 
+                        print tRecord.ImageName
+                        print type(tRecord.ImageName)
+                        tmp_item = self.QtGui.QTableWidgetItem(str(tRecord.ImageName))
+                    #Address
+                    elif column == 1:
+                        tmp_item = self.QtGui.QTableWidgetItem(str(hex(tRecord.LoadAddress)))
+                    #Size
+                    elif column == 2:
+                        tmp_item = self.QtGui.QTableWidgetItem(str(hex(tRecord.ImageSize)))
+                    tmp_item.setFlags(tmp_item.flags() & ~self.QtCore.Qt.ItemIsEditable)
+                    self.images_table.setItem(self.images_table.rowCount()-1, column, tmp_item)                  
+            elif (recordType == Input):
+                self.sources_table.insertRow(self.sources_table.rowCount())
+                for column, column_name in enumerate(self.sources_header_labels):
+                    #currentInputAddr
+                    if column == 0:
+                        tmp_item = self.QtGui.QTableWidgetItem(str(hex(tRecord.currentInputAddr)))
+                    #currentInputSize
+                    elif column == 1:
+                        tmp_item = self.QtGui.QTableWidgetItem(str(tRecord.currentInputSize))
+                    #inputBytes
+                    elif column == 2:
+                        tmp_item = self.QtGui.QTableWidgetItem(str(tRecord.inputBytes))
+                    tmp_item.setFlags(tmp_item.flags() & ~self.QtCore.Qt.ItemIsEditable)
+                    self.sources_table.setItem(self.sources_table.rowCount()-1, column, tmp_item)
+            tRecord = TR.getNext()
+        self.images_table.resizeColumnsToContents()
+        self.sources_table.resizeColumnsToContents()
+        self.images_table.selectRow(0)
+        self.sources_table.selectRow(0)
+            
+    def extendTaints(self):
+        """
+        Method to extend taint information with trace. Library context added to taint nodes from trace
+        @Todo Merge this method into populateTraceTables by generating the dictionaries, then later
+              Performing the extensions after tain generation. Reduce redundancy
+        """
+        from ..core.structures.Analyzer.TraceParser import IDBTraceReader        
+        from ..core.structures.Analyzer.TraceParser import Invalid, LoadImage, UnloadImage, Input, ReadMemory, WriteMemory, Execution, Snapshot, eXception
+        TR = None
+        
+        if hasattr(self, "trace_data"):
             TR = IDBTraceReader(str(self.trace_data))
         else:
             return
@@ -661,12 +591,49 @@ class AnalyzerWidget(QtGui.QMainWindow):
         self.index_fname = fname
         self.indexFileStr.setText(fname)
         
-    def _createTaintsTable(self):
+    def _createImageTable(self):
         """
         Create the bottom left table
         """
-        self.taints_table = QtGui.QTableWidget()
-        #self.taints_table.doubleClicked.connect(self._onDetailsDoubleClicked)
+        self.images_table = QtGui.QTableWidget()
+        #self.images_table.doubleClicked.connect(self._onDetailsDoubleClicked)
+        
+    def _createSourceTable(self):
+        """
+        Create the bottom left table
+        """
+        self.sources_table = QtGui.QTableWidget()
+        #self.images_table.doubleClicked.connect(self._onDetailsDoubleClicked)
+        
+    def _initializeImagesTable(self):
+        """
+        Populate the VM table with information about the virtual machines
+        """
+        #If no config then connect to virtualbox in config
+        self.images_table.setSortingEnabled(False)
+        self.images_header_labels = ["Name", "Address", "Size"]
+        self.images_table.clear()
+        self.images_table.setColumnCount(len(self.images_header_labels))
+        self.images_table.setHorizontalHeaderLabels(self.images_header_labels)
+        self.images_table.setSelectionMode(self.QtGui.QAbstractItemView.SingleSelection)
+        self.images_table.resizeColumnsToContents()
+        self.images_table.verticalHeader().setVisible(False)
+        self.images_table.setSortingEnabled(True)
+        
+    def _initializeSourcesTable(self):
+        """
+        Populate the VM table with information about the virtual machines
+        """
+        #If no config then connect to virtualbox in config
+        self.sources_table.setSortingEnabled(False)
+        self.sources_header_labels = ["Input Address", "Size", "Input Bytes"]
+        self.sources_table.clear()
+        self.sources_table.setColumnCount(len(self.sources_header_labels))
+        self.sources_table.setHorizontalHeaderLabels(self.sources_header_labels)
+        self.sources_table.setSelectionMode(self.QtGui.QAbstractItemView.SingleSelection)
+        self.sources_table.resizeColumnsToContents()
+        self.sources_table.verticalHeader().setVisible(False)
+        self.sources_table.setSortingEnabled(True)
     
     def _createTraceTable2(self):
         """
@@ -674,13 +641,6 @@ class AnalyzerWidget(QtGui.QMainWindow):
         """
         self.trace_table2 = QtGui.QTextEdit()
         #self.trace_table.doubleClicked.connect(self._onTraceDoubleClicked)
-        
-    def onTraceClicked(self, mi):
-        """
-        If a process is clicked, the view of the process and details are updated
-        """
-        self.clicked_trace = self.trace_table.item(mi.row(), 1).text()
-        #self.populateTaintsTable(self.clicked_process)
         
     def traceTableWriter(self, text):
         """
