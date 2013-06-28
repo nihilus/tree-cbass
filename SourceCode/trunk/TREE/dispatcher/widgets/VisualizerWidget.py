@@ -61,20 +61,17 @@ class VisualizerWidget(QtGui.QMainWindow):
         visualizer_layout.addWidget(splitter)
         
         self.central_widget.setLayout(visualizer_layout)
-        #self.populateTaintTable()
         
     def _createToolbar(self):
         """
         Create the toolbar
         """
         self._createRefreshAction()
-        self._createImportTraceAction()
-        self._createImportIndexAction()
+        #self._createImportTraceAction()
         self._createIDAGraphAction()
         
         self.toolbar = self.addToolBar('Trace Generation Toolbar')
         self.toolbar.addAction(self.refreshAction)
-        #self.toolbar.addAction(self.importTraceAction)
         self.toolbar.addAction(self.importIDAGraphAction)
         
     def _createRefreshAction(self):
@@ -85,7 +82,6 @@ class VisualizerWidget(QtGui.QMainWindow):
         self.refreshAction = QtGui.QAction(QIcon(path), "Refresh the " \
             + "view", self)
         self.refreshAction.triggered.connect(self._onRefreshButtonClicked)
-        
         
     def _createImportTraceAction(self):
         """
@@ -102,18 +98,6 @@ class VisualizerWidget(QtGui.QMainWindow):
         path = os.path.join(self.parent.iconPath,"online.png")
         self.importIDAGraphAction = QtGui.QAction(QIcon(path),"Generate IDA Graph", self)
         self.importIDAGraphAction.triggered.connect(self.onIDAGraphClicked)
-        
-    def _createImportIndexAction(self):
-        """
-        Create an import button that calls QFileDialog
-        """
-        self.pin_trace_cb = QtGui.QCheckBox("PIN Trace")
-        self.indexFileIn = QtGui.QPushButton()
-        #self.indexFileIn.setGeometry(QtCore.QRect(0,0,25,19))
-        self.indexFileIn.setToolTip("Import index file for PIN.")
-        self.indexFileIn.setText("Import Index File")
-        self.indexFileStr = QtGui.QLabel("Import Index File")
-        self.indexFileIn.clicked.connect(self.onImportIndexButtonClicked)
         
     def _createTaintTable(self):
         """
@@ -138,13 +122,14 @@ class VisualizerWidget(QtGui.QMainWindow):
         self.taint_table.setHorizontalHeaderLabels(self.taints_header_labels)
         self.taint_table.setSelectionMode(self.QtGui.QAbstractItemView.SingleSelection)
         self.taint_table.resizeColumnsToContents()
+        self.taint_table.verticalHeader().setVisible(False)
         self.taint_table.setSortingEnabled(True)
         
     def _onRefreshButtonClicked(self):
         """
         Action for refreshing the window data by checking each process
         """
-        #self._createGraphView()
+        self.clearTableRowHighlight(self.taint_table)
         
     def updateTaintsLabel(self,n1, n2):
         """
@@ -217,14 +202,6 @@ class VisualizerWidget(QtGui.QMainWindow):
         else:
             self.taintGraph = TaintGraph(self.t_graph)
         self.taintGraph.Show()
-    
-    def onImportIndexButtonClicked(self):
-        """
-        Action for importing an XML file containing VM information
-        """
-        fname, _ = self.QtGui.QFileDialog.getOpenFileName(self, 'Import Index')
-        self.index_fname = fname
-        self.indexFileStr.setText(fname)
         
     def _createTaintsTable(self):
         """
@@ -361,7 +338,6 @@ class VisualizerWidget(QtGui.QMainWindow):
         if(depth >3):
             return
         elif not self.taint_table.item(x,y).text().strip():
-            print "breakout"
             return
         else:
             for child in self.taint_table.item(x,y).text().split(" "):

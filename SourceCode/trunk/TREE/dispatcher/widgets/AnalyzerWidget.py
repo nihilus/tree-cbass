@@ -38,9 +38,6 @@ class AnalyzerWidget(QtGui.QMainWindow):
         """
         Create the main GUI with its components
         """
-        # Create buttons
-        self.taint_nodes_label = QtGui.QLabel("Taint Nodes(0/0)")
-        
         self._createToolbar()
         
         self._createImageTable()
@@ -114,14 +111,27 @@ class AnalyzerWidget(QtGui.QMainWindow):
         
         details_widget = QtGui.QWidget()
         details_layout = QtGui.QHBoxLayout()
-        details_layout.addWidget(self.images_table)
-        details_layout.addWidget(self.sources_table)
-        details_layout.addWidget(self.trace_table2)
+        self.imagesBox = QtGui.QGroupBox("Image Load Table")
+        imBox = QtGui.QVBoxLayout()
+        imBox.addWidget(self.images_table)
+        self.imagesBox.setLayout(imBox)
+        details_layout.addWidget(self.imagesBox)
+        self.sourcesBox = QtGui.QGroupBox("Taint Source Table")
+        soBox = QtGui.QVBoxLayout()
+        soBox.addWidget(self.sources_table)
+        self.sourcesBox.setLayout(soBox)
+        details_layout.addWidget(self.sourcesBox)
+        self.taintOutBox = QtGui.QGroupBox("Taint Graph Output")
+        toBox = QtGui.QVBoxLayout()
+        toBox.addWidget(self.trace_table2)
+        self.taintOutBox.setLayout(toBox)
+        details_layout.addWidget(self.taintOutBox)
+        
+        
         details_widget.setLayout(details_layout)
         
         lower_tables_widget = QtGui.QWidget()
         lower_tables_layout = QtGui.QVBoxLayout()
-        lower_tables_layout.addWidget(self.taint_nodes_label)
         lower_tables_layout.addWidget(details_widget)
         lower_tables_widget.setLayout(lower_tables_layout)
         
@@ -464,6 +474,8 @@ class AnalyzerWidget(QtGui.QMainWindow):
         """
         from ..core.structures.Analyzer.TraceParser import IDBTraceReader        
         from ..core.structures.Analyzer.TraceParser import Invalid, LoadImage, UnloadImage, Input, ReadMemory, WriteMemory, Execution, Snapshot, eXception
+        self.node_ea = dict()
+        self.node_lib = dict()
         TR = None
 
         if hasattr(self, "trace_data"):
@@ -480,12 +492,13 @@ class AnalyzerWidget(QtGui.QMainWindow):
         while tRecord!=None:
             recordType = tRecord.getRecordType()
             if (recordType == LoadImage):
+                imageName = None
+                imageName = tRecord.ImageName[0] 
+                self.node_lib[imageName] = str(tRecord.LoadAddress) + " " + str(tRecord.ImageSize)
                 self.images_table.insertRow(self.images_table.rowCount())
                 for column, column_name in enumerate(self.images_header_labels):
                     #Name
                     if column == 0: 
-                        print tRecord.ImageName
-                        print type(tRecord.ImageName)
                         tmp_item = self.QtGui.QTableWidgetItem(str(tRecord.ImageName))
                     #Address
                     elif column == 1:
@@ -509,6 +522,8 @@ class AnalyzerWidget(QtGui.QMainWindow):
                         tmp_item = self.QtGui.QTableWidgetItem(str(tRecord.inputBytes))
                     tmp_item.setFlags(tmp_item.flags() & ~self.QtCore.Qt.ItemIsEditable)
                     self.sources_table.setItem(self.sources_table.rowCount()-1, column, tmp_item)
+            elif(recordType==Execution):
+                self.node_ea[hex(tRecord.currentInstSeq)] = tRecord.currentInstruction
             tRecord = TR.getNext()
         self.images_table.resizeColumnsToContents()
         self.sources_table.resizeColumnsToContents()
@@ -518,33 +533,7 @@ class AnalyzerWidget(QtGui.QMainWindow):
     def extendTaints(self):
         """
         Method to extend taint information with trace. Library context added to taint nodes from trace
-        @Todo Merge this method into populateTraceTables by generating the dictionaries, then later
-              Performing the extensions after tain generation. Reduce redundancy
         """
-        from ..core.structures.Analyzer.TraceParser import IDBTraceReader        
-        from ..core.structures.Analyzer.TraceParser import Invalid, LoadImage, UnloadImage, Input, ReadMemory, WriteMemory, Execution, Snapshot, eXception
-        TR = None
-        
-        if hasattr(self, "trace_data"):
-            TR = IDBTraceReader(str(self.trace_data))
-        else:
-            return
-        self.node_ea = dict()
-        self.node_lib = dict()
-        if self.verbose_trace_cb.isChecked():
-          print "[debug] trace imported into dictionary"
-        
-        TR.reSet()
-        tRecord = TR.getNext()
-        while(tRecord is not None):
-            recordType = tRecord.getRecordType()
-            if (recordType == LoadImage):
-                imageName = None
-                imageName = tRecord.ImageName[0] 
-                self.node_lib[imageName] = str(tRecord.LoadAddress) + " " + str(tRecord.ImageSize)
-            elif(recordType==Execution):
-                self.node_ea[hex(tRecord.currentInstSeq)] = tRecord.currentInstruction
-            tRecord = TR.getNext()
         for node in self.t_graph.nodes(data=True):
             ind = node[1]['inode'].startind.split(':')[0]
             if(self.pin_trace_cb.isChecked()):
