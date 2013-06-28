@@ -165,6 +165,7 @@ class TraceGeneratorWidget(QMainWindow):
         
         self.pin_cb = QtGui.QCheckBox(self.gridLayoutWidget_3)
         self.pin_cb.setObjectName("pin_cb")
+        self.pin_cb.setDisabled(1)
         self.pin_cb.stateChanged.connect(self.pin_cbStateChanged)
         
         #
@@ -181,6 +182,7 @@ class TraceGeneratorWidget(QMainWindow):
         
         self.interactive_cb = QtGui.QCheckBox(self.gridLayoutWidget_3)
         self.interactive_cb.setObjectName("interactive_cb")
+        self.interactive_cb.setDisabled(1)
 
         self.interactive_cb.stateChanged.connect(self.interactive_cbStateChanged)
         self.interactiveModeLayout.addWidget(self.interactive_cb)
@@ -263,12 +265,12 @@ class TraceGeneratorWidget(QMainWindow):
         """
         
         self._createGenerateTraceAction()
-        self._createProcessAttachAction()
+       # self._createProcessAttachAction()
         self._createSaveConfigAction() 
         self.toolbar = self.addToolBar('Trace Generation Toolbar')
         self.toolbar.addAction(self.saveConfigAction)
         self.toolbar.addAction(self.generateTraceAction)
-        self.toolbar.addAction(self.processAttachAction)
+       # self.toolbar.addAction(self.processAttachAction)
         
     def _createGenerateTraceAction(self):
         """
@@ -285,10 +287,13 @@ class TraceGeneratorWidget(QMainWindow):
         Create that action to attach to a process
         """
         #from PySide.QtGui import QIcon
+        Print("Create Attach Action")
 
         icon_path = os.path.join(self.parent.iconPath, "attach.png")
+        
         self.processAttachAction = QtGui.QAction(QtGui.QIcon(icon_path), "Attach to process.", self)
         self.processAttachAction.triggered.connect(self.onAttachProcessButtonClicked)
+
 
     def checkInteractiveMode(self):
 

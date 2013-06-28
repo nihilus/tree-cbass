@@ -222,7 +222,7 @@ class IDATrace():
             elif osType == "linux":
                 processConfig.debugger = "linux"
             
-            config.write(processConfig)
+            self.config.write(processConfig)
             Print( "Saving new process configuration" )
             
         return processConfig

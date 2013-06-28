@@ -107,7 +107,9 @@ class ETDbgHook(DBG_Hooks):
         if self.startTracing:
             self.startTracing = False
             self.logger.info( "Process suspended" )
-        
+            
+            idc.TakeMemorySnapshot(0)
+            
             self.dbg_step_into()
             idaapi.request_step_into()
             idaapi.run_requests()
@@ -403,7 +405,6 @@ class ETDbgHook(DBG_Hooks):
                     print( "Breakpoint %d at 0x%x removed." % (i,bptAddr) )
                     
     def takeSnapshot(self,data):
-        idc.TakeMemorySnapshot(0)
         
         ExTraces = idaapi.netnode("$ ExTraces", 0, True)
 
