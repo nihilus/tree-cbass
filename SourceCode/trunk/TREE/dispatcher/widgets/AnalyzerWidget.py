@@ -545,12 +545,11 @@ class AnalyzerWidget(QtGui.QMainWindow):
                 addr = None
             if addr is None:
                 continue
-            print addr
             node[1]['inode'].setEA(addr)
             if node[1]['inode'].ea:
                 for key in self.node_lib.keys():
-                    base_addr = int(self.node_lib[key].split(' ')[0], 16)
-                    end_addr = base_addr + int(self.node_lib[key].split(' ')[1], 16)
+                    base_addr = int(self.node_lib[key].split(' ')[0])
+                    end_addr = base_addr + int(self.node_lib[key].split(' ')[1])
                     if node[1]['inode'].ea >= base_addr and node[1]['inode'].ea < end_addr:
                         if self.verbose_trace_cb.isChecked():
                           print "Found library: %s" % key
