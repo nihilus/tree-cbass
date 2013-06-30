@@ -182,7 +182,7 @@ class AnalyzerWidget(QtGui.QMainWindow):
         Create that action that performs the trace
         """
         path = os.path.join(self.parent.iconPath,"trace.png")
-        self.generateAnalyzeAction = QtGui.QAction(QIcon(path), "Generate the taint graph", self)
+        self.generateAnalyzeAction = QtGui.QAction(QIcon(path), "Start taint analysis", self)
         self.generateAnalyzeAction.triggered.connect(self.onStartAnalyzeButtonClicked)
         
     def updateTaintsLabel(self,n1, n2):
@@ -274,7 +274,6 @@ class AnalyzerWidget(QtGui.QMainWindow):
             uuid = self.extract_uuid(s)
         except AttributeError:
             return
-        print uuid
         if self.t_graph.has_node(uuid):
             tempNode = self.t_graph.node[uuid]['inode']
             tempNode.ExtractData(s)
@@ -529,6 +528,8 @@ class AnalyzerWidget(QtGui.QMainWindow):
         self.sources_table.resizeColumnsToContents()
         self.images_table.selectRow(0)
         self.sources_table.selectRow(0)
+        self.images_table.horizontalHeader().setResizeMode(self.QtGui.QHeaderView.Stretch)
+        #self.sources_table.horizontalHeader().setResizeMode(self.QtGui.QHeaderView.Stretch)        
             
     def extendTaints(self):
         """
@@ -635,4 +636,3 @@ class AnalyzerWidget(QtGui.QMainWindow):
         Writer method to append text to the trace table
         """
         self.trace_table2.append(text)
-        

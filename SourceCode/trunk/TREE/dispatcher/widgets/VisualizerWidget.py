@@ -265,9 +265,15 @@ class VisualizerWidget(QtGui.QMainWindow):
                     elif column == 2:
                         tmp_item = self.QtGui.QTableWidgetItem(ynode[1]['inode'].name)
                     elif column == 3:
-                        tmp_item = self.QtGui.QTableWidgetItem(ynode[1]['inode'].startind)
+                        val = None
+                        if ynode[1]['inode'].startind:
+                            val = ynode[1]['inode'].startind.split(":")[0]
+                        tmp_item = self.QtGui.QTableWidgetItem(val)
                     elif column == 4:
-                        tmp_item = self.QtGui.QTableWidgetItem(ynode[1]['inode'].endind)
+                        val = None
+                        if ynode[1]['inode'].endind:
+                            val = ynode[1]['inode'].endind.split(":")[0]
+                        tmp_item = self.QtGui.QTableWidgetItem(val)
                     elif column == 5:
                         tmp_item = self.QtGui.QTableWidgetItem(ynode[1]['inode'].edgeann)
                     tmp_item.setFlags(tmp_item.flags() & ~self.QtCore.Qt.ItemIsEditable)
@@ -278,7 +284,7 @@ class VisualizerWidget(QtGui.QMainWindow):
                 for column, column_name in enumerate(self.taints_header_labels):
                     ##@self.process_header_labels = ["UUID", "Type", "Name", "StartInd", "EndInd", "Edge Anno", "Child C", "Child D"]
                     if column == 0:
-                        tmp_item = self.QtGui.QTableWidgetItem(ynode[1]['inode'].uuid)
+                        tmp_item = NumTableWidgetItem(ynode[1]['inode'].uuid)
                     elif column == 1:
                         typ = ''
                         if ynode[1]['inode'].typ == "in":
@@ -291,9 +297,15 @@ class VisualizerWidget(QtGui.QMainWindow):
                     elif column == 2:
                         tmp_item = self.QtGui.QTableWidgetItem(ynode[1]['inode'].name)
                     elif column == 3:
-                        tmp_item = self.QtGui.QTableWidgetItem(ynode[1]['inode'].startind)
+                        val = None
+                        if ynode[1]['inode'].startind:
+                            val = ynode[1]['inode'].startind.split(":")[0]
+                        tmp_item = self.QtGui.QTableWidgetItem(val)
                     elif column == 4:
-                        tmp_item = self.QtGui.QTableWidgetItem(ynode[1]['inode'].endind)
+                        val = None
+                        if ynode[1]['inode'].endind:
+                            val = ynode[1]['inode'].endind.split(":")[0]
+                        tmp_item = self.QtGui.QTableWidgetItem(val)
                     elif column == 5:
                         tmp_item = self.QtGui.QTableWidgetItem(ynode[1]['inode'].edgeann)
                     elif column == 6:
@@ -312,6 +324,7 @@ class VisualizerWidget(QtGui.QMainWindow):
                 self.taint_table.resizeRowToContents(row)
             self.taint_table.setSelectionMode(self.QtGui.QAbstractItemView.SingleSelection)
             self.taint_table.resizeColumnsToContents()
+            self.taint_table.horizontalHeader().setResizeMode(self.QtGui.QHeaderView.Stretch)
             self.taint_table.setSortingEnabled(True)
             
     def handleTaintMenu(self, pos):
@@ -387,3 +400,11 @@ class VisualizerWidget(QtGui.QMainWindow):
           idc.Jump(self.t_graph.node[uuid]['inode'].ea)
         #self.filters_filename_table.insertRow(self.filters_filename_table.rowCount())
         #self.filters_filename_table.setItem(self.filters_filename_table.rowCount()-1, 0, self.QtGui.QTableWidgetItem(" "))
+        
+class NumTableWidgetItem(QtGui.QTableWidgetItem):
+    def __init__(self, number):
+        QtGui.QTableWidgetItem.__init__(self, number, QtGui.QTableWidgetItem.UserType)
+        self.__number = number
+
+    def __lt__(self, other):
+        return self.__number < other.__number
