@@ -394,6 +394,11 @@ class VisualizerWidget(QtGui.QMainWindow):
     def addrGo(self):
         from idc import *
         uuid = self.taint_table.item(self.taint_table.currentItem().row(), 0).text()
+        addr = 0
+        if self.t_graph.node[uuid]['inode'].typ == "in":
+            addr = int(self.t_graph.node[uuid]['inode'].edgeann, 0)
+        else:
+            addr = self.t_graph.node[uuid]['inode'].ea
         bLoaded = isLoaded(self.t_graph.node[uuid]['inode'].ea)
         if bLoaded:
           print "Found addr: 0x%x" % self.t_graph.node[uuid]['inode'].ea

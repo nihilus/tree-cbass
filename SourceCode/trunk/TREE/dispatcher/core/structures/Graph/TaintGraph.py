@@ -45,10 +45,10 @@ class TaintGraph(GraphViewer):
   def OnDblClick(self, node_id):
     uuid = self.AddrNode[node_id]
     int_addr = 0
-    try:
+    if self.graph.node[uuid]['inode'].typ == "in":
+        int_addr = int(self.graph.node[uuid]['inode'].edgeann, 0)
+    else:
         int_addr = self.graph.node[uuid]['inode'].ea
-    except KeyError:
-        int_addr = 0
     bLoaded = isLoaded(int_addr)
     if bLoaded:
       print "Found addr: 0x%x" % int_addr
