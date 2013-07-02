@@ -378,7 +378,9 @@ class AnalyzerWidget(QtGui.QMainWindow):
             fTaint = "ATaintGraph_"+idb_filename
         out_fd = open(fTaint, 'w')
         
-        TP = TaintTracker(hostOS, processBits, targetBits, out_fd,TAINT_DATA, IDA)	
+        print("Taint policy=%s") %(taintPolicy)
+        #TP = TaintTracker(hostOS, processBits, targetBits, out_fd,taintPolicy, IDA)
+        TP = TaintTracker(hostOS, processBits, targetBits, out_fd,TAINT_BRANCH, IDA)
         if (self.trace_data is not None):
             TR = IDBTraceReader(str(self.trace_data))
         else:
@@ -424,6 +426,8 @@ class AnalyzerWidget(QtGui.QMainWindow):
                     out_str = "InputAddr = %x, InputSize =%x" %(tRecord.currentInputAddr, tRecord.currentInputSize)
                     self.trace_table2.append(out_str)
             elif(recordType == Execution):
+                if (tNextRecord ==None):
+                  break
                 if(tNextRecord.getRecordType() == eXception):
                     if(tNextRecord.currentExceptionCode ==0): # termination
                         if (taintPolicy == TAINT_BRANCH):
@@ -450,6 +454,8 @@ class AnalyzerWidget(QtGui.QMainWindow):
             else:
                 tRecord = tNextRecord 				
 
+        #if(taintPolicy ==TAINT_BRANCH):
+        strTaint = TC.DumpPCs()
         out_fd.close()
         
         text = strTaint
