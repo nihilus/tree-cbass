@@ -127,8 +127,8 @@ class tracer_plugin_t(idaapi.plugin_t):
     TREE Tracer plugin
     """
     flags = idaapi.PLUGIN_UNL
-    comment = NAME
-    help = "TREE Tracer plugin, see manual for instructions"
+    help = ""
+    comment = "TREE Tracer plugin for IDA"
     wanted_name = "TREE Tracer"
     wanted_hotkey = "Ctrl-F7"
 
@@ -152,6 +152,8 @@ class tracer_plugin_t(idaapi.plugin_t):
         Print("tracer_plugin_t run!")
         plg = TreeTracerPluginFormClass()
         plg.Show()
+        
+        return
 
     def term(self):
         """

@@ -5,7 +5,7 @@
 #
 # For detailed copyright information see the file license.txt in the IDA PRO plugins folder
 #---------------------------------------------------------------------
-# WindowsApiCallbacks.py - IDA pro Tracing
+# WindowsApiCallbacks.py - Windows API tracking
 #---------------------------------------------------------------------
 
 import dispatcher.core.Util as Util
@@ -18,6 +18,10 @@ import os.path
 import struct
         
 class IO(object):
+    """
+    Generic IO class
+    holds instances for the logger, debugger, and filters
+    """
     def __init__(self):
         self.logger = None
         self.lpBuffer = None
@@ -34,21 +38,27 @@ class IO(object):
         self.filter = _filter
     
 class FileIO(IO):
-    
+    """
+    File IO class to monitor file I/O operations
+    """
     def __init__(self):
         super(FileIO, self).__init__()
-        """
-        self.lpBuffer = None
-        self.lpNumberOfBytesRead = None
-        """
         self.handleSet = set()
 
     def MyCreateFileAEnd(self):
+        """
+        Monitors the end of CreateFileA function
+        """
         handle = idc.GetRegValue("EAX")
         self.logger.info( "MyCreateFileAEnd HANDLE is 0x%x" % handle)
         return 0
 
     def MyCreateFileA(self):
+        """
+        Monitors the beginning of CreateFileA function
+        CreateFileA arguments are read from the stack
+        """
+        
         """
         HANDLE WINAPI CreateFile(
         _In_      LPCTSTR lpFileName,
@@ -94,6 +104,12 @@ class FileIO(IO):
         return 0
     
     def MyCreateFileWEnd(self):
+        
+        """
+        Monitors the end of CreateFileW function
+        The return value (handle to the file) for CreateFileW is stored in a set
+        """
+        
         Print( "Returning from CreateFileW..." )
         handle = idc.GetRegValue("EAX")
 
@@ -103,6 +119,12 @@ class FileIO(IO):
         return 0
     
     def MyCreateFileW(self):
+        
+        """
+        Monitors the the beginning of CreateFileW function
+        CreateFileW arguments are read from the stack
+        """
+        
         """
         HANDLE WINAPI CreateFileW(
         _In_      LPCTSTR lpFileName,
@@ -161,6 +183,12 @@ class FileIO(IO):
         return 0
     
     def MyCloseHandle(self):
+        
+        """
+        Monitors the the beginning of CloseHandle function
+        hObject is the handle being closed, we will remove this value from the set
+        """
+        
         """
         BOOL WINAPI CloseHandle(
             _In_  HANDLE hObject
@@ -169,20 +197,20 @@ class FileIO(IO):
         """
         
         hObject = Util.GetData(0x4)
-        #threaId = idc.GetCurrentThreadId()
-        
-        #  "MyCloseHandle hFile is 0x%x" % (hObject)
-        #self.logger.info( "MyCloseHandle [%d] hFile is 0x%x" % (threaId,hObject) )
 
         if hObject in self.handleSet:
             self.handleSet.remove(hObject)
             self.logger.info("Removing handle 0x%x from Handle Set" % hObject)
-            # "Removing handle 0x%x from Handle Set" % hObject
 
         return 0
     
     def MyReadFileEnd(self):
-
+        """
+        Monitors the the end of ReadFile function
+        This is the function that will trigger the trace
+        inputLoggingList is past from MyReadFile, which holds are of MyReadFile arguments
+        """
+        
         retVal = idc.GetRegValue("EAX")
         self.logger.info( "Returning from ReadFile... with %d" % retVal )
     
@@ -221,6 +249,13 @@ class FileIO(IO):
         return 0
         
     def MyReadFile(self):
+        """
+        Monitors the the beginning of ReadFile function
+        ReadFile arguments are read from the stack
+        This is the function that will trigger the trace
+        inputLoggingList holds arguments for 
+        """
+        
         """  
         BOOL WINAPI ReadFile(
           _In_         HANDLE hFile,

@@ -1,11 +1,11 @@
-# $Source$
-
+# TREE - Taint-enabled Reverse Engineering Environment 
+# Copyright (c) 2013 Battelle BIT Team - Nathan Li, Xing Li, Loc Nguyen
+#
+# All rights reserved.
+#
+# For detailed copyright information see the file license.txt in the IDA PRO plugins folder
 #---------------------------------------------------------------------
-# Writer to capture output
-#
-# 
-# Author: Nathan Li, Xing Li
-#
+# writer.py - writes data either to a file or to memory
 #---------------------------------------------------------------------
 
 import cStringIO
@@ -27,27 +27,37 @@ class BufferWriter():
         self.output = cStringIO.StringIO()
     
     def fileOpen(self,filename):
+        """
+        opens a file for writing
+        @param filename: The name of the file
+        @return: None
+        """
         self.file=file(filename,'wb')
         
     def writeToFile(self,data):
+        """
+        writes data to a memory buffer
+        @param data: The data to write
+        @return: None
+        """
+        
         self.output.write(data)
-        
-        """
-        content = self.output.getvalue()
-        contentSize =  len(content)
-        
-        if contentSize > MAX_BUFFER_SIZE:
-            print "Writing called"
-            self.file.write(content)
-            self.output.close()
-            self.output = cStringIO.StringIO()
-        """
     
     def getBufferData(self):
+        """
+        returns the buffer stored in memory
+        @param: None
+        @return: buffer in memory
+        """
         return self.output.getvalue()
     
     def fileClose(self,data):
- 
+        """
+        files an opened file, flushes the data
+        This function is mainly used for testing.  We wanted to confirm the content of the buffer is the same as the content of the file
+        @param data: the data to write
+        @return: None
+        """ 
         self.file.write(data) #Write the data content to a file
 
         self.file.close() #Close the actual file
@@ -64,17 +74,29 @@ class FileWriter():
     
     def __init__(self):
         self.file=None
-        self.filename = None
     
     def fileOpen(self,filename):
+        """
+        opens a file for writing
+        @param filename: The name of the file
+        @return: None
+        """
         self.file=file(filename,'wb')
-        self.filename = filename
         
     def writeToFile(self,data):
-            
+        """
+        writes the data to an opened file
+        @param data: The data to write
+        @return: None
+        """
         self.file.write(data)
     
     def fileClose(self):
+        """
+        close a file the was opened
+        @param: None
+        @return: None
+        """
         self.file.close()
     
 if __name__ == '__main__':

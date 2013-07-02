@@ -5,7 +5,7 @@
 #
 # For detailed copyright information see the file license.txt in the IDA PRO plugins folder
 #---------------------------------------------------------------------
-# LinuxApiCallbacks.py - IDA pro Tracing
+# LinuxApiCallbacks.py - Linux API Tracking
 #---------------------------------------------------------------------
 
 import dispatcher.core.Util as Util

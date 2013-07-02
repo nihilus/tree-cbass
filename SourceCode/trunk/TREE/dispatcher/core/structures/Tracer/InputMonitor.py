@@ -5,12 +5,28 @@
 #
 # For detailed copyright information see the file license.txt in the IDA PRO plugins folder
 #---------------------------------------------------------------------
-# InputMonitor.py - IDA pro Tracing
+# InputMonitor.py - Monitors loaded libraries
 #---------------------------------------------------------------------
 
 from dispatcher.core.DebugPrint import dbgPrint, Print
         
 def checkWindowsLibs(name,ea,bCheckFileIO,bCheckNetworkIO):
+    """
+    This function monitors loaded DLLs for Windows
+    If any of these DLLs and functions are loaded
+    a conditional breakpoint is set
+    
+    kernel32.dll - CreateFileW ReadFile CloseHandle
+    WS2_32.dll - recv, bind, accept, closesocket
+    WSOCK32.dll - recv, bind
+    
+    @param name: The name of the loaded DLL
+    @param ea: The address of the loaded DLL
+    @param bCheckFileIO: Checks to see if FileIO filtering was turned on
+    @param bCheckNetworkIO: Checks to see if NetworkIO filtering was turned on
+    @return: None        
+    """
+        
     import idc
     import logging
     
@@ -151,6 +167,20 @@ def checkWindowsLibs(name,ea,bCheckFileIO,bCheckNetworkIO):
                     logger.info( "wsock32_recv at 0x%x is data not code." % recv_func )
              
 def checkLinuxLibs(name,ea,bCheckFileIO,bCheckNetworkIO):
+    """
+    This function monitors loaded libaries for Linux
+    If any of these libaries and functions are loaded
+    a conditional breakpoint is set
+    
+    LIBC - _IO_file_fopen _IO_fread _IO_fclose
+    
+    @param name: The name of the loaded library
+    @param ea: The address of the loaded library
+    @param bCheckFileIO: Checks to see if FileIO filtering was turned on
+    @param bCheckNetworkIO: Checks to see if NetworkIO filtering was turned on
+    @return: None        
+    """
+    
     import idc
     import logging
     Print ("Found Libc at 0x%x" % ea)
@@ -203,5 +233,6 @@ def checkLinuxLibs(name,ea,bCheckFileIO,bCheckNetworkIO):
                 idc.SetBptCnd(fclose_func, "linuxFileIO.My_fclose()")
         
 def checkMacOSXLibs(name,ea):
+    #TODO: Mac implementation
     Print( "Checking Mac OSX" )
     
