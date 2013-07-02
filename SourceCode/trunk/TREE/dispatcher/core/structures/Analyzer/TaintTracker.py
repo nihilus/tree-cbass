@@ -182,6 +182,7 @@ class TaintTracker(object):
             self.TaintPropogateUnary(instInfo, instRec)
         elif (instInfo.inst_category in self.taint_category_2To1):
             if (self.taint_policy == TAINT_BRANCH):
+                print "Handle Taint_Path_condition"
                 self.TaintPropogatePathCondition(instInfo, instRec)            
             else:                
                 self.TaintPropogateBinary(instInfo, instRec)
@@ -191,6 +192,7 @@ class TaintTracker(object):
             self.TaintPropogateRet(instInfo, instRec)
         elif (instInfo.inst_category in self.taint_category_branch):
             if (self.taint_policy == TAINT_BRANCH):
+                print "Handle Taint_Branch"
                 self.TaintPropogateBranch(instInfo, instRec)
         elif (instInfo.inst_category in self.taint_category_logic):
             self.TaintPropogateLogic(instInfo, instRec)
@@ -525,7 +527,7 @@ class TaintTracker(object):
         if (self.bDebug==True):
             sDbg = instInfo.getDebugInfo()
             log.debug(sDbg)
-        eFlagName = X86ISA.getNormalizedX86EFlagName(tid)
+        eFlagName = self.x86ISA.getNormalizedX86EFlagName(tid)
         if (eFlagName in self.dynamic_taint):
             sDbg = "Taint Branch Condition:%s\n" %(self.dynamic_taint[eFlagName])
             log.debug(sDbg)

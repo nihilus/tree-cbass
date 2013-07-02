@@ -257,9 +257,10 @@ class TaintChecker(object):
             #self.output_fd.write("%s \n" %(self.dynamic_taint[t].taint_simple()))
 	return strTaint
 
-    def DisplayPCs(self):
+    def DumpPCs(self):
         self.taintTracker.output_fd.write("Path Conditions:\n")
         strTaint = "Path Conditions:\n" 
         for t in self.taintTracker.pcs:
             self.taintTracker.output_fd.write("%s \n" %(t.taint_tree()))
 	    strTaint = strTaint + "%s \n" %(t.taint_tree())
+	return strTaint
