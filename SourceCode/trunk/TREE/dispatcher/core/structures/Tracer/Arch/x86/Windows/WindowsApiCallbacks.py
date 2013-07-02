@@ -1,9 +1,11 @@
-#---------------------------------------------------------------------
-# IDA debug based Execution Trace(ET) callback routines
+# TREE - Taint-enabled Reverse Engineering Environment 
+# Copyright (c) 2013 Battelle BIT Team - Nathan Li, Xing Li, Loc Nguyen
 #
-# Version: 1 
-# Author: Nathan Li, Xing Li
-# Date: 1/10/2013
+# All rights reserved.
+#
+# For detailed copyright information see the file license.txt in the IDA PRO plugins folder
+#---------------------------------------------------------------------
+# WindowsApiCallbacks.py - IDA pro Tracing
 #---------------------------------------------------------------------
 
 import dispatcher.core.Util as Util

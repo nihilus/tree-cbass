@@ -1,10 +1,13 @@
-#---------------------------------------------------------------------
-# IDA debug based Execution Trace(ET) callback routines
+# TREE - Taint-enabled Reverse Engineering Environment 
+# Copyright (c) 2013 Battelle BIT Team - Nathan Li, Xing Li, Loc Nguyen
 #
-# Version: 1 
-# Author: Nathan Li, Xing Li
-# Date: 1/10/2013
+# All rights reserved.
+#
+# For detailed copyright information see the file license.txt in the IDA PRO plugins folder
 #---------------------------------------------------------------------
+# IDATrace.py - IDA pro Tracing
+#---------------------------------------------------------------------
+
 from dispatcher.core.DebugPrint import dbgPrint, Print
 
 import idc
@@ -34,18 +37,10 @@ class IDATrace():
         self.windowsFileIO       = funcCallbacks['windowsFileIO']
         self.windowsNetworkIO    = funcCallbacks['windowsNetworkIO']
         self.linuxFileIO         = funcCallbacks['linuxFileIO'] 
-        self.interactivemodeCallback  = funcCallbacks['interactivemodeCallback']
                 
-        #register the hotkey for marking the starting point for taint tracking
-        taintStart_ctx = idaapi.add_hotkey("Shift-A", self.taintStart)
-        self.taintStart = None
-        #register the hotkey for marking the stopping point for taint tracking
-        taintStop_ctx = idaapi.add_hotkey("Shift-Z", self.taintStop)
-        self.taintStop = None
-
         configFile = configReader.configFile
         
-        Print( configFile )
+        #Print( configFile )
         #Call ConfigFile to grab all configuration information from the config.xml file
         self.config = ConfigFile(configFile)
         
@@ -58,7 +53,7 @@ class IDATrace():
         
         self.tracefile = filePath[0] + "_" + processBasename[0] + filePath[1]
         self.tracefile = unique_file_name(self.tracefile)
-        #Print(self.tracefile)
+        Print(self.tracefile)
         
         traceFileName = os.path.splitext(self.tracefile)
         self.treeTracefile = traceFileName[0] + ".idb"
@@ -91,43 +86,6 @@ class IDATrace():
             Print("Log Debug mode is turned on.")
             self.logger.setLevel(logging.DEBUG)
 
-
-    """
-    This function is the callback function when the user hits the Shift-A hotkey.
-    This will set the starting break point for our interactive tainting
-    """
-    def taintStart(self):
-
-        Print("Taint Start pressed!")
-        #Remove the starting breakpoint
-        if self.taintStart is not None:
-            idc.DelBpt(self.taintStart)
-        
-        #Add a new starting breakpoint
-        self.taintStart = idc.ScreenEA()
-        Print( idc.GetDisasm(self.taintStart) )
-        idc.AddBpt(self.taintStart)
-        idc.SetBptAttr(self.taintStart, idc.BPT_BRK, 0)
-        idc.SetBptCnd(self.taintStart, "interactivemodeCallback.startTrace()")
-    
-    """
-    This function is the callback function when the user hits the Shift-Z hotkey.
-    This will set the stopping break point for our interactive tainting
-    """           
-    def taintStop(self):
-
-        Print("Taint Stop pressed!")
-        #Remove the stopping breakpoint
-        if self.taintStop is not None:
-            idc.DelBpt(self.taintStop)
-        
-        #Add a new stopping breakpoint
-        self.taintStop = idc.ScreenEA()
-        Print( idc.GetDisasm(self.taintStop) )
-        idc.AddBpt(self.taintStop)
-        idc.SetBptAttr(self.taintStop, idc.BPT_BRK, 0)
-        idc.SetBptCnd(self.taintStop, "interactivemodeCallback.stopTrace()")
-        
     def getRunningProcesses(self,process_name):
 
         numOfProcessesRunning = idc.GetProcessQty()
@@ -257,13 +215,8 @@ class IDATrace():
         idc.SetInputFilePath(path)
         
         idaapi.set_process_options(application,args,sdir,host,_pass,port)
-        
-        if interactiveMode:
-            Print("Using interactive mode.")
-        else:
-            Print("Using non-interactive mode.")
 
-        EThook = ETDbgHook(self.tracefile,self.treeTracefile,self.logger,interactiveMode)
+        EThook = ETDbgHook(self.tracefile,self.treeTracefile,self.logger)
         EThook.hook()
         EThook.steps = 0
         
@@ -285,11 +238,7 @@ class IDATrace():
         if os_type == "macosx":
             Print( "Setting MacOsxApiCallbacks" )
             checkInput = InputMonitor.checkMacLibs
-            """
-            TODO: XZL
-            MacOSXApiCallbacks.macFileIO.SetDebuggerInstance(EThook)
-            MacOSXApiCallbacks.macFileIO.SetFilters(filters)
-            """
+
         elif os_type == "windows":
             Print( "Setting WindowsApiCallbacks" )
             
@@ -332,38 +281,4 @@ class IDATrace():
         self.logger.info("Starting to trace..please wait...")
         idaapi.run_to(idaapi.cvar.inf.maxEA)
     
-    def interactive(self,processConfig):
-
-        from dispatcher.core.structures.Tracer import InteractivemodeCallbacks as InteractivemodeCallbacks
-        
-        EThook = self.setDebuggerOptions(processConfig,True)
-        
-        self.interactivemodeCallback.SetDebuggerInstance(EThook)
-        self.interactivemodeCallback.SetLoggerInstance(self.logger)
-        
-        idaapi.run_to(idaapi.cvar.inf.maxEA)
-        
-    def attach(self,processConfig):
-
-        from dispatcher.core.structures.Tracer import InteractivemodeCallbacks as InteractivemodeCallbacks
-        
-        EThook = self.setDebuggerOptions(processConfig,True)
-        
-        self.interactivemodeCallback.SetDebuggerInstance(EThook)
-        self.interactivemodeCallback.SetLoggerInstance(self.logger)
-        
-        process_name = processConfig.getApplication()
-        PID = self.getRunningProcesses(process_name)
-
-        self.logger.info("Attaching to %s to generate a trace..please wait..." % process_name)
-                
-        if PID == -1:
-            idc.Warning("%s is not running.  Please start the process first." % process_name)
-        else:
-            ret = idc.AttachProcess(PID, -1)
-            """
-            if ret != -1:
-                idc.Warning("Error attaching to %s" % process_name)
-            """
-            
-        
+   

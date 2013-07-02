@@ -1,17 +1,24 @@
+# TREE - Taint-enabled Reverse Engineering Environment 
+# Copyright (c) 2013 Battelle BIT Team - Nathan Li, Xing Li, Loc Nguyen
+#
+# All rights reserved.
+#
+# For detailed copyright information see the file license.txt in the IDA PRO plugins folder
+#---------------------------------------------------------------------
+# TraceGeneratorWidget.py - TREE Tracer Main Window
+#---------------------------------------------------------------------
+
 from PySide.QtGui import QMainWindow 
 from PySide import QtGui, QtCore
 from dispatcher.core.DebugPrint import dbgPrint, Print
 import os
 import idc
 
-#from PySide.QtGui import QIcon
 class TraceGeneratorWidget(QMainWindow):
     """
     This widget is the front-end for the trace generations.
     """
     def __init__(self,parent,funcCallbacks):
-        #from PySide import QtGui, QtCore
-
         from ..core.DebugPrint import dbgPrint, Print
 
         from ..core.structures.Tracer import IDATrace
@@ -19,8 +26,7 @@ class TraceGeneratorWidget(QMainWindow):
 
         super(TraceGeneratorWidget, self).__init__()
         Print( "[|] loading TraceGenerationWidget" )
-        # Access to shared modules
-       
+
         self.idaTracer = IDATrace(funcCallbacks)
         self.processConfig = ProcessConfig()
         self.parent = parent
@@ -28,30 +34,22 @@ class TraceGeneratorWidget(QMainWindow):
     
         tracer_icon_path = os.path.join(self.parent.iconPath, "trace.png")
         self.icon = QtGui.QIcon(tracer_icon_path)
-        
-        #References to qt-specific modules
+
         self.QtGui = QtGui
         self.QtCore = QtCore
         self.central_widget = self.QtGui.QWidget()
         self.setCentralWidget(self.central_widget)
         self._createGui()
         self.populateConfig()
-        
-    def closeEvent(self, event):
-        print("TraceGeneratorWidget closing...")
-        QMainWindow.closeEvent(self, event)
     
-    def showStatus(self):
-
-        self.colorLabel.setStyleSheet("font: 15pt;font-weight:bold");
-        self.colorLabel.setText("This is a test message")
-        self.colorLabel.setPalette(QtGui.QPalette("red"))
-        self.colorLabel.setAutoFillBackground(True)
-        
-        self.statusbar.addWidget(self.colorLabel, 100)
-        self.statusbar.show()
-        
     def showStatus(self,message):
+        """
+        Displays the status bar for the TREE Tracer
+        
+        @param message: The message to display
+        @return: None
+        
+        """
         
         frameStyle = QtGui.QFrame.Sunken | QtGui.QFrame.Panel
         self.colorLabel = QtGui.QLabel()
@@ -64,15 +62,17 @@ class TraceGeneratorWidget(QMainWindow):
         self.statusbar.show()
         
     def hideStatus(self):
+        """
+        Hides the status bar from the TREE Tracer
+        """
+        
         self.statusbar.removeWidget(self.colorLabel)
         
     def _createGui(self):
         """
         Create the main GUI with its components
         """
-        # Create buttons
-        #from PySide import QtGui, QtCore
-        #self.setWindowTitle("Hello")
+
         self.statusbar = QtGui.QStatusBar(self)
         self.statusbar.setObjectName("statusbar")
         self.setStatusBar(self.statusbar)
@@ -80,13 +80,13 @@ class TraceGeneratorWidget(QMainWindow):
         self._createToolbar()
         trace_layout = QtGui.QVBoxLayout()
         self.filters_qb = QtGui.QGroupBox()
-        #self.filters_qb.setGeometry(QtCore.QRect(10, 10, 500, 300))
+
         self.filters_qb.setObjectName("filters_qb")
         self.gridLayoutWidget_2 = QtGui.QWidget(self.filters_qb)
         self.gridLayoutWidget_2.setGeometry(QtCore.QRect(10, 10, 500, 300))
         self.gridLayoutWidget_2.setObjectName("gridLayoutWidget_2")
         self.gridLayout_2 = QtGui.QGridLayout(self.gridLayoutWidget_2)
-        #self.gridLayout_2.setMargin(0)
+
         self.gridLayout_2.setObjectName("gridLayout_2")
         self.verticalLayout_3 = QtGui.QVBoxLayout()
         self.verticalLayout_3.setObjectName("verticalLayout_3")
@@ -107,13 +107,13 @@ class TraceGeneratorWidget(QMainWindow):
         self.verticalLayout_4.addWidget(self.filters_network_port_table)
         self.gridLayout_2.addLayout(self.verticalLayout_4, 0, 1, 1, 1)
         self.process_qbox = QtGui.QGroupBox()
-        #self.process_qbox.setGeometry(QtCore.QRect(10, 10, 511, 15))
+
         self.process_qbox.setObjectName("process_qbox")
         self.layoutWidget = QtGui.QWidget(self.process_qbox)
         self.layoutWidget.setGeometry(QtCore.QRect(10, 10, 400, 30))
         self.layoutWidget.setObjectName("layoutWidget")
         self.horizontalLayout_8 = QtGui.QHBoxLayout(self.layoutWidget)
-        #self.horizontalLayout_8.setMargin(0)
+
         self.horizontalLayout_8.setObjectName("horizontalLayout_8")
         self.name_label = QtGui.QLabel(self.layoutWidget)
         self.name_label.setObjectName("name_label")
@@ -128,13 +128,13 @@ class TraceGeneratorWidget(QMainWindow):
         self.os_label_d.setObjectName("os_label_d")
         self.horizontalLayout_8.addWidget(self.os_label_d)
         self.params_qbox = QtGui.QGroupBox()
-        #self.params_qbox.setGeometry(QtCore.QRect(10, 10, 500, 300))
+
         self.params_qbox.setObjectName("params_qbox")
         self.gridLayoutWidget_3 = QtGui.QWidget(self.params_qbox)
         self.gridLayoutWidget_3.setGeometry(QtCore.QRect(10, 10, 500, 300))
         self.gridLayoutWidget_3.setObjectName("gridLayoutWidget_3")
         self.gridLayout_3 = QtGui.QGridLayout(self.gridLayoutWidget_3)
-        #self.gridLayout_3.setMargin(0)
+       
         self.gridLayout_3.setObjectName("gridLayout_3")
         self.horizontalLayout_6 = QtGui.QHBoxLayout()
         self.horizontalLayout_6.setObjectName("horizontalLayout_6")
@@ -263,21 +263,17 @@ class TraceGeneratorWidget(QMainWindow):
         """
         Create the toolbar
         """
-        
         self._createGenerateTraceAction()
-       # self._createProcessAttachAction()
+  
         self._createSaveConfigAction() 
         self.toolbar = self.addToolBar('Trace Generation Toolbar')
         self.toolbar.addAction(self.saveConfigAction)
         self.toolbar.addAction(self.generateTraceAction)
-       # self.toolbar.addAction(self.processAttachAction)
-        
+
     def _createGenerateTraceAction(self):
         """
         Create that action that performs the trace
         """
-        #from PySide.QtGui import QIcon
-
         icon_path = os.path.join(self.parent.iconPath,"trace.png")
         self.generateTraceAction = QtGui.QAction(QtGui.QIcon(icon_path), "Generate the trace.", self)
         self.generateTraceAction.triggered.connect(self.onGenerateTraceButtonClicked)
@@ -286,9 +282,7 @@ class TraceGeneratorWidget(QMainWindow):
         """
         Create that action to attach to a process
         """
-        #from PySide.QtGui import QIcon
         Print("Create Attach Action")
-
         icon_path = os.path.join(self.parent.iconPath, "attach.png")
         
         self.processAttachAction = QtGui.QAction(QtGui.QIcon(icon_path), "Attach to process.", self)
@@ -296,7 +290,9 @@ class TraceGeneratorWidget(QMainWindow):
 
 
     def checkInteractiveMode(self):
-
+        """
+        Interactive Mode - This is disabled for this version
+        """
         if self.idaTracer.taintStart is None or self.idaTracer.taintStop is None:
             idc.Warning("Please set the starting and stopping points before using Interactive Mode")
             return False
@@ -305,7 +301,7 @@ class TraceGeneratorWidget(QMainWindow):
                 
     def onAttachProcessButtonClicked(self):
         """
-        Action for calling the trace functionality 
+        Attaching to an exsiting process - This is disabled for this version
         """
 
         #start debugging
@@ -326,7 +322,7 @@ class TraceGeneratorWidget(QMainWindow):
                 
     def onGenerateTraceButtonClicked(self):
         """
-        Action for calling the trace functionality 
+        Button to trigger the trace generation
         """
         
         #start debugging
@@ -354,7 +350,7 @@ class TraceGeneratorWidget(QMainWindow):
         
     def _createSaveConfigAction(self):
         """
-        Save config
+        Save the current configuration to config.xml
         """
 
         #from PySide.QtGui import QIcon
@@ -364,7 +360,7 @@ class TraceGeneratorWidget(QMainWindow):
   
     def getConfigFromGUI(self):
         """
-        Action for saving config
+        Grabs the current configuration parameters from the GUI
         """
         from ..core.DebugPrint import dbgPrint, Print
          
@@ -407,15 +403,18 @@ class TraceGeneratorWidget(QMainWindow):
             
     def onSaveConfigButtonClicked(self):
         """
-        Action for saving config
+        Save configuration button
         """
-        #start debugging
         from dispatcher.core.structures.Tracer.Config.config import ProcessConfig as ProcessConfig
         
         self.getConfigFromGUI()
         self.idaTracer.setProcessConfig(self.processConfig)
         
     def populateConfig(self):
+        """
+        Populate the GUI with configuration parameters from config.xml
+        """
+        
         from ..core.DebugPrint import dbgPrint, Print
         
         self.processConfig = self.idaTracer.getProcessConfig()
@@ -450,7 +449,7 @@ class TraceGeneratorWidget(QMainWindow):
             
             fileFilter = self.processConfig.getFileFilter()
             if fileFilter is not None:
-                #self.filters['file'] = fileFilter
+
                 Print( "Found %d file filters" % len(fileFilter) )
                 self.populateFiltersTable(fileFilter, self.filters_filename_table)
             else:
@@ -458,13 +457,17 @@ class TraceGeneratorWidget(QMainWindow):
                 
             networkFilter = self.processConfig.getNetworkFilter()
             if networkFilter is not None:
-                #self.filters['network'] = networkFilter
+
                 Print( "Found %d network filters" % len(networkFilter) )
                 self.populateFiltersTable(networkFilter, self.filters_network_port_table)
             else:
                 Print( "No network filters found" )
 
     def populateFiltersTable(self, _filter, filter_table):
+        """
+        Populates the filter table with values
+        """
+        
         table_header_labels = ["Value"]
         filter_table.clear()
         filter_table.setColumnCount(len(table_header_labels))
@@ -523,6 +526,9 @@ class TraceGeneratorWidget(QMainWindow):
         self.filters_network_port_table.removeRow(self.filters_network_port_table.currentItem().row())
         
     def remote_cbStateChanged(self,state):
+        """
+        triggered when the remote debugger button changes state
+        """
         if state == self.QtCore.Qt.Checked:
             self.host_label_edit.setEnabled(1)
             self.password_label_edit.setEnabled(1)
@@ -533,11 +539,16 @@ class TraceGeneratorWidget(QMainWindow):
             self.port_label_edit.setDisabled(1)
             
     def pin_cbStateChanged(self,state):
-
+        """
+        triggered when the pin button changes state
+        """
         if state == self.QtCore.Qt.Checked:
             self.path_edit.selectAll()
         
     def interactive_cbStateChanged(self,state):
+        """
+        triggered when the interactive button changes state
+        """
         
         if state == self.QtCore.Qt.Checked:
             self.showStatus("Interactive Mode: Please set the starting (shift-a) and ending (shift-z) points.")
@@ -546,59 +557,3 @@ class TraceGeneratorWidget(QMainWindow):
             self.hideStatus()
             self.filters_qb.setEnabled(1)
             
-    def pinCommunication(self, host="127.0.0.1",port=23966,bRemote=False):
-        #
-        # Most of this is stub code, waiting on the pin agent implementation
-        #
-        import socket
-        import time
-        
-        HOST = host
-        PORT = port
-        ff = None
-        nf = None
-        
-        Print("Connecting to %s:%d" % (HOST,PORT))
-        
-        if self.processConfig.getFileFilter()!=None:
-            ff = ";".join(self.processConfig.getFileFilter())
-        if self.processConfig.getNetworkFilter()!=None:
-            nf = ";".join(self.processConfig.getNetworkFilter())
-        if(ff!=None and nf!=None):
-            packet = self.processConfig.getPath() + " " + self.processConfig.getArgs() + "!FF=" + ff + "!NF=" + nf
-        elif(ff!=None):
-            packet = self.processConfig.getPath() + " " + self.processConfig.getArgs() + "!FF=" + ff
-        elif(nf!=None):
-            packet = self.processConfig.getPath() + " " + self.processConfig.getArgs() + "!NF=" + nf
-        else:
-            packet = self.processConfig.getPath() + " " + self.processConfig.getArgs()
-        """
-        Todo: Integrate this in the future, requires a patch in idaapi.py
-        if bRemote==False:    
-            PID = self.idaTracer.getRunningProcesses("PinAgent.exe")
-            
-            if PID == -1:
-                Print("Starting PinAgent ...")
-                os.startfile('"C:/Program Files/IDA 6.4/plugins/dispatcher/core/structures/PinAgent/PinAgent.exe"')
-                #idc.Exec('"C:/Program Files/IDA 6.4/plugins/dispatcher/core/structures/PinAgent/PinAgent.exe"')
-            
-            time.sleep(5)
-        """
-        #File filter
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.connect((HOST, PORT))
-        s.send(packet)
-        data = s.recv(1024)
-        print data
-        #if data == "Trace is ready!":
-        #    data = s.recv(1024)
-        s.close()
-        #
-        #while len(msg) < MSGLEN:
-        #   chunk = s.recv(MSGLEN-len(msg))
-        #   if chunk = '';
-        #       raise RuneTimeError("socket connect broken")
-        #   msg = msg + chunk
-        #
-        with open('trace.txt', 'w') as f:
-            f.write(data)

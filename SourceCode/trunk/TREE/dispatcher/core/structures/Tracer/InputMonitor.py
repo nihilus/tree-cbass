@@ -1,10 +1,13 @@
-#---------------------------------------------------------------------
-# Input Monitor
+# TREE - Taint-enabled Reverse Engineering Environment 
+# Copyright (c) 2013 Battelle BIT Team - Nathan Li, Xing Li, Loc Nguyen
 #
-# Version: 1 
-# Author: Nathan Li, Xing Li
-# Date: 1/10/2013
+# All rights reserved.
+#
+# For detailed copyright information see the file license.txt in the IDA PRO plugins folder
 #---------------------------------------------------------------------
+# InputMonitor.py - IDA pro Tracing
+#---------------------------------------------------------------------
+
 from dispatcher.core.DebugPrint import dbgPrint, Print
         
 def checkWindowsLibs(name,ea,bCheckFileIO,bCheckNetworkIO):

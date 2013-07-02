@@ -1,3 +1,13 @@
+# TREE - Taint-enabled Reverse Engineering Environment 
+# Copyright (c) 2013 Battelle BIT Team - Nathan Li, Xing Li, Loc Nguyen
+#
+# All rights reserved.
+#
+# For detailed copyright information see the file license.txt in the IDA PRO plugins folder
+#---------------------------------------------------------------------
+# TREE_Tracer.py - TREE Tracer plugin for IDA Pro
+#---------------------------------------------------------------------
+
 import os
 import time
 
@@ -18,16 +28,17 @@ NAME = "TREE Tracer"
 
 from dispatcher.core.structures.Tracer.Arch.x86.Windows import WindowsApiCallbacks as WindowsApiCallbacks
 from dispatcher.core.structures.Tracer.Arch.x86.Linux import LinuxApiCallbacks as LinuxApiCallbacks
-from dispatcher.core.structures.Tracer import InteractivemodeCallbacks as InteractivemodeCallbacks
 
 windowsFileIO = None
 linuxFileIO = None
-interactivemodeCallback = None
 
 #Need to have this first, evaluate everything with Python not IDC
 idaapi.enable_extlang_python(True)
 
 class TreeTracerPluginFormClass(PluginForm):
+    """
+    Tree Tracer plugin form
+    """
     
     def __init__(self):
         super(TreeTracerPluginFormClass, self).__init__()
@@ -49,15 +60,14 @@ class TreeTracerPluginFormClass(PluginForm):
         time_before = time.time()
         
         Print ("[/] setting up widgets...")
-        global windowsFileIO,windowsNetworkIO,linuxFileIO,interactivemodeCallback
+        global windowsFileIO,windowsNetworkIO,linuxFileIO
         
         windowsFileIO = WindowsApiCallbacks.FileIO()
         windowsNetworkIO = WindowsApiCallbacks.NetworkIO()
         linuxFileIO = LinuxApiCallbacks.FileIO()
-        interactivemodeCallback = InteractivemodeCallbacks.InteractivemodeFunctions()
-        
+
         functionCallbacks = dict()
-        functionCallbacks = {'windowsFileIO':windowsFileIO ,'linuxFileIO':linuxFileIO ,'windowsNetworkIO':windowsNetworkIO ,'interactivemodeCallback':interactivemodeCallback}
+        functionCallbacks = {'windowsFileIO':windowsFileIO ,'linuxFileIO':linuxFileIO ,'windowsNetworkIO':windowsNetworkIO }
         
         layout = QtGui.QVBoxLayout()
         layout.addWidget(TraceGeneratorWidget(self,functionCallbacks))
@@ -82,6 +92,10 @@ class TreeTracerPluginFormClass(PluginForm):
         print("Plugin form closing.")
 
     def printBanner(self):
+        """
+        Prints the banner for the TREE Tracer plugin
+        """
+        
         banner = "#############################################\n" \
                + " ___________________________________________ \n" \
                + " \__    ___/\______   \_   _____/\_   _____/ \n" \
@@ -97,6 +111,10 @@ class TreeTracerPluginFormClass(PluginForm):
         print ("[+] Loading TREE Tracer version %s" % self.version)
 
     def Show(self):
+        """
+        Called when the plugin form is visible
+        """
+        
         if idc.GetInputMD5() == None:
             return
         else:
@@ -105,9 +123,12 @@ class TreeTracerPluginFormClass(PluginForm):
                 options=(PluginForm.FORM_CLOSE_LATER | PluginForm.FORM_RESTORE | PluginForm.FORM_SAVE))
 
 class tracer_plugin_t(idaapi.plugin_t):
+    """
+    TREE Tracer plugin
+    """
     flags = idaapi.PLUGIN_UNL
     comment = NAME
-    help = "This is help"
+    help = "TREE Tracer plugin, see manual for instructions"
     wanted_name = "TREE Tracer"
     wanted_hotkey = "Ctrl-F7"
 
@@ -124,11 +145,19 @@ class tracer_plugin_t(idaapi.plugin_t):
             return idaapi.PLUGIN_SKIP
 
     def run(self, arg):
+        """
+        Called when the plugin runs
+        """
+        
         Print("tracer_plugin_t run!")
         plg = TreeTracerPluginFormClass()
         plg.Show()
 
     def term(self):
+        """
+        Called when the plugsin terminates
+        """
+        
         Print("tracer_plugin_t uninstalled!")
 
 def PLUGIN_ENTRY():

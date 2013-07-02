@@ -1,3 +1,14 @@
+# TREE - Taint-enabled Reverse Engineering Environment 
+# Copyright (c) 2013 Battelle BIT Team - Nathan Li, Xing Li, Loc Nguyen
+#
+# All rights reserved.
+#
+# For detailed copyright information see the file license.txt in the IDA PRO plugins folder
+#---------------------------------------------------------------------
+# setup.py - installation setup script
+#---------------------------------------------------------------------
+
+    
 import shutil
 import os
 import sys

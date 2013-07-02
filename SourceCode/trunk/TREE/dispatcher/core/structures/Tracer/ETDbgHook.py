@@ -1,10 +1,11 @@
-#!/usr/bin/env python
-#---------------------------------------------------------------------
-# IDA debug based Execution Trace(ET) callback routines
+# TREE - Taint-enabled Reverse Engineering Environment 
+# Copyright (c) 2013 Battelle BIT Team - Nathan Li, Xing Li, Loc Nguyen
 #
-# Version: 1 
-# Author: Nathan Li, Xing Li
-# Date: 1/10/2013
+# All rights reserved.
+#
+# For detailed copyright information see the file license.txt in the IDA PRO plugins folder
+#---------------------------------------------------------------------
+# ETDbgHook.py - IDA Pro debugger hook class, callbacks for all debugger functionalities
 #---------------------------------------------------------------------
 
 import logging
@@ -14,8 +15,8 @@ from idc import *
 from idaapi import *
 from idautils import *
 
-from Arch.x86.x86Decoder import x86Decoder
-from Arch.x86.x86Decoder import instDecode
+from Arch.x86.x86Decoder import x86Decoder, instDecode
+
 from dispatcher.core.structures.Analyzer.x86Decoder import WINDOWS, LINUX
 
 from dispatcher.core.Util import toHex
@@ -32,8 +33,10 @@ MEMORY=3
 isa_bits=32
         
 class ETDbgHook(DBG_Hooks):
-
-    def __init__(self,traceFile,treeTraceFile,logger,mode):
+    """
+    Execution Trace Debug hook 
+    """
+    def __init__(self,traceFile,treeTraceFile,logger):
         super(ETDbgHook, self ).__init__()
         self.logger = logger
 
@@ -52,7 +55,6 @@ class ETDbgHook(DBG_Hooks):
 
         self.treeIDBFile = treeTraceFile
         self.startTracing = False
-        self.interactiveMode = mode
 
     def dbg_process_start(self, pid, tid, ea, name, base, size):
         
@@ -80,12 +82,8 @@ class ETDbgHook(DBG_Hooks):
     def dbg_library_load(self, pid, tid, ea, name, base, size):
         self.logger.info( "Library loaded: pid=%d tid=%d name=%s base=%x" % (pid, tid, name, base) )
         self.memoryWriter.writeToFile("L %s %x %x\n" % (name, base,size))
-        if self.interactiveMode:
-            print("dbg_library_load: %d using interactive mode" % (tid))
-            self.checkInput = None
-        else:
-            print("dbg_library_load: %d not using interactive mode." % (tid))
-            self.checkInput(name,base,self.bCheckFileIO,self.bCheckNetworkIO)
+
+        self.checkInput(name,base,self.bCheckFileIO,self.bCheckNetworkIO)
                                   
     def dbg_trace(self, tid, ip):
         instruction = GetDisasm(ip)
@@ -113,7 +111,10 @@ class ETDbgHook(DBG_Hooks):
             self.dbg_step_into()
             idaapi.request_step_into()
             idaapi.run_requests()
-
+        else:
+            self.logger.info("suspend process called but not to start tracing")
+            Print ( "suspend process called but not to start tracing" )
+                   
     def dbg_exception(self, pid, tid, ea, exc_code, exc_can_cont, exc_ea, exc_info):
         self.logger.info("Exception: pid=%d tid=%d ea=0x%x exc_code=0x%x can_continue=%d exc_ea=0x%x exc_info=%s" % (
             pid, tid, ea, exc_code & idaapi.BADADDR, exc_can_cont, exc_ea, exc_info))  
@@ -132,27 +133,7 @@ class ETDbgHook(DBG_Hooks):
         global instSeq
         
         eip = GetRegValue("EIP")
-        #threaId = GetCurrentThreadId()
-        #self.logger.debug("StepInto: 0x%x, ThreadId: %d" % (eip,threaId))
 
-        """
-        #There is a bug somewhere in IDA when we are stepping into code but IDA may not interpert the current instruction as code.
-        #This ususally cause inslen to return 0, so we will force the current eip to point to code to avoid this problem.
-        #Maybe there is a more elegant way to do this in the future
-        if not isCode(GetFlags(eip)):
-            DecodeInstruction(eip)
-            self.logger.error("0x%x %d     --BAD" % (eip,cmd.size) )
-            MakeCode(eip)
-            self.logger.error("0x%x %s     --GOOD" % (eip,GetDisasm(eip)) )
-        """
-        """
-        if self.bDbg:
-            #self.logger.debug("eip=0x%x size=%d" % (cmd.ea,cmd.size))
-            if not isCode(GetFlags(eip)):
-                MakeCode(eip)
-            self.logger.debug("%s" % GetDisasm(eip))
-        """
-        
         DecodeInstruction(eip)
         
         inslen = cmd.size
@@ -367,42 +348,8 @@ class ETDbgHook(DBG_Hooks):
         #update the instruction sequence counter
         instSeq = instSeq+1
         
-      #  self.removeBreakpoints()
-        """
-        eip = GetRegValue("EIP")
-        DelBpt(eip)
-        """
         self.startTracing = True
         PauseProcess()
-        
-    def startTrace(self):
-        self.startTracing = True
-        PauseProcess()
-
-    def stopTrace(self):
-        #self.dbg_step_into()
-       # idaapi.request_step_into()
-        self.startTracing = False
-        idaapi.request_detach_process()
-        idaapi.run_requests()
-        
-    def removeBreakpoints(self):
-
-    #    print "%d breakpoints found." % idc.GetBptQty()
-        
-        while(True):
-            numOfBpt = idc.GetBptQty()
-            
-            if numOfBpt==0:
-                break
-            
-            for i in range(numOfBpt):
-                
-                bptAddr = idc.GetBptEA(i)
-               # print "i is %d 0x%x" % (i,bptAddr)
-                
-                if idc.DelBpt(bptAddr):
-                    print( "Breakpoint %d at 0x%x removed." % (i,bptAddr) )
                     
     def takeSnapshot(self,data):
         
