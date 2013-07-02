@@ -237,7 +237,7 @@ class IDATrace():
 
         if os_type == "macosx":
             Print( "Setting MacOsxApiCallbacks" )
-            checkInput = InputMonitor.checkMacLibs
+            EThook.checkInput  = InputMonitor.checkMacLibs
 
         elif os_type == "windows":
             Print( "Setting WindowsApiCallbacks" )
@@ -255,25 +255,26 @@ class IDATrace():
             if networkFilter is not None:
                 Print( "Setting network filters for windows" )
                 filters['network'] = networkFilter
-                self.EThook.bCheckNetworkIO = True
+                EThook.bCheckNetworkIO = True
                 self.windowsNetworkIO.SetDebuggerInstance(EThook)
                 self.windowsNetworkIO.SetFilters(filters)
                 self.windowsNetworkIO.SetLoggerInstance(self.logger)
 
         elif os_type == "linux":
             Print( "Setting LinuxsApiCallbacks" )
-            self.EThook.checkInput =  InputMonitor.checkLinuxLibs
+            
+            EThook.checkInput =  InputMonitor.checkLinuxLibs
             
             if fileFilter is not None:
                 filters['file'] = fileFilter
-                self.EThook.bCheckFileIO = True
+                EThook.bCheckFileIO = True
                 self.linuxFileIO.SetDebuggerInstance(EThook)
                 self.linuxFileIO.SetFilters(filters)
                 self.linuxFileIO.SetLoggerInstance(self.logger)
             
             if networkFilter is not None:
                 filters['network'] = networkFilter
-                self.EThook.bCheckNetworkIO = True
+                EThook.bCheckNetworkIO = True
                 self.linuxNetworkIO.SetDebuggerInstance(EThook)
                 self.linuxNetworkIO.SetFilters(filters)
                 self.linuxNetworkIO.SetLoggerInstance(self.logger)

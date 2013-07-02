@@ -153,7 +153,7 @@ class ETDbgHook(DBG_Hooks):
             idaapi.run_requests()
         else:
             self.logger.info("suspend process called but not to start tracing")
-            Print ( "suspend process called but not to start tracing" )
+
                    
     def dbg_exception(self, pid, tid, ea, exc_code, exc_can_cont, exc_ea, exc_info):
         """
