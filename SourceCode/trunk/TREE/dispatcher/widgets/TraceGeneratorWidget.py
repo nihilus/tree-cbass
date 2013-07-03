@@ -182,7 +182,6 @@ class TraceGeneratorWidget(QMainWindow):
         
         self.interactive_cb = QtGui.QCheckBox(self.gridLayoutWidget_3)
         self.interactive_cb.setObjectName("interactive_cb")
-        self.interactive_cb.setDisabled(1)
 
         self.interactive_cb.stateChanged.connect(self.interactive_cbStateChanged)
         self.interactiveModeLayout.addWidget(self.interactive_cb)

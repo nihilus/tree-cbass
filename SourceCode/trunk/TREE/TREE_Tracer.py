@@ -69,7 +69,7 @@ class TreeTracerPluginFormClass(PluginForm):
         linuxFileIO = LinuxApiCallbacks.FileIO()
         interactivemodeCallback = InteractivemodeCallbacks.InteractivemodeFunctions()
         functionCallbacks = dict()
-        functionCallbacks = {'windowsFileIO':windowsFileIO ,'linuxFileIO':linuxFileIO ,'windowsNetworkIO':windowsNetworkIO }
+        functionCallbacks = {'windowsFileIO':windowsFileIO ,'linuxFileIO':linuxFileIO ,'windowsNetworkIO':windowsNetworkIO , 'interactivemodeCallback':interactivemodeCallback}
         
         layout = QtGui.QVBoxLayout()
         layout.addWidget(TraceGeneratorWidget(self,functionCallbacks))
