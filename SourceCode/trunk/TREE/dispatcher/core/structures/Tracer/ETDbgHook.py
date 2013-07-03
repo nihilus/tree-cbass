@@ -37,7 +37,7 @@ class ETDbgHook(DBG_Hooks):
     Execution Trace Debugger hook
     This class receives notifications from the actually IDA Pro debugger
     """
-    def __init__(self,traceFile,treeTraceFile,logger):
+    def __init__(self,traceFile,treeTraceFile,logger,mode):
         super(ETDbgHook, self ).__init__()
         self.logger = logger
 
@@ -56,6 +56,7 @@ class ETDbgHook(DBG_Hooks):
 
         self.treeIDBFile = treeTraceFile
         self.startTracing = False
+        self.interactiveMode = mode
 
     def dbg_process_start(self, pid, tid, ea, name, base, size):
         """
@@ -106,8 +107,12 @@ class ETDbgHook(DBG_Hooks):
         """
         self.logger.info( "Library loaded: pid=%d tid=%d name=%s base=%x" % (pid, tid, name, base) )
         self.memoryWriter.writeToFile("L %s %x %x\n" % (name, base,size))
-
-        self.checkInput(name,base,self.bCheckFileIO,self.bCheckNetworkIO)
+        if self.interactiveMode:
+            print("dbg_library_load: %d using interactive mode" % (tid))
+            self.checkInput = None
+        else:
+            print("dbg_library_load: %d not using interactive mode." % (tid))
+            self.checkInput(name,base,self.bCheckFileIO,self.bCheckNetworkIO)
                                   
     def dbg_trace(self, tid, ip):
         """

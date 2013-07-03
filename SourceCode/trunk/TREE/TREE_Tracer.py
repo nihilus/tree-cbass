@@ -28,9 +28,11 @@ NAME = "TREE Tracer"
 
 from dispatcher.core.structures.Tracer.Arch.x86.Windows import WindowsApiCallbacks as WindowsApiCallbacks
 from dispatcher.core.structures.Tracer.Arch.x86.Linux import LinuxApiCallbacks as LinuxApiCallbacks
+from dispatcher.core.structures.Tracer import InteractivemodeCallbacks as InteractivemodeCallbacks
 
 windowsFileIO = None
 linuxFileIO = None
+interactivemodeCallback = None
 
 #Need to have this first, evaluate everything with Python not IDC
 idaapi.enable_extlang_python(True)
@@ -65,7 +67,7 @@ class TreeTracerPluginFormClass(PluginForm):
         windowsFileIO = WindowsApiCallbacks.FileIO()
         windowsNetworkIO = WindowsApiCallbacks.NetworkIO()
         linuxFileIO = LinuxApiCallbacks.FileIO()
-
+        interactivemodeCallback = InteractivemodeCallbacks.InteractivemodeFunctions()
         functionCallbacks = dict()
         functionCallbacks = {'windowsFileIO':windowsFileIO ,'linuxFileIO':linuxFileIO ,'windowsNetworkIO':windowsNetworkIO }
         

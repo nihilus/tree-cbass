@@ -264,12 +264,12 @@ class TraceGeneratorWidget(QMainWindow):
         Create the toolbar
         """
         self._createGenerateTraceAction()
-  
+        self._createProcessAttachAction()
         self._createSaveConfigAction() 
         self.toolbar = self.addToolBar('Trace Generation Toolbar')
         self.toolbar.addAction(self.saveConfigAction)
         self.toolbar.addAction(self.generateTraceAction)
-
+        self.toolbar.addAction(self.processAttachAction)
     def _createGenerateTraceAction(self):
         """
         Create that action that performs the trace
