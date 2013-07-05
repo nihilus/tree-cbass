@@ -222,6 +222,7 @@ class AnalyzerWidget(QtGui.QMainWindow):
                             self.insert_node_br(nodedata, depth)
                     else:
                         self.in_taint_chain.append(self.extract_uuid(line))
+                self.t_graph.reverse(copy=False)
             else:
                 for line in taint_in:
                     self.insert_node(line.rstrip('\n'))
@@ -481,6 +482,8 @@ class AnalyzerWidget(QtGui.QMainWindow):
         self.extendTaints()
         self.parent.setTabFocus("Visualizer")
         self.parent.passTaintGraph(self.t_graph, "Visualizer", self.radioGroup2.checkedButton().text())
+        if (self.radioGroup2.checkedButton().text() == "TAINT_BRANCH"):
+            self.parent.passBranchData(self.in_taint_chain, "Visualizer")
             
     def populateTraceTables(self):
         """
@@ -614,7 +617,6 @@ class AnalyzerWidget(QtGui.QMainWindow):
         """
         Populate the VM table with information about the virtual machines
         """
-        #If no config then connect to virtualbox in config
         self.images_table.setSortingEnabled(False)
         self.images_header_labels = ["Name", "Address", "Size"]
         self.images_table.clear()
@@ -629,7 +631,6 @@ class AnalyzerWidget(QtGui.QMainWindow):
         """
         Populate the VM table with information about the virtual machines
         """
-        #If no config then connect to virtualbox in config
         self.sources_table.setSortingEnabled(False)
         self.sources_header_labels = ["Input Address", "Size", "Input Bytes"]
         self.sources_table.clear()

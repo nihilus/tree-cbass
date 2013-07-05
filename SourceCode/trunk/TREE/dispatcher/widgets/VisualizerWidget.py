@@ -198,7 +198,7 @@ class VisualizerWidget(QtGui.QMainWindow):
           self.taintGraph.Close()
           
         if self.policy == "TAINT_BRANCH":
-            self.taintGraph = BCTaintGraph(self.t_graph)
+            self.taintGraph = BCTaintGraph(self.t_graph, self.in_taint_chain)
         else:
             self.taintGraph = TaintGraph(self.t_graph)
         self.taintGraph.Show()
@@ -238,6 +238,12 @@ class VisualizerWidget(QtGui.QMainWindow):
         self.policy = p
         self.populateTaintTable()
         self.populateTaintsTableImported()
+        
+    def setBranchData(self, t):
+        """
+        Method to set extra branch information
+        """
+        self.in_taint_chain = t
         
     def populateTaintsTableImported(self):
         """

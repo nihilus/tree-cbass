@@ -12,15 +12,11 @@ except:
 ##################################################################
 #Pass in NetworkX Graph
 class BCTaintGraph(GraphViewer):
-  def __init__(self, graph):
+  def __init__(self, graph, t):
     GraphViewer.__init__(self, "Taint Graph")
     self.graph = graph
     self.selectedNode = None
-    
-  def __init__(self, graph):
-    GraphViewer.__init__(self, "Taint Graph")
-    self.graph = graph
-    self.selectedNode = None
+    self.in_taint_chain = t
   
   def OnRefresh(self):
     '''
@@ -41,6 +37,13 @@ class BCTaintGraph(GraphViewer):
             self.AddEdge(idNode[x],idNode[y])
         except:
             continue
+    in_chain_count = 0
+    for x in xrange(len(self.in_taint_chain)):
+        try:
+            self.AddEdge(idNode[str(self.in_taint_chain[x])],idNode[str(self.in_taint_chain[x+1])])
+        except:
+            continue
+        in_chain_count = in_chain_count + 1
     # Generate a reverse dictionary { node_id: node_ea}
     self.AddrNode = dict()
     for ea,id in idNode.iteritems():
