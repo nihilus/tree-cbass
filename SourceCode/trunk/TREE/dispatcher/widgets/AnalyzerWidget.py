@@ -207,14 +207,21 @@ class AnalyzerWidget(QtGui.QMainWindow):
             if self.radioGroup2.checkedButton().text() == "TAINT_BRANCH":
                 self.cur_depth = 0
                 self.cur_taint_node = None
+                input_flag = False
+                self.in_taint_chain = []
                 for line in taint_in:
                     line = line.rstrip('\n')
-                    depth = re.match('\t*', line).group(0).count('\t')
-                    if (depth == 0):
-                        self.insert_node_br(line, 0)
+                    if line.startswith("Path"):
+                        input_flag = True
+                    if input_flag:
+                        depth = re.match('\t*', line).group(0).count('\t')
+                        if (depth == 0):
+                            self.insert_node_br(line, 0)
+                        else:
+                            nodedata = line[depth:]
+                            self.insert_node_br(nodedata, depth)
                     else:
-                        nodedata = line[depth:]
-                        self.insert_node_br(nodedata, depth)
+                        self.in_taint_chain.append(self.extract_uuid(line))
             else:
                 for line in taint_in:
                     self.insert_node(line.rstrip('\n'))
@@ -359,28 +366,31 @@ class AnalyzerWidget(QtGui.QMainWindow):
         TR = None # Trace Reader
         TM = None # Taint Marker
         TC = None #Taint Checker
-
+        taintPolicy = TAINT_DATA
         #Need to get the setting from GUI, default taint policy is TAINT_DATA:
-        #taintPolicy = CIDTaintProp.TAINT_BRANCH # Used to test condOV;     
-        taintPolicy = getattr(TaintTracker, self.radioGroup2.checkedButton().text(), "TAINT_DATA")
+        #taintPolicy = CIDTaintProp.TAINT_BRANCH # Used to test condOV; 
         #taint graph name begins with A(ddress), B(ranch), C(Counter) or D(ata) depending on policy
         #without extension
         idb_filename = os.path.basename(self.trace_fname).split(".")[0]+".txt"
-        fTaint = "TaintGraph_"+idb_filename
-        print ("Taint file name = %s") %(fTaint)
-        if (taintPolicy == TAINT_BRANCH):
-            fTaint = "BTaintGraph_"+idb_filename
-        elif (taintPolicy == TAINT_DATA):
+        fTaint = "TaintGraph_"+idb_filename        
+        if(self.radioGroup2.checkedButton().text() == "TAINT_DATA"):
+            taintPolicy = TAINT_DATA
             fTaint = "DTaintGraph_"+idb_filename
-        elif (taintPolicy == TAINT_COUNTER):
+        elif(self.radioGroup2.checkedButton().text() == "TAINT_BRANCH"):
+            taintPolicy = TAINT_BRANCH
+            fTaint = "BTaintGraph_"+idb_filename
+        elif(self.radioGroup2.checkedButton().text() == "TAINT_COUNTER"):
+            taintPolicy = TAINT_COUNTER
             fTaint = "CTaintGraph_"+idb_filename
-        elif (taintPolicy == TAINT_ADDRESS):
+        elif(self.radioGroup2.checkedButton().text() == "TAINT_ADDRESS"):
+            taintPolicy = TAINT_ADDRESS
             fTaint = "ATaintGraph_"+idb_filename
+        print ("Taint file name = %s") %(fTaint)
         out_fd = open(fTaint, 'w')
         
         print("Taint policy=%s") %(taintPolicy)
-        #TP = TaintTracker(hostOS, processBits, targetBits, out_fd,taintPolicy, IDA)
-        TP = TaintTracker(hostOS, processBits, targetBits, out_fd,TAINT_BRANCH, IDA)
+        TP = TaintTracker(hostOS, processBits, targetBits, out_fd,taintPolicy, IDA)
+        #TP = TaintTracker(hostOS, processBits, targetBits, out_fd,TAINT_BRANCH, IDA)
         if (self.trace_data is not None):
             TR = IDBTraceReader(str(self.trace_data))
         else:

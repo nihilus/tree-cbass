@@ -76,7 +76,6 @@ class TaintGraph(GraphViewer):
     if not a.nodeattr:
         return (str(label), 0x0000ff) #Was Green 0x7fff00, Change to red 0x0000ff to display the sink (XL)
     if a.child_c is None and a.child_d is None:
-        print "[debug] sink: %s" % uuid
         return (str(label), 0x7fff00) #Was Red 0x0000ff, Change to Grace 0x7fff00 to display the source (XL)
     #reg
     elif a.typ == 'reg':
@@ -87,7 +86,6 @@ class TaintGraph(GraphViewer):
         return (str(label), 0xffffff) #white
   
   def OnSelect(self, node_id):
-    print "[debug] %sd selected" % self.AddrNode[node_id]
     self.selectedNode = node_id
     return True
     
