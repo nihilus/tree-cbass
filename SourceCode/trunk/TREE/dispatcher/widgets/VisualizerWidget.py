@@ -361,10 +361,12 @@ class VisualizerWidget(QtGui.QMainWindow):
         else:
             for child in self.taint_table.item(x,y).text().split(" "):
                 #Search for child's row in taint_table
-                row = self.tableSearch(self.taint_table, child)
-                self.highlightRow(self.taint_table, row, self.QtCore.Qt.red)
-                self.highlightTaintChildren(row, y, depth+1)
-                return
+                #Check if val is valid string
+                if child:
+                    row = self.tableSearch(self.taint_table, child)
+                    self.highlightRow(self.taint_table, row, self.QtCore.Qt.red)
+                    self.highlightTaintChildren(row, y, depth+1)
+            return
         return
             
     def tableSearch(self, table, val):
