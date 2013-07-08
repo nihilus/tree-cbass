@@ -182,7 +182,7 @@ class TaintTracker(object):
             self.TaintPropogateUnary(instInfo, instRec)
         elif (instInfo.inst_category in self.taint_category_2To1):
             if (self.taint_policy == TAINT_BRANCH):
-                print "Handle Taint_Path_condition"
+                #print "Handle Taint_Path_condition"
                 self.TaintPropogatePathCondition(instInfo, instRec)            
             else:                
                 self.TaintPropogateBinary(instInfo, instRec)
@@ -192,7 +192,7 @@ class TaintTracker(object):
             self.TaintPropogateRet(instInfo, instRec)
         elif (instInfo.inst_category in self.taint_category_branch):
             if (self.taint_policy == TAINT_BRANCH):
-                print "Handle Taint_Branch"
+                #print "Handle Taint_Branch"
                 self.TaintPropogateBranch(instInfo, instRec)
         elif (instInfo.inst_category in self.taint_category_logic):
             self.TaintPropogateLogic(instInfo, instRec)

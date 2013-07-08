@@ -333,7 +333,6 @@ class AnalyzerWidget(QtGui.QMainWindow):
         from ..core.structures.Analyzer.TaintChecker import TaintChecker
 
         self.trace_fname = idc.GetInputFile()
-        print ("IDB file name = %s") %(self.trace_fname)
         log = logging.getLogger('CIDATA')
         
         if self.verbose_trace_cb.isChecked():
@@ -369,9 +368,7 @@ class AnalyzerWidget(QtGui.QMainWindow):
         TC = None #Taint Checker
         taintPolicy = TAINT_DATA
         #Need to get the setting from GUI, default taint policy is TAINT_DATA:
-        #taintPolicy = CIDTaintProp.TAINT_BRANCH # Used to test condOV; 
         #taint graph name begins with A(ddress), B(ranch), C(Counter) or D(ata) depending on policy
-        #without extension
         idb_filename = os.path.basename(self.trace_fname).split(".")[0]+".txt"
         fTaint = "TaintGraph_"+idb_filename        
         if(self.radioGroup2.checkedButton().text() == "TAINT_DATA"):
@@ -386,12 +383,9 @@ class AnalyzerWidget(QtGui.QMainWindow):
         elif(self.radioGroup2.checkedButton().text() == "TAINT_ADDRESS"):
             taintPolicy = TAINT_ADDRESS
             fTaint = "ATaintGraph_"+idb_filename
-        print ("Taint file name = %s") %(fTaint)
         out_fd = open(fTaint, 'w')
         
-        print("Taint policy=%s") %(taintPolicy)
         TP = TaintTracker(hostOS, processBits, targetBits, out_fd,taintPolicy, IDA)
-        #TP = TaintTracker(hostOS, processBits, targetBits, out_fd,TAINT_BRANCH, IDA)
         if (self.trace_data is not None):
             TR = IDBTraceReader(str(self.trace_data))
         else:
