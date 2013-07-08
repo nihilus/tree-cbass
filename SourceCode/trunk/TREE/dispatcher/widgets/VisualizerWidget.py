@@ -258,7 +258,7 @@ class VisualizerWidget(QtGui.QMainWindow):
                 for column, column_name in enumerate(self.taints_header_labels):
                     tmp_item = None
                     if column == 0:
-                        tmp_item = self.QtGui.QTableWidgetItem(ynode[1]['inode'].uuid)
+                        tmp_item = NumTableWidgetItem(ynode[1]['inode'].uuid)
                     elif column == 1:
                         typ = ''
                         if ynode[1]['inode'].typ == "in":
@@ -267,6 +267,8 @@ class VisualizerWidget(QtGui.QMainWindow):
                             typ = "memory"
                         elif ynode[1]['inode'].typ == "reg":
                             typ = "register"
+                        elif ynode[1]['inode'].typ == "bc":
+                            typ = "branch"
                         tmp_item = self.QtGui.QTableWidgetItem(typ)
                     elif column == 2:
                         tmp_item = self.QtGui.QTableWidgetItem(ynode[1]['inode'].name)
@@ -330,8 +332,8 @@ class VisualizerWidget(QtGui.QMainWindow):
                 self.taint_table.resizeRowToContents(row)
             self.taint_table.setSelectionMode(self.QtGui.QAbstractItemView.SingleSelection)
             self.taint_table.resizeColumnsToContents()
-            self.taint_table.horizontalHeader().setResizeMode(self.QtGui.QHeaderView.Stretch)
-            self.taint_table.setSortingEnabled(True)
+        self.taint_table.horizontalHeader().setResizeMode(self.QtGui.QHeaderView.Stretch)
+        self.taint_table.setSortingEnabled(True)
             
     def handleTaintMenu(self, pos):
         menu = self.QtGui.QMenu()
