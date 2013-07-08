@@ -30,6 +30,7 @@ class AnalyzerWidget(QtGui.QMainWindow):
         self._defineAnalyzeTypes()
         self._definePropEnum()
         self.t_graph = nx.MultiDiGraph()
+        self.in_taint_chain = []
         self.ExTraces = idaapi.netnode("$ ExTraces", 0, False) #Get the execution trace id
         self.trace_data = self.ExTraces.getblob(0, 'A') #Get the execution trace data, use str(data) to convert to data to a str
         self._createGui()
@@ -208,7 +209,6 @@ class AnalyzerWidget(QtGui.QMainWindow):
                 self.cur_depth = 0
                 self.cur_taint_node = None
                 input_flag = False
-                self.in_taint_chain = []
                 for line in taint_in:
                     line = line.rstrip('\n')
                     if line.startswith("Path"):
@@ -483,7 +483,10 @@ class AnalyzerWidget(QtGui.QMainWindow):
         self.parent.setTabFocus("Visualizer")
         self.parent.passTaintGraph(self.t_graph, "Visualizer", self.radioGroup2.checkedButton().text())
         if (self.radioGroup2.checkedButton().text() == "TAINT_BRANCH"):
-            self.parent.passBranchData(self.in_taint_chain, "Visualizer")
+            if not self.in_taint_chain:
+                self.parent.passBranchData(None, "Visualizer")
+            else:
+                self.parent.passBranchData(self.in_taint_chain, "Visualizer")
             
     def populateTraceTables(self):
         """
