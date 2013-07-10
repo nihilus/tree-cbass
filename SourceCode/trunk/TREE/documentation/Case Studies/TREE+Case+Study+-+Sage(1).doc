@@ -1,10 +1,10 @@
-Message-ID: <442090739.4241.1373336802984.JavaMail.tomcat@lxv-confluence.c1.s1.gss>
+Message-ID: <917420807.4664.1373418935752.JavaMail.tomcat@lxv-confluence.c1.s1.gss>
 Subject: Exported From Confluence
 MIME-Version: 1.0
 Content-Type: multipart/related; 
-	boundary="----=_Part_4240_1954444693.1373336802984"
+	boundary="----=_Part_4663_1553392998.1373418935751"
 
-------=_Part_4240_1954444693.1373336802984
+------=_Part_4663_1553392998.1373418935751
 Content-Type: text/html; charset=UTF-8
 Content-Transfer-Encoding: quoted-printable
 Content-Location: file:///C:/exported.html
@@ -66,8 +66,8 @@ acing=3D"0" width=3D"100%"><tbody><tr><td valign=3D"top" width=3D"50%"><div=
 <h1 id=3D"TREECaseStudy-Sage-Sage">Sage</h1><p>Application Mode: User Mode<=
 br />Target: Windows</p><p>Sample ran on:<br />Windows 7 32-bit for IDA 6.4=
  environment</p>
-</div></div></td><td valign=3D"top" width=3D"50%"><div class=3D"panel" styl=
-e=3D"border-width: 1px;"><div class=3D"panelContent">
+</div></div><div class=3D"panel" style=3D"border-width: 1px;"><div class=3D=
+"panelContent">
 <h1 id=3D"TREECaseStudy-Sage-Description">Description</h1><p><sup>Sage exam=
 ple. Branch Condition propagation for input file.<br /></sup></p><p>=C2=A0<=
 /p><div class=3D"code panel pdl" style=3D"border-width: 1px;"><div class=3D=
@@ -113,52 +113,58 @@ int main(int argc, char** argv)
 
 </pre>
 </div></div>
-</div></div></td></tr></tbody></table><table class=3D"sectionMacro" border=
-=3D"0" cellpadding=3D"5" cellspacing=3D"0" width=3D"100%"><tbody><tr><td va=
-lign=3D"top" width=3D"50%"><div class=3D"panel" style=3D"border-width: 1px;=
-"><div class=3D"panelContent">
+</div></div></td><p>=C2=A0</p><p>=C2=A0</p></tr></tbody></table><table clas=
+s=3D"sectionMacro" border=3D"0" cellpadding=3D"5" cellspacing=3D"0" width=
+=3D"100%"><tbody><tr><td valign=3D"top" width=3D"50%"><div class=3D"panel" =
+style=3D"border-width: 1px;"><div class=3D"panelContent">
 <h1 id=3D"TREECaseStudy-Sage-ConfiguringtheTracer">Configuring the Tracer</=
 h1><p>Indicate mytaint.txt file content</p>
-</div></div></td><td valign=3D"top" width=3D"50%"><div class=3D"panel" styl=
-e=3D"border-width: 1px;"><div class=3D"panelContent">
+</div></div><div class=3D"panel" style=3D"border-width: 1px;"><div class=3D=
+"panelContent">
 <h1 id=3D"TREECaseStudy-Sage-ConfiguringtheTracer.1">Configuring the Tracer=
 </h1><p><img class=3D"confluence-embedded-image confluence-content-image-bo=
 rder" width=3D"500" src=3D"attach_ef1d395e3aca9796a386a51a0a87b4ba" data-im=
 age-src=3D"attach_ef1d395e3aca9796a386a51a0a87b4ba"></p><p>Application: Sag=
 e.exe<br />Path: ...\Sage.exe</p><p>Filters: mytaint.txt</p>
-</div></div></td></tr></tbody></table><table class=3D"sectionMacro" border=
-=3D"0" cellpadding=3D"5" cellspacing=3D"0" width=3D"100%"><tbody><tr><td va=
-lign=3D"top" width=3D"50%"><div class=3D"panel" style=3D"border-width: 1px;=
-"><div class=3D"panelContent">
+</div></div></td><p>=C2=A0</p><p>=C2=A0</p></tr></tbody></table><table clas=
+s=3D"sectionMacro" border=3D"0" cellpadding=3D"5" cellspacing=3D"0" width=
+=3D"100%"><tbody><tr><td valign=3D"top" width=3D"50%"><div class=3D"panel" =
+style=3D"border-width: 1px;"><div class=3D"panelContent">
 <h1 id=3D"TREECaseStudy-Sage-TaintPropagationPolicy-TaintBranch">Taint Prop=
 agation Policy - Taint Branch</h1><p><img class=3D"confluence-embedded-imag=
 e confluence-content-image-border" height=3D"94" width=3D"500" src=3D"attac=
 h_4f3696d65e36c63e6bbd449edecb8bbb" data-image-src=3D"attach_4f3696d65e36c6=
-3e6bbd449edecb8bbb"></p>
-</div></div></td><td valign=3D"top" width=3D"50%"><div class=3D"panel" styl=
-e=3D"border-width: 1px;"><div class=3D"panelContent">
+3e6bbd449edecb8bbb"></p><p>TAINT_BRANCH for the propagation type, with x86 =
+selected as the instruction set architecture.</p>
+</div></div><div class=3D"panel" style=3D"border-width: 1px;"><div class=3D=
+"panelContent">
 <h1 id=3D"TREECaseStudy-Sage-TaintBranch">Taint Branch</h1><p><img class=3D=
 "confluence-embedded-image confluence-content-image-border" width=3D"500" s=
 rc=3D"attach_26d2d88ccd25d0852afc8493280164aa" data-image-src=3D"attach_26d=
-2d88ccd25d0852afc8493280164aa"></p>
-</div></div></td></tr></tbody></table><table class=3D"sectionMacro" border=
-=3D"0" cellpadding=3D"5" cellspacing=3D"0" width=3D"100%"><tbody><tr><td va=
-lign=3D"top" width=3D"50%"><div class=3D"panel" style=3D"border-width: 1px;=
-"><div class=3D"panelContent">
+2d88ccd25d0852afc8493280164aa"></p><p>Taint source table indicates the sour=
+ce inputs and byte values.</p>
+</div></div></td><p>=C2=A0</p><p>=C2=A0</p></tr></tbody></table><table clas=
+s=3D"sectionMacro" border=3D"0" cellpadding=3D"5" cellspacing=3D"0" width=
+=3D"100%"><tbody><tr><td valign=3D"top" width=3D"50%"><div class=3D"panel" =
+style=3D"border-width: 1px;"><div class=3D"panelContent">
 <h1 id=3D"TREECaseStudy-Sage-TaintTable">Taint Table</h1><p><img class=3D"c=
 onfluence-embedded-image confluence-content-image-border" width=3D"500" src=
 =3D"attach_2779d93a1d5272ebaa172b09f0ffb412" data-image-src=3D"attach_2779d=
 93a1d5272ebaa172b09f0ffb412"></p>
-</div></div></td><td valign=3D"top" width=3D"50%"><div class=3D"panel" styl=
-e=3D"border-width: 1px;"><div class=3D"panelContent">
+</div></div><div class=3D"panel" style=3D"border-width: 1px;"><div class=3D=
+"panelContent">
 <h1 id=3D"TREECaseStudy-Sage-TaintGraph">Taint Graph</h1><p><img class=3D"c=
 onfluence-embedded-image confluence-content-image-border" width=3D"500" src=
 =3D"attach_9de8e00f6490010e4ac274c0a2a6a74d" data-image-src=3D"attach_9de8e=
-00f6490010e4ac274c0a2a6a74d"></p>
-</div></div></td></tr></tbody></table><p>=C2=A0</p><p>=C2=A0</p>
+00f6490010e4ac274c0a2a6a74d"></p><p>(Note, node numbers may differ between =
+traces and may not necessarily fully reflect the example)</p><p>Green Nodes=
+ indicate input nodes</p><p>Red Nodes indicate the sink and branch nodes</p=
+>
+</div></div></td><p>=C2=A0</p><p>=C2=A0</p></tr></tbody></table><p>=C2=A0</=
+p><p>=C2=A0</p>
     </body>
 </html>
-------=_Part_4240_1954444693.1373336802984
+------=_Part_4663_1553392998.1373418935751
 Content-Type: image/png
 Content-Transfer-Encoding: base64
 Content-Location: file:///C:/attach_ef1d395e3aca9796a386a51a0a87b4ba
@@ -369,7 +375,7 @@ I0eOZLuEvMO5OHVmyvnIOTI1Zsr5MR4stpwkv/71r9XXl7UPbM14K1eu1OWXX57tMvIC5+LUy/fz
 kXNkauX7+TFeBAkAAGBbnlxHAgAA5CKCBAAAsI0gAQAAbCNIAAAA2wgSAADANoIEAACwjSABAABs
 I0gAAADbCBIAAMA2ggQAALCNIAEAAGwjSAAAANsIEgAAwDaCBAAAsI0gAQAAbCNIAAAA2wgSAADA
 NoIEAACwjSABAABsI0gAAADb/j8YOGim4/OyUwAAAABJRU5ErkJggg==
-------=_Part_4240_1954444693.1373336802984
+------=_Part_4663_1553392998.1373418935751
 Content-Type: image/png
 Content-Transfer-Encoding: base64
 Content-Location: file:///C:/attach_4f3696d65e36c63e6bbd449edecb8bbb
@@ -576,7 +582,7 @@ bgAAAAAASoDADQAAAABACRC4AQAAAAAoAQI3AAAAAAAlQOAGAAAAAKAEtg3cb32jTvN37n4VdQEA
 AJLm79zVW9+oK3iethkAgK/eXtpnw7Isa7uCE4mEbvxt7NlrCAAAtvXWN+pkmuaW19A2AwDw1dpL
 +7yjwA0AAAAAAHaHOdwAAAAAAJQAgRsAAAAAgBIgcAMAAAAAUAIEbgAAAAAASoDADQAAAABACRC4
 AQAAAAAoAQI3AAAAAAAl8P8BUeXAvOhO6JYAAAAASUVORK5CYII=
-------=_Part_4240_1954444693.1373336802984
+------=_Part_4663_1553392998.1373418935751
 Content-Type: image/png
 Content-Transfer-Encoding: base64
 Content-Location: file:///C:/attach_26d2d88ccd25d0852afc8493280164aa
@@ -789,7 +795,7 @@ mwcAAEMYmwEAsCO25Pv5q6W4mgYAACMwNgMAYA/TzgEAAAAAsIzkGwAAAAAAy0i+AQAAAACwjOQb
 AAAAAADLSL4BAAAAALCM5BsAAAAAAMtmnnyvfPMb2vvwo1lXCwAAIux9+JFWvvmNyOcZmwEAOH3D
 47NjjDGzbuSLL75Q53//31lXCwAARlj55jf0la98ZewyjM0AAJyu4fHZSvINAAAAAAAGuOYbAAAA
 AADLSL4BAAAAALDs/wOSzjiwSoXxhgAAAABJRU5ErkJggg==
-------=_Part_4240_1954444693.1373336802984
+------=_Part_4663_1553392998.1373418935751
 Content-Type: image/png
 Content-Transfer-Encoding: base64
 Content-Location: file:///C:/attach_2779d93a1d5272ebaa172b09f0ffb412
@@ -1360,7 +1366,7 @@ yzum4+aOK4v9knjfNjWdXDvcwgAvacdW/lDwumQ6xR8K/Gj7MV2ea2cxtQxdI/ff5t9bcZLFJfED
 FnyHwrFJ0fijrM3A57GMMUaS/vo7UvvPP3R/f3+VCXYAt/f29nadmE4iNZxX9XioJXBzV4vrUxD7
 wKf70pgG8OmIaaBaPiemY/lWX7VjOyQzSaRoGSj4goQ89i1NWobni6Cy/j/t41q2DOp0/AAAAABJ
 RU5ErkJggg==
-------=_Part_4240_1954444693.1373336802984
+------=_Part_4663_1553392998.1373418935751
 Content-Type: image/png
 Content-Transfer-Encoding: base64
 Content-Location: file:///C:/attach_9de8e00f6490010e4ac274c0a2a6a74d
@@ -1491,4 +1497,4 @@ sAUTXTZcLm0eADQRoTOGvAGRthwhA6BN6F4DABhD6AAAjKF7bQQ/XPf1kqTvL/f19MlFrQ4GpW/j
 uKTezIy63W7p6wYAW7wfrvuckDuG7y/3tb5ezZWgu92uXrN3tpJ1A4ANhA4AwBjGdAAAxhA6AABj
 uF01AMAYWjoAAGMIHQCAMYQOAMAYQgcAYAyhAwAwhtABABhD6AAAjCF0AADGEDoAAGMIHQCAMYQO
 AMAYQgcAYAyhAwAwhtABABjz/z1XYzWl0HQtAAAAAElFTkSuQmCC
-------=_Part_4240_1954444693.1373336802984--
+------=_Part_4663_1553392998.1373418935751--

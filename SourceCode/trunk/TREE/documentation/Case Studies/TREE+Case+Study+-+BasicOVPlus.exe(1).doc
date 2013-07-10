@@ -1,10 +1,10 @@
-Message-ID: <826610607.4239.1373335573197.JavaMail.tomcat@lxv-confluence.c1.s1.gss>
+Message-ID: <925523312.4662.1373418927443.JavaMail.tomcat@lxv-confluence.c1.s1.gss>
 Subject: Exported From Confluence
 MIME-Version: 1.0
 Content-Type: multipart/related; 
-	boundary="----=_Part_4238_1230390131.1373335573165"
+	boundary="----=_Part_4661_633298892.1373418927443"
 
-------=_Part_4238_1230390131.1373335573165
+------=_Part_4661_633298892.1373418927443
 Content-Type: text/html; charset=UTF-8
 Content-Transfer-Encoding: quoted-printable
 Content-Location: file:///C:/exported.html
@@ -67,8 +67,8 @@ acing=3D"0" width=3D"100%"><tbody><tr><td valign=3D"top" width=3D"50%"><div=
 lus</h1><p>Vulnerability Name: Basic Overflow Plus Example<br />Application=
  Mode: User Mode<br />Target: Windows</p><p>Sample ran on:<br />Windows 7 3=
 2-bit for IDA 6.4 environment</p>
-</div></div></td><td valign=3D"top" width=3D"50%"><div class=3D"panel" styl=
-e=3D"border-width: 1px;"><div class=3D"panelContent">
+</div></div><div class=3D"panel" style=3D"border-width: 1px;"><div class=3D=
+"panelContent">
 <h1 id=3D"TREECaseStudy-BasicOVPlus.exe-Description">Description</h1><p><su=
 p>Basic buffer overflow. The overflow occurs when the input file &quot;myta=
 int.txt&quot; has more than 8 bytes.</sup></p><p>=C2=A0</p><div class=3D"co=
@@ -137,52 +137,53 @@ cution System) \n               Hacking Demo &quot;,&quot;*** You Have Been=
 =09exit(-1);
 }</pre>
 </div></div>
-</div></div></td></tr></tbody></table><table class=3D"sectionMacro" border=
-=3D"0" cellpadding=3D"5" cellspacing=3D"0" width=3D"100%"><tbody><tr><td va=
-lign=3D"top" width=3D"50%"><div class=3D"panel" style=3D"border-width: 1px;=
-"><div class=3D"panelContent">
+</div></div></td><p>=C2=A0</p><p>=C2=A0</p></tr></tbody></table><table clas=
+s=3D"sectionMacro" border=3D"0" cellpadding=3D"5" cellspacing=3D"0" width=
+=3D"100%"><tbody><tr><td valign=3D"top" width=3D"50%"><div class=3D"panel" =
+style=3D"border-width: 1px;"><div class=3D"panelContent">
 <h1 id=3D"TREECaseStudy-BasicOVPlus.exe-ConfiguringtheTracer">Configuring t=
 he Tracer</h1><p>Indicate mytaint.txt file content for the overflow.</p>
-</div></div></td><td valign=3D"top" width=3D"50%"><div class=3D"panel" styl=
-e=3D"border-width: 1px;"><div class=3D"panelContent">
+</div></div><div class=3D"panel" style=3D"border-width: 1px;"><div class=3D=
+"panelContent">
 <h1 id=3D"TREECaseStudy-BasicOVPlus.exe-ConfiguringtheTracer.1">Configuring=
  the Tracer</h1><p><img class=3D"confluence-embedded-image" width=3D"500" s=
 rc=3D"attach_20f8fbb57be36a936f6cf89681f74dff" data-image-src=3D"attach_20f=
 8fbb57be36a936f6cf89681f74dff"></p><p>Application: basicovPlus.exe<br />Pat=
 h: ...\basicovPlus.exe</p><p>Filters: mytaint.txt</p>
-</div></div></td></tr></tbody></table><table class=3D"sectionMacro" border=
-=3D"0" cellpadding=3D"5" cellspacing=3D"0" width=3D"100%"><tbody><tr><td va=
-lign=3D"top" width=3D"50%"><div class=3D"panel" style=3D"border-width: 1px;=
-"><div class=3D"panelContent">
+</div></div></td><p>=C2=A0</p><p>=C2=A0</p></tr></tbody></table><table clas=
+s=3D"sectionMacro" border=3D"0" cellpadding=3D"5" cellspacing=3D"0" width=
+=3D"100%"><tbody><tr><td valign=3D"top" width=3D"50%"><div class=3D"panel" =
+style=3D"border-width: 1px;"><div class=3D"panelContent">
 <h1 id=3D"TREECaseStudy-BasicOVPlus.exe-TaintPropagationPolicy-TaintData">T=
 aint Propagation Policy - Taint Data</h1><p><img class=3D"confluence-embedd=
 ed-image confluence-content-image-border" width=3D"500" src=3D"attach_e1e10=
 ec9a4d945cc05de40cd9a2a5666" data-image-src=3D"attach_e1e10ec9a4d945cc05de4=
 0cd9a2a5666"></p>
-</div></div></td><td valign=3D"top" width=3D"50%"><div class=3D"panel" styl=
-e=3D"border-width: 1px;"><div class=3D"panelContent">
+</div></div><div class=3D"panel" style=3D"border-width: 1px;"><div class=3D=
+"panelContent">
 <h1 id=3D"TREECaseStudy-BasicOVPlus.exe-TaintData">Taint Data</h1><p><img c=
 lass=3D"confluence-embedded-image confluence-content-image-border" width=3D=
 "500" src=3D"attach_7f0e9015d8576f17a52ff2b0f7d7c622" data-image-src=3D"att=
 ach_7f0e9015d8576f17a52ff2b0f7d7c622"></p>
-</div></div></td></tr></tbody></table><table class=3D"sectionMacro" border=
-=3D"0" cellpadding=3D"5" cellspacing=3D"0" width=3D"100%"><tbody><tr><td va=
-lign=3D"top" width=3D"50%"><div class=3D"panel" style=3D"border-width: 1px;=
-"><div class=3D"panelContent">
+</div></div></td><p>=C2=A0</p><p>=C2=A0</p></tr></tbody></table><table clas=
+s=3D"sectionMacro" border=3D"0" cellpadding=3D"5" cellspacing=3D"0" width=
+=3D"100%"><tbody><tr><td valign=3D"top" width=3D"50%"><div class=3D"panel" =
+style=3D"border-width: 1px;"><div class=3D"panelContent">
 <h1 id=3D"TREECaseStudy-BasicOVPlus.exe-TaintTable">Taint Table</h1><p><img=
  class=3D"confluence-embedded-image confluence-content-image-border" width=
 =3D"500" src=3D"attach_4c94cbd7d3e8ab23fa42c99674530755" data-image-src=3D"=
 attach_4c94cbd7d3e8ab23fa42c99674530755"></p>
-</div></div></td><td valign=3D"top" width=3D"50%"><div class=3D"panel" styl=
-e=3D"border-width: 1px;"><div class=3D"panelContent">
+</div></div><div class=3D"panel" style=3D"border-width: 1px;"><div class=3D=
+"panelContent">
 <h1 id=3D"TREECaseStudy-BasicOVPlus.exe-TaintGraph">Taint Graph</h1><p><img=
  class=3D"confluence-embedded-image confluence-content-image-border" height=
 =3D"228" width=3D"500" src=3D"attach_5a954bd89eebc4104b4555c60a825a8a" data=
 -image-src=3D"attach_5a954bd89eebc4104b4555c60a825a8a"></p>
-</div></div></td></tr></tbody></table><p>=C2=A0</p><p>=C2=A0</p>
+</div></div></td><p>=C2=A0</p><p>=C2=A0</p></tr></tbody></table><p>=C2=A0</=
+p><p>=C2=A0</p>
     </body>
 </html>
-------=_Part_4238_1230390131.1373335573165
+------=_Part_4661_633298892.1373418927443
 Content-Type: image/png
 Content-Transfer-Encoding: base64
 Content-Location: file:///C:/attach_20f8fbb57be36a936f6cf89681f74dff
@@ -584,7 +585,7 @@ gAII9gAAAAAAUADBHgAAAAAACiDYAwAAAABAAQR7AAAAAAAogGAPAAAAAAAFEOwBAAAAAKAAgj0A
 AAAAABRAsAcAAAAAgAII9gAAAAAAUADBHgAAAAAACiDYAwAAAABAAQR7AAAAAAAogGAPAAAAAAAF
 EOwBAAAAAKAAgj0AAAAAABTgzGA/+/FHGXz59TTXAgAAAAAA197gy68z+/FHL32/b1VV9Zez3vn+
 ++9n77f//loLAwAAAACAd8nsxx/lm2++een7/X/6daC6BKT4dwAAAABJRU5ErkJggg==
-------=_Part_4238_1230390131.1373335573165
+------=_Part_4661_633298892.1373418927443
 Content-Type: image/png
 Content-Transfer-Encoding: base64
 Content-Location: file:///C:/attach_e1e10ec9a4d945cc05de40cd9a2a5666
@@ -801,7 +802,7 @@ IBijMwQdAAAAAIAJRgIOAAAAAEAASMABAAAAAAgACTgAAAAAAAEgAQcAAAAAIAAk4AAAAAAABMC3
 BHz2Xe/Q6osv+bU4AACwi9UXX9Lsu97hOZ2+GQCA4HXrny1jjPGros3NTa19/x/9WhwAAOhi9l3v
 0MzMTNd56JsBAAhWt/7Z1wQcAAAAAAB0xj3gAAAAAAAEgAQcAAAAAIAAkIADAAAAABAAEnAAAAAA
 AALw/wFvmUJdZO9dAQAAAABJRU5ErkJggg==
-------=_Part_4238_1230390131.1373335573165
+------=_Part_4661_633298892.1373418927443
 Content-Type: image/png
 Content-Transfer-Encoding: base64
 Content-Location: file:///C:/attach_7f0e9015d8576f17a52ff2b0f7d7c622
@@ -995,7 +996,7 @@ AAAAaAMEcwAAAKANGJZlWTtdVCqVtPKPa5oYPfJN1AkA0MDyrY90/NvD6urqqnmePhsA2kuz/XZT
 wbz6DQCAg9Woc6+gzwaA9tFsv910MAcAAACwf5hjDgAAALQBgjkAAADQBgjmAAAAQBsgmAMAAABt
 gGAOAAAAtAGCOQAAANAGCOYAAABAGyCYAwAAAG2AYA4AAAC0AYI5AAAA0AYI5gAAAEAbIJgDAAAA
 beD/A8eamrj+efxGAAAAAElFTkSuQmCC
-------=_Part_4238_1230390131.1373335573165
+------=_Part_4661_633298892.1373418927443
 Content-Type: image/png
 Content-Transfer-Encoding: base64
 Content-Location: file:///C:/attach_4c94cbd7d3e8ab23fa42c99674530755
@@ -1704,7 +1705,7 @@ AICdtyyQHv+bhEA6AAAAAAAAAGDnPXiQPmXosiC6JFnGGHPdAvz5r02Vf/fb624GAAAAAAAAAICN
 evr0qV6/fq1333137W1srEd653//b1ObAgAAAAAAAADgzthIj3QAAAAAAAAAAHZVelIYAAAAAAAA
 AABAIB0AAAAAAAAAgGUIpAMAAAAAAAAAsASBdAAAAAAAAAAAliCQDgAAAAAAAADAEv8B5wPLANPt
 NSEAAAAASUVORK5CYII=
-------=_Part_4238_1230390131.1373335573165
+------=_Part_4661_633298892.1373418927443
 Content-Type: image/png
 Content-Transfer-Encoding: base64
 Content-Location: file:///C:/attach_5a954bd89eebc4104b4555c60a825a8a
@@ -2135,4 +2136,4 @@ Z5IkSZIkKcQiSZIkSZJCLJIkSZIkKcQiSZIkSZJCLJIkSZIkKcQiSZIkSZJCLJIkSZIkKcQiSZIk
 SZJCLJIkSZIkKcQiSZIkSZJCLJIkSZIkKcQiSZIkSZJCLJIkSZIkKcQiSZIkSZJCLJIkSZIkKSSj
 NtURSJIkSVIn4pkkSZIkSQqxSJIkSZKkEIskSZIkSQqxSJIkSZKkkAycuUGSJEmS6v0/F28Zp1Dx
 erkAAAAASUVORK5CYII=
-------=_Part_4238_1230390131.1373335573165--
+------=_Part_4661_633298892.1373418927443--
