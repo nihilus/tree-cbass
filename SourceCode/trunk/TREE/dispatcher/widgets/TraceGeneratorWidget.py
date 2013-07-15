@@ -159,13 +159,13 @@ class TraceGeneratorWidget(QMainWindow):
         self.port_label_edit.setObjectName("port_label_edit")
         self.horizontalLayout_6.addWidget(self.port_label_edit)
         self.gridLayout_3.addLayout(self.horizontalLayout_6, 2, 0, 1, 1)
+        
         self.remote_cb = QtGui.QCheckBox(self.gridLayoutWidget_3)
         self.remote_cb.setObjectName("remote_cb")
         self.remote_cb.stateChanged.connect(self.remote_cbStateChanged)
         
         self.pin_cb = QtGui.QCheckBox(self.gridLayoutWidget_3)
         self.pin_cb.setObjectName("pin_cb")
-        self.pin_cb.setDisabled(1)
         self.pin_cb.stateChanged.connect(self.pin_cbStateChanged)
         
         #
@@ -555,4 +555,61 @@ class TraceGeneratorWidget(QMainWindow):
         else:
             self.hideStatus()
             self.filters_qb.setEnabled(1)
+            
+    def pinCommunication(self, host="127.0.0.1",port=23966,bRemote=False):
+        #
+        # Most of this is stub code, waiting on the pin agent implementation
+        #
+        import socket
+        import time
+        
+        HOST = host
+        PORT = port
+        ff = None
+        nf = None
+        
+        Print("Connecting to %s:%d" % (HOST,PORT))
+        
+        if self.processConfig.getFileFilter()!=None:
+            ff = ";".join(self.processConfig.getFileFilter())
+        if self.processConfig.getNetworkFilter()!=None:
+            nf = ";".join(self.processConfig.getNetworkFilter())
+        if(ff!=None and nf!=None):
+            packet = self.processConfig.getPath() + " " + self.processConfig.getArgs() + "!FF=" + ff + "!NF=" + nf
+        elif(ff!=None):
+            packet = self.processConfig.getPath() + " " + self.processConfig.getArgs() + "!FF=" + ff
+        elif(nf!=None):
+            packet = self.processConfig.getPath() + " " + self.processConfig.getArgs() + "!NF=" + nf
+        else:
+            packet = self.processConfig.getPath() + " " + self.processConfig.getArgs()
+        """
+        Todo: Integrate this in the future, requires a patch in idaapi.py
+        if bRemote==False:    
+            PID = self.idaTracer.getRunningProcesses("PinAgent.exe")
+            
+            if PID == -1:
+                Print("Starting PinAgent ...")
+                os.startfile('"C:/Program Files/IDA 6.4/plugins/dispatcher/core/structures/PinAgent/PinAgent.exe"')
+                #idc.Exec('"C:/Program Files/IDA 6.4/plugins/dispatcher/core/structures/PinAgent/PinAgent.exe"')
+            
+            time.sleep(5)
+        """
+        #File filter
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.connect((HOST, PORT))
+        s.send(packet)
+        data = s.recv(1024)
+        print data
+        #if data == "Trace is ready!":
+        #    data = s.recv(1024)
+        s.close()
+        #
+        #while len(msg) < MSGLEN:
+        #   chunk = s.recv(MSGLEN-len(msg))
+        #   if chunk = '';
+        #       raise RuneTimeError("socket connect broken")
+        #   msg = msg + chunk
+        #
+        with open('trace.txt', 'w') as f:
+            f.write(data)
             
