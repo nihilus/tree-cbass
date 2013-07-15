@@ -107,11 +107,22 @@ class IDATrace():
             idc.DelBpt(self.taintStart)
         
         #Add a new starting breakpoint
-        self.taintStart = idc.ScreenEA()
-        Print( idc.GetDisasm(self.taintStart) )
+        self.taintStart = idc.here()
+        instruction =  idc.GetDisasm(self.taintStart)
+        Print( instruction )
         idc.AddBpt(self.taintStart)
         idc.SetBptAttr(self.taintStart, idc.BPT_BRK, 0)
-        idc.SetBptCnd(self.taintStart, "interactivemodeCallback.startTrace()")
+        
+        callbackAddr = "interactivemodeCallback.startTrace()"
+        customCallbackFuncs = ['ReadFile','recv']
+        
+        for callbackFunc in customCallbackFuncs:
+            if callbackFunc in instruction:
+                callbackAddr = "interactivemodeCallback." + callbackFunc + "()"
+                Print("Found callback function %s for interactive mode" % callbackAddr)
+                break
+        
+        idc.SetBptCnd(self.taintStart, callbackAddr)
     
     """
     This function is the callback function when the user hits the Shift-Z hotkey.
@@ -125,7 +136,7 @@ class IDATrace():
             idc.DelBpt(self.taintStop)
         
         #Add a new stopping breakpoint
-        self.taintStop = idc.ScreenEA()
+        self.taintStop = idc.here()
         Print( idc.GetDisasm(self.taintStop) )
         idc.AddBpt(self.taintStop)
         idc.SetBptAttr(self.taintStop, idc.BPT_BRK, 0)
@@ -186,11 +197,12 @@ class IDATrace():
             Print( "This binary is 32 bit" )
             os_arch = "32"
         else:
-            Print( "Bad binary." )
-            return None
+            Print( "Bad binary. ARM processor?" )
+            os_arch = "ARM"
             
         #Get the file type for the executable being debugger
         fileType = idaapi.get_file_type_name()
+        #For ARM libraries returns 'ELF for ARM (Shared object)
         Print( fileType )
         
         return (app_name,os_type,os_arch)
@@ -224,6 +236,10 @@ class IDATrace():
                 processConfig.debugger = "win32"
             elif osType == "linux":
                 processConfig.debugger = "linux"
+                
+            if osArch == "ARM":
+                processConfig.debugger = "Remote ARM Linux/Android debugger"
+                #processConfig.debugger = "Remote GDB debugger"
             
             self.config.write(processConfig)
             Print( "Saving new process configuration" )
@@ -232,7 +248,16 @@ class IDATrace():
     
     def setDebuggerOptions(self,processConfig,interactiveMode):
         
-        from dispatcher.core.structures.Tracer.ETDbgHook import ETDbgHook as ETDbgHook
+        if processConfig.getOsArch() == 'ARM':
+            from dispatcher.core.structures.Tracer.ETDbgHookMobile import ETDbgHookMobile as ETDbgHook
+            port = 23946
+            host = "localhost"
+            _pass = ""
+        else:
+            from dispatcher.core.structures.Tracer.ETDbgHook import ETDbgHook as ETDbgHook
+            port = 0
+            host = ""
+            _pass = ""
  
         path  = processConfig.getPath()
 
@@ -247,10 +272,6 @@ class IDATrace():
             port  = int(processConfig.getPort())
             host  = processConfig.getHost()
             _pass = processConfig.getPass()
-        else:
-            port = 0
-            host = ""
-            _pass = ""
             
         #Use the win32 debugger as our debugger of choice
         #You can can between these debuggers: win32, linux, mac
@@ -361,9 +382,6 @@ class IDATrace():
             idc.Warning("%s is not running.  Please start the process first." % process_name)
         else:
             ret = idc.AttachProcess(PID, -1)
-            """
-            if ret != -1:
-                idc.Warning("Error attaching to %s" % process_name)
-            """
+        
             
         

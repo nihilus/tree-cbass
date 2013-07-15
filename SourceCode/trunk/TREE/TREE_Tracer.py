@@ -62,7 +62,7 @@ class TreeTracerPluginFormClass(PluginForm):
         time_before = time.time()
         
         Print ("[/] setting up widgets...")
-        global windowsFileIO,windowsNetworkIO,linuxFileIO
+        global windowsFileIO,windowsNetworkIO,linuxFileIO,interactivemodeCallback
         
         windowsFileIO = WindowsApiCallbacks.FileIO()
         windowsNetworkIO = WindowsApiCallbacks.NetworkIO()

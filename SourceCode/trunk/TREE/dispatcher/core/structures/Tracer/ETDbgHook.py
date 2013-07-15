@@ -49,6 +49,7 @@ class ETDbgHook(DBG_Hooks):
         self.xDecoder32 = x86Decoder(isa_bits,32, hostOS)
 
         self.memoryWriter = BufferWriter()
+        self.memoryWriter.fileOpen(traceFile)
 
         self.checkInput = None
         self.bCheckFileIO = False
@@ -75,7 +76,7 @@ class ETDbgHook(DBG_Hooks):
         self.memoryWriter.writeToFile("T 0x%x %d\n" % ( ea, code))
         data = self.memoryWriter.getBufferData()
         self.takeSnapshot(data)
-      #  self.memoryWriter.fileClose(data)
+        self.memoryWriter.fileClose(data)
             
     def dbg_library_unload(self, pid, tid, ea, info):
         """
@@ -98,6 +99,11 @@ class ETDbgHook(DBG_Hooks):
         This is a standard IDA Debug Hook callback
         """
         self.logger.info("Process detached, pid=%d tid=%d ea=0x%x" % (pid, tid, ea))
+
+        self.memoryWriter.writeToFile("T 0x%x\n" % ( ea))
+        data = self.memoryWriter.getBufferData()
+        self.takeSnapshot(data)
+        self.memoryWriter.fileClose(data)
       
     def dbg_library_load(self, pid, tid, ea, name, base, size):
         """
@@ -372,7 +378,7 @@ class ETDbgHook(DBG_Hooks):
         Notified when the debugger steps over command is called
         This is a standard IDA Debug Hook callback
         """
-        eip = GetRegValue("EIP") 
+        eip = here()
         self.logger.info("StepOver: 0x%x %s" % (eip, GetDisasm(eip)))
     
     def dbg_information(self, pid, tid, ea, info):
@@ -404,9 +410,20 @@ class ETDbgHook(DBG_Hooks):
         Notified when the step until ret command is called
         This is a standard IDA Debug Hook callback
         """
-        eip = GetRegValue("EIP") 
+        eip = here()
         self.logger.info("dbg_step_until_ret: 0x%x %s" % (eip, GetDisasm(eip)))
         
+    def startTrace(self):
+        self.startTracing = True
+        PauseProcess()
+
+    def stopTrace(self):
+        self.startTracing = False
+        #PauseProcess()
+        
+        idaapi.request_detach_process()
+        idaapi.run_requests()
+
     def callbackProcessing(self,inputLoggingList):
         """
         This function is a callback from the API monitoring functions
