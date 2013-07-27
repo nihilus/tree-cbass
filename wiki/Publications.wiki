@@ -1,0 +1,11 @@
+#summary One-sentence summary of this page.
+
+= Introduction =
+
+TREE and CBASS are built on top of our research in the past years. Following is the list of the most recent ones.
+
+= Related Publications =
+
+"Dynamic analysis and debugging of binary code for security applications," Lixin (Nathan) Li and Chao Wang. International Conference on Runtime Verification (RV'13). Rennes, France. 2013.
+
+"CBASS: Cross-platform Binary Automated Symbolic-execution System," Lixin (Nathan) Li, Xing Li, and James E. Just, The 42nd Annual IEEE/IFIP International Conference on Dependable Systems and Networks Supplemental, 2012.
