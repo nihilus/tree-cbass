@@ -2,8 +2,8 @@
 
 = Introduction =
 
-TREE - Taint-enabled Reverse En
-CBASS - 
+TREE - Taint-enabled Reverse Engineering Environment
+CBASS - Cross-platform Binary Automated Symbolic-execution System
 
 
 = Details =
