@@ -11,4 +11,4 @@ http://code.google.com/p/tree-cbass/source/browse/SourceCode/trunk/TREE/document
 
 
 "CBASS: Cross-platform Binary Automated Symbolic-execution System," Lixin (Nathan) Li, Xing Li, and James E. Just, The 42nd Annual IEEE/IFIP International Conference on Dependable Systems and Networks Supplemental, 2012.
-http://code.google.com/p/tree-cbass/source/browse/SourceCode/trunk/TREE/documentation/CBASS_DSN12.pdf
+http://code.google.com/p/tree-cbass/source/browse/SourceCode/trunk/TREE/documentation/CBASS_DSN2012.pdf
