@@ -5,5 +5,4 @@
 Videos and Demos for Specific Features and Usages
 
 = Details =
-
-https://code.google.com/p/tree-cbass/source/browse/Tutorial/tree-tutorial1.zip
+ * [https://code.google.com/p/tree-cbass/source/browse/Tutorial/tree-tutorial1.zip Tutorial 1]
