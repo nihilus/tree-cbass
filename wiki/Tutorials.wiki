@@ -8,3 +8,8 @@ Videos and Demos for Specific Features and Usages
 
 *2013-Aug-08*: 
   * [https://code.google.com/p/tree-cbass/source/browse/Tutorial/tree-tutorial1.zip Tutorial 1] - Taint Data Policy Demo
+
+*2013-Aug-15*: 
+  * [https://code.google.com/p/tree-cbass/source/browse/Tutorial/TREE-tutorial2.zip Tutorial 2] - Interactive Path Exploration
+
+  * [https://code.google.com/p/tree-cbass/source/browse/Tutorial/cbass_automated_fuzz_tutorial3.mp4 Tutorial 3] - Automated Path Exploration
