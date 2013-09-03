@@ -8,4 +8,4 @@ PySide was released under the LGPL in August 2009 by Nokia, the former owners of
 
 PySide supports Linux/X11, Mac OS X, Windows and Maemo. Support for Android and Symbian is currently being added by the PySide community.
 
-[http://en.wikipedia.org/wiki/PySide Source]
+[http://en.wikipedia.org/wiki/PySide Reference]
