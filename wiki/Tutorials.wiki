@@ -13,3 +13,8 @@ Videos and Demos for Specific Features and Usages
   * [https://code.google.com/p/tree-cbass/source/browse/Tutorial/TREE_tutorial2.zip Tutorial 2] - Interactive Path Exploration
 
   * [https://code.google.com/p/tree-cbass/source/browse/Tutorial/cbass_automated_fuzz_tutorial3.mp4 Tutorial 3] - Automated Path Exploration
+
+*2013-Sep-27*: 
+  * [https://code.google.com/p/tree-cbass/source/browse/Tutorial/android_tracing_4.mp4 Tutorial 4] - Android Device Tracing
+
+  * [https://code.google.com/p/tree-cbass/source/browse/Tutorial/RV13_Tutorial_Final_Open.pdf Tutorial RV13] - Tutorial at Runtime Verification 2013 (RV'13)
